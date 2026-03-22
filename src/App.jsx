@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "./supabase";
 
 // ─── Brand tokens ─────────────────────────────────────────────
 const B = {
@@ -261,6 +262,20 @@ export default function ChomaUK() {
 // ════════════════════════════════════════════════════════════════
 function CustomerPage({ onOrderPlaced }) {
   const [cart,  setCart]  = useState({});
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(true);
+  useEffect(() => {
+  const fetchMenu = async () => {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select('*')
+      .eq('available', true)
+      .order('category');
+    if (!error) setMenuItems(data);
+    setMenuLoading(false);
+  };
+  fetchMenu();
+  }, []);
   const [step,  setStep]  = useState("menu"); // menu|checkout|payment|confirmed
   const [info,  setInfo]  = useState({ name:"",phone:"",email:"",postcode:"",address:"",note:"" });
   const [placed,setPlaced]= useState(null);
@@ -277,7 +292,7 @@ function CustomerPage({ onOrderPlaced }) {
   const subtotal = Object.entries(cart).reduce((s,[id,q])=>{ const m=MENU.find(m=>m.id===id); return s+(m?m.price*q:0); },0);
   const total = subtotal + (zone ? deliveryFee : 0);
   const count = Object.values(cart).reduce((s,q)=>s+q,0);
-  const shown = MENU.filter(m=>m.available&&(filter==="All"||m.cat===filter));
+  const shown = menuItems.filter(m => filter === "All" || m.category === filter);
 
   // ── Allergen modal ──
   const allergenItem = MENU.find(m=>m.id===showAllergens);
@@ -393,9 +408,9 @@ function CustomerPage({ onOrderPlaced }) {
               <span style={{ fontSize:16 }}>🔒</span>
               256-bit SSL encryption · Powered by Stripe
             </div>
-            <Btn full v="stripe" onClick={()=>{
+            <Btn full v="stripe" onClick={async ()=>{
               setPayStep("processing");
-              setTimeout(()=>{
+              setTimeout(async ()=>{
                 const o = {
                   id:`CHO${Date.now().toString().slice(-3)}`,
                   customer:info.name, phone:info.phone.replace(/\D/g,""),
@@ -407,7 +422,24 @@ function CustomerPage({ onOrderPlaced }) {
                   status:"New", time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
                   rider:null, paymentMethod:"Stripe card", paid:true,
                 };
-                onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
+                await supabase.from('orders').insert([{
+  id: o.id,
+  customer_name: o.customer,
+  customer_phone: o.phone,
+  customer_email: o.email,
+  delivery_address: o.address,
+  postcode: o.postcode,
+  delivery_zone: o.zone,
+  delivery_fee: o.deliveryFee,
+  subtotal: o.subtotal,
+  total: o.total,
+  status: 'New',
+  payment_method: o.paymentMethod,
+  paid: false,
+  note: o.note,
+  items: o.items,
+}]);
+onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
               },2000);
             }}>Pay {fmt(total)} securely</Btn>
             <div style={{ marginTop:12,textAlign:"center",fontSize:12,color:B.textMid }}>
@@ -625,7 +657,7 @@ function CustomerPage({ onOrderPlaced }) {
                   fontSize:28,flexShrink:0 }}>{m.emoji}</div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:15,fontWeight:700,color:B.text }}>{m.name}</div>
-                  <div style={{ fontSize:12,color:B.textMid,marginTop:2,lineHeight:1.5 }}>{m.desc}</div>
+                  <div style={{ fontSize:12,color:B.textMid,marginTop:2,lineHeight:1.5 }}>{m.description}</div>
                   <div style={{ display:"flex",gap:8,marginTop:6,alignItems:"center",flexWrap:"wrap" }}>
                     <span style={{ fontSize:15,fontWeight:800,color:B.red }}>{fmt(m.price)}</span>
                     <span style={{ fontSize:11,color:B.textMid }}>{m.portion}</span>

@@ -131,7 +131,7 @@ function useOrders() {
 // ─── Shared atoms ──────────────────────────────────────────────
 function Pill({ s }) {
   const c = SS[s]||{bg:B.surface,color:B.textMid};
-  return <span style={{padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:700,
+  return <span style={{padding:"4px 12px",borderRadius:20,fontSize:13,fontWeight:700,
     background:c.bg,color:c.color,whiteSpace:"nowrap"}}>{s}</span>;
 }
 
@@ -177,7 +177,7 @@ function Input({ label, value, onChange, placeholder, type="text", hint }) {
         fontSize:16,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}
       onFocus={e=>e.target.style.borderColor=B.primary}
       onBlur={e=>e.target.style.borderColor=B.border}/>
-    {hint&&<div style={{fontSize:12,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
+    {hint&&<div style={{fontSize:13,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
   </div>;
 }
 
@@ -191,10 +191,10 @@ function Section({ title, children, style={} }) {
 
 function AllergenBadges({ allergens }) {
   const icons = {gluten:"🌾",dairy:"🥛",eggs:"🥚",nuts:"🥜",soya:"🫘",fish:"🐟",celery:"🥬",mustard:"🟡"};
-  if(!allergens?.length) return <span style={{fontSize:12,color:B.green,fontWeight:600}}>✓ No major allergens</span>;
+  if(!allergens?.length) return <span style={{fontSize:13,color:B.green,fontWeight:600}}>✓ No major allergens</span>;
   return <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:6}}>
     {allergens.map(a=>(
-      <span key={a} style={{fontSize:11,background:B.goldLight,color:B.gold,
+      <span key={a} style={{fontSize:12,background:B.goldLight,color:B.gold,
         borderRadius:6,padding:"2px 8px",fontWeight:600,border:`1px solid ${B.gold}30`}}>
         {icons[a]||"⚠️"} {a}
       </span>
@@ -263,7 +263,7 @@ function OrderSuccessPage({ orderId, onDone }) {
         <Card style={{marginBottom:14,background:B.cardWarm}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
-              <div style={{fontSize:12,color:B.textMid,fontWeight:700,textTransform:"uppercase",
+              <div style={{fontSize:13,color:B.textMid,fontWeight:700,textTransform:"uppercase",
                 letterSpacing:0.5,marginBottom:4}}>Order number</div>
               <div style={{fontSize:22,fontWeight:800,color:B.text}}>{o.id}</div>
             </div>
@@ -322,7 +322,7 @@ function OrderSuccessPage({ orderId, onDone }) {
           <Btn full v="ghost" onClick={onDone}>Order again</Btn>
         </div>
 
-        <div style={{marginTop:20,textAlign:"center",fontSize:12,color:B.textDim,lineHeight:1.7}}>
+        <div style={{marginTop:20,textAlign:"center",fontSize:13,color:B.textDim,lineHeight:1.7}}>
           Questions? WhatsApp us on +44 7823 644323<br/>
           AfroCrave Kitchen · Authentic Nigerian Home Cooking
         </div>
@@ -365,11 +365,13 @@ export default function AfroCraveApp() {
 
   return (
     <div style={{minHeight:"100vh",background:B.bg,display:"flex",flexDirection:"column",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",maxWidth:600,margin:"0 auto"}}>
+      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",width:"100%",
+      overflowX:"hidden"}}>
       {/* Top nav bar */}
       <div style={{background:B.card,borderBottom:`1px solid ${B.divider}`,
         padding:"10px 16px",flexShrink:0,position:"sticky",top:0,zIndex:100,
-        boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+        boxShadow:"0 2px 12px rgba(0,0,0,0.06)",width:"100%",
+        boxSizing:"border-box"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
           marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -379,12 +381,12 @@ export default function AfroCraveApp() {
               <div style={{fontSize:16,fontWeight:800,color:B.text,letterSpacing:-0.3}}>
                 AfroCrave Kitchen
               </div>
-              <div style={{fontSize:11,color:B.primary,fontWeight:600,letterSpacing:0.5}}>
+              <div style={{fontSize:13,color:B.primary,fontWeight:600,letterSpacing:0.5}}>
                 AUTHENTIC NIGERIAN CUISINE
               </div>
             </div>
           </div>
-          <div style={{fontSize:10,color:B.textDim,fontWeight:600,letterSpacing:1,
+          <div style={{fontSize:13,color:B.textDim,fontWeight:600,letterSpacing:1,
             textTransform:"uppercase",textAlign:"right",lineHeight:1.4}}>
             Powered by<br/>
             <span style={{color:B.primary,fontWeight:800}}>Choma</span>
@@ -395,7 +397,7 @@ export default function AfroCraveApp() {
             <button key={t.id} onClick={()=>{setView(t.id);
               if(t.id==="cook") setCookBadge(0);
               if(t.id==="rider") setRiderBadge(0);}}
-              style={{flex:1,padding:"8px 4px",borderRadius:12,fontSize:12,fontWeight:700,
+              style={{flex:1,padding:"8px 4px",borderRadius:12,fontSize:13,fontWeight:700,
                 cursor:"pointer",border:"none",position:"relative",letterSpacing:0.2,
                 background:view===t.id?B.primary:B.surface,
                 color:view===t.id?"#fff":B.textMid,transition:"all 0.15s"}}>
@@ -488,7 +490,7 @@ function CustomerPage({ onOrderPlaced }) {
   // ── Payment ──
   if(step==="payment") return (
     <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      <div style={{maxWidth:520,margin:"0 auto",padding:"24px 20px 60px"}}>
+      <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
           style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
             padding:"10px 16px",color:B.textMid,fontSize:14,cursor:"pointer",
@@ -532,7 +534,7 @@ function CustomerPage({ onOrderPlaced }) {
               </div>
               <div style={{display:"flex",gap:8}}>
                 {["💳 Visa","💳 Mastercard","💳 Amex"].map(c=>(
-                  <span key={c} style={{fontSize:12,color:B.textMid,background:B.card,
+                  <span key={c} style={{fontSize:13,color:B.textMid,background:B.card,
                     border:`1px solid ${B.border}`,borderRadius:8,padding:"4px 10px",fontWeight:600}}>
                     {c}
                   </span>
@@ -618,7 +620,7 @@ function CustomerPage({ onOrderPlaced }) {
   // ── Checkout ──
   if(step==="checkout") return (
     <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      <div style={{maxWidth:520,margin:"0 auto",padding:"24px 20px 60px"}}>
+      <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>setStep("menu")} style={{background:B.card,
           border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
           color:B.textMid,fontSize:14,cursor:"pointer",marginBottom:24,
@@ -735,7 +737,7 @@ function CustomerPage({ onOrderPlaced }) {
                 Privacy Policy
               </span>
               {" "}and consent to my data being processed to fulfil this order.
-              <span style={{display:"block",marginTop:4,fontSize:12,color:B.textDim}}>
+              <span style={{display:"block",marginTop:4,fontSize:13,color:B.textDim}}>
                 UK GDPR compliant · You can request deletion at any time
               </span>
             </div>
@@ -761,8 +763,8 @@ function CustomerPage({ onOrderPlaced }) {
     <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
       {/* Hero */}
       <div style={{background:`linear-gradient(160deg, #2A1208 0%, #5C2A08 50%, #8A4510 100%)`,
-        padding:"24px 24px 22px",color:"#fff",position:"relative",overflow:"hidden",
-        textAlign:"center"}}>
+        padding:"24px 16px 22px",color:"#fff",position:"relative",overflow:"hidden",
+        textAlign:"center",width:"100%",boxSizing:"border-box"}}>
         {/* decorative circles */}
         <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,
           borderRadius:"50%",background:"rgba(255,255,255,0.04)"}}/>
@@ -791,7 +793,7 @@ function CustomerPage({ onOrderPlaced }) {
               <div key={tx} style={{
                 background:"rgba(245,200,66,0.15)",
                 border:"1px solid rgba(245,200,66,0.3)",
-                borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:700,
+                borderRadius:20,padding:"7px 14px",fontSize:13,fontWeight:700,
                 color:"rgba(255,255,255,0.95)",letterSpacing:0.3}}>
                 {tx}
               </div>
@@ -801,7 +803,7 @@ function CustomerPage({ onOrderPlaced }) {
       </div>
 
       {/* Allergen notice */}
-      <div style={{margin:"16px 20px 0",padding:"12px 16px",background:B.goldLight,
+      <div style={{margin:"12px 12px 0",padding:"12px 14px",background:B.goldLight,
         border:`1px solid ${B.gold}30`,borderRadius:12,
         fontSize:13,color:B.gold,lineHeight:1.6,fontWeight:500}}>
         ⚠️ <strong>Allergen info:</strong> Tap any item to see allergen details.
@@ -809,7 +811,8 @@ function CustomerPage({ onOrderPlaced }) {
       </div>
 
       {/* Category filters */}
-      <div style={{padding:"16px 20px 8px",display:"flex",gap:8,overflowX:"auto"}}>
+      <div style={{padding:"12px 12px 8px",display:"flex",gap:8,overflowX:"auto",
+        WebkitOverflowScrolling:"touch"}}>
         {["All",...cats].map(f=>(
           <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 18px",borderRadius:20,
             fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
@@ -822,7 +825,7 @@ function CustomerPage({ onOrderPlaced }) {
       </div>
 
       {/* Menu items */}
-      <div style={{padding:"8px 20px 20px"}}>
+      <div style={{padding:"8px 12px 20px"}}>
         {shown.length===0&&(
           <div style={{textAlign:"center",padding:"40px 20px",color:B.textMid}}>
             <div style={{fontSize:40,marginBottom:12}}>🍳</div>
@@ -849,17 +852,17 @@ function CustomerPage({ onOrderPlaced }) {
                     <span style={{fontSize:18,fontWeight:800,color:B.primary}}>
                       {fmt(m.price)}
                     </span>
-                    {m.portion&&<span style={{fontSize:12,color:B.textDim}}>{m.portion}</span>}
-                    {m.calories&&<span style={{fontSize:12,color:B.textDim}}>{m.calories} kcal</span>}
+                    {m.portion&&<span style={{fontSize:13,color:B.textDim}}>{m.portion}</span>}
+                    {m.calories&&<span style={{fontSize:13,color:B.textDim}}>{m.calories} kcal</span>}
                   </div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
                     {m.is_halal&&(
-                      <span style={{fontSize:11,background:B.greenSoft,color:B.green,
+                      <span style={{fontSize:12,background:B.greenSoft,color:B.green,
                         borderRadius:6,padding:"2px 8px",fontWeight:700,
                         border:`1px solid ${B.green}20`}}>✓ Halal</span>
                     )}
                     {m.is_vegan&&(
-                      <span style={{fontSize:11,background:B.purpleSoft,color:B.purple,
+                      <span style={{fontSize:12,background:B.purpleSoft,color:B.purple,
                         borderRadius:6,padding:"2px 8px",fontWeight:700}}>🌱 Vegan</span>
                     )}
                     <button onClick={()=>setShowAllergens(showAllergens===m.id?null:m.id)}
@@ -906,10 +909,10 @@ function CustomerPage({ onOrderPlaced }) {
       {/* Sticky cart button */}
       {count>0&&(
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
-          width:"100%",maxWidth:600,padding:"16px 20px 24px",
+          width:"100%",padding:"12px 12px 20px",
           background:`linear-gradient(transparent, ${B.bg} 30%)`,pointerEvents:"none"}}>
           <button onClick={()=>setStep("checkout")}
-            style={{width:"100%",padding:"18px 24px",borderRadius:18,
+            style={{width:"100%",padding:"16px 20px",borderRadius:18,
               background:`linear-gradient(135deg, ${B.primary}, ${B.gold})`,
               color:"#fff",border:"none",cursor:"pointer",
               fontWeight:800,fontSize:16,display:"flex",alignItems:"center",
@@ -958,17 +961,19 @@ function CookDashboard() {
   };
 
   return (
-    <div style={{height:"100%",background:B.bg,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div style={{height:"100%",background:B.bg,display:"flex",flexDirection:"column",
+      overflow:"hidden",width:"100%"}}>
       {/* Header */}
-      <div style={{padding:"16px 20px 12px",background:B.card,
-        borderBottom:`1px solid ${B.divider}`,flexShrink:0}}>
+      <div style={{padding:"14px 16px 12px",background:B.card,
+        borderBottom:`1px solid ${B.divider}`,flexShrink:0,width:"100%",
+        boxSizing:"border-box"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div>
             <div style={{fontSize:20,fontWeight:800,color:B.text}}>🍳 Kitchen live</div>
             <div style={{fontSize:13,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
           </div>
           <div style={{textAlign:"right"}}>
-            <div style={{fontSize:11,color:B.textMid,fontWeight:700,textTransform:"uppercase"}}>
+            <div style={{fontSize:13,color:B.textMid,fontWeight:700,textTransform:"uppercase"}}>
               Today's revenue
             </div>
             <div style={{fontSize:20,fontWeight:800,color:B.green}}>{fmt(todayRev)}</div>
@@ -1026,7 +1031,7 @@ function CookDashboard() {
                 alignItems:"flex-start",marginBottom:6}}>
                 <div>
                   <div style={{fontSize:15,fontWeight:700,color:B.text}}>{o.customer}</div>
-                  <div style={{fontSize:12,color:B.textDim}}>{o.id} · {o.postcode}</div>
+                  <div style={{fontSize:13,color:B.textDim}}>{o.id} · {o.postcode}</div>
                 </div>
                 <Pill s={o.status}/>
               </div>
@@ -1036,8 +1041,8 @@ function CookDashboard() {
                 </span>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   {o.paid
-                    ?<span style={{fontSize:12,color:B.green,fontWeight:700}}>💳 Paid</span>
-                    :<span style={{fontSize:12,color:B.gold,fontWeight:700}}>⏳ Awaiting</span>}
+                    ?<span style={{fontSize:13,color:B.green,fontWeight:700}}>💳 Paid</span>
+                    :<span style={{fontSize:13,color:B.gold,fontWeight:700}}>⏳ Awaiting</span>}
                   <span style={{fontSize:14,fontWeight:800,color:B.primary}}>{fmt(o.total)}</span>
                 </div>
               </div>
@@ -1047,7 +1052,8 @@ function CookDashboard() {
 
         {/* Detail panel */}
         {sel&&(
-          <div style={{flex:1,overflowY:"auto",padding:"16px 18px"}}>
+          <div style={{flex:1,overflowY:"auto",padding:"14px 14px",
+            boxSizing:"border-box"}}>
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"center",marginBottom:14}}>
               <div style={{fontSize:16,fontWeight:800,color:B.text}}>{sel.customer}</div>
@@ -1153,7 +1159,7 @@ function RiderApp() {
       <div style={{padding:"20px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
           <Card style={{background:B.greenSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
-            <div style={{fontSize:12,color:B.green,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Today</div>
+            <div style={{fontSize:13,color:B.green,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Today</div>
             <div style={{fontSize:30,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
           </Card>
           <Card style={{background:B.blueSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
@@ -1164,7 +1170,7 @@ function RiderApp() {
         <Card style={{marginBottom:20,background:B.goldLight,borderColor:"transparent"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
-              <div style={{fontSize:12,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
+              <div style={{fontSize:13,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
               <div style={{fontSize:26,fontWeight:800,color:B.gold}}>£4.50</div>
             </div>
             <div style={{fontSize:40}}>🛵</div>
@@ -1274,10 +1280,12 @@ function RiderApp() {
   }
 
   return (
-    <div style={{background:B.bg,minHeight:"100%",display:"flex",flexDirection:"column"}}>
+    <div style={{background:B.bg,minHeight:"100%",display:"flex",flexDirection:"column",
+      width:"100%",boxSizing:"border-box"}}>
       {/* Header */}
-      <div style={{padding:"18px 20px 14px",background:B.card,
-        borderBottom:`1px solid ${B.border}`,flexShrink:0}}>
+      <div style={{padding:"14px 16px 12px",background:B.card,
+        borderBottom:`1px solid ${B.border}`,flexShrink:0,width:"100%",
+        boxSizing:"border-box"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
             <div style={{fontSize:22,fontWeight:800,color:B.text}}>Hey {RIDER} 🛵</div>
@@ -1286,7 +1294,7 @@ function RiderApp() {
           <button onClick={()=>setScreen("earnings")}
             style={{background:B.greenSoft,border:`1px solid ${B.green}30`,
               borderRadius:14,padding:"10px 16px",cursor:"pointer",textAlign:"center"}}>
-            <div style={{fontSize:11,color:B.green,fontWeight:700,textTransform:"uppercase"}}>Today</div>
+            <div style={{fontSize:13,color:B.green,fontWeight:700,textTransform:"uppercase"}}>Today</div>
             <div style={{fontSize:18,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
           </button>
         </div>
@@ -1300,7 +1308,8 @@ function RiderApp() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"14px 16px",width:"100%",
+        boxSizing:"border-box"}}>
         {/* Active */}
         {mine.length>0&&(
           <>
@@ -1350,7 +1359,7 @@ function RiderApp() {
               </div>
               <div style={{background:B.goldLight,border:`1px solid ${B.gold}25`,
                 borderRadius:12,padding:"8px 12px",textAlign:"center"}}>
-                <div style={{fontSize:11,color:B.gold,fontWeight:700}}>Earning</div>
+                <div style={{fontSize:13,color:B.gold,fontWeight:700}}>Earning</div>
                 <div style={{fontSize:16,fontWeight:800,color:B.gold}}>£4.50</div>
               </div>
             </div>
@@ -1465,7 +1474,7 @@ function TrackingPage() {
             {orders.slice(0,4).map(o=>(
               <button key={o.id}
                 onClick={()=>{setOid(o.id);setFound(o);setSearched(true);}}
-                style={{padding:"6px 14px",borderRadius:20,fontSize:12,fontWeight:700,
+                style={{padding:"6px 14px",borderRadius:20,fontSize:13,fontWeight:700,
                   background:B.surface,border:`1px solid ${B.border}`,
                   color:B.textMid,cursor:"pointer"}}>
                 {o.id}
@@ -1555,7 +1564,7 @@ function TrackingPage() {
 
             {/* Delivery info */}
             <Card style={{marginBottom:16}}>
-              <div style={{fontSize:11,color:B.textMid,fontWeight:700,
+              <div style={{fontSize:13,color:B.textMid,fontWeight:700,
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>Delivering to</div>
               <div style={{fontSize:15,color:B.text,fontWeight:500,marginBottom:4}}>
                 📍 {found.address}

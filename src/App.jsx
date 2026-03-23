@@ -373,9 +373,8 @@ export default function AfroCraveApp() {
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
           marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:36,height:36,borderRadius:10,
-              background:`linear-gradient(135deg,${B.primary},${B.gold})`,
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🍳</div>
+            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+              style={{width:44,height:44,borderRadius:10,objectFit:"cover",flexShrink:0}}/>
             <div>
               <div style={{fontSize:16,fontWeight:800,color:B.text,letterSpacing:-0.3}}>
                 AfroCrave Kitchen
@@ -769,6 +768,9 @@ function CustomerPage({ onOrderPlaced }) {
         <div style={{position:"absolute",bottom:-60,left:-30,width:160,height:160,
           borderRadius:"50%",background:"rgba(212,88,10,0.15)"}}/>
         <div style={{position:"relative",zIndex:1}}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+            style={{width:100,height:100,borderRadius:20,objectFit:"cover",
+              marginBottom:14,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}/>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.6)",fontWeight:600,
             letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>
             Home Kitchen · Sunderland

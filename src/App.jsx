@@ -331,13 +331,100 @@ function OrderSuccessPage({ orderId, onDone }) {
   );
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// SPLASH SCREEN
+// ════════════════════════════════════════════════════════════════
+function SplashScreen({ onDone }) {
+  const [fade, setFade] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setFade(true), 1800);
+    const t2 = setTimeout(() => onDone(), 2400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9999,
+      background:"linear-gradient(160deg, #2A1208 0%, #5C2A08 55%, #8A4510 100%)",
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      transition:"opacity 0.6s ease",
+      opacity: fade ? 0 : 1,
+      pointerEvents: fade ? "none" : "all",
+    }}>
+      {/* Decorative circles */}
+      <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,
+        borderRadius:"50%",background:"rgba(255,255,255,0.03)"}}/>
+      <div style={{position:"absolute",bottom:-80,left:-40,width:200,height:200,
+        borderRadius:"50%",background:"rgba(212,88,10,0.12)"}}/>
+
+      {/* Logo */}
+      <div style={{position:"relative",zIndex:1,textAlign:"center"}}>
+        <div style={{
+          width:120, height:120, borderRadius:28,
+          overflow:"hidden", margin:"0 auto 20px",
+          boxShadow:"0 16px 48px rgba(0,0,0,0.5)",
+          border:"2px solid rgba(245,200,66,0.3)",
+        }}>
+          <img src="/Logo_AfrocraveKitchen.webp"
+            alt="AfroCrave Kitchen"
+            style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        </div>
+
+        <div style={{fontSize:13,color:"rgba(245,200,66,0.8)",fontWeight:700,
+          letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>
+          ✦ Powered by Choma ✦
+        </div>
+
+        <div style={{fontSize:32,fontWeight:900,color:"#fff",letterSpacing:-0.5,
+          marginBottom:6,textShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+          AfroCrave Kitchen
+        </div>
+
+        <div style={{fontSize:15,color:"rgba(255,255,255,0.65)",fontWeight:400,
+          letterSpacing:0.3}}>
+          Authentic Nigerian Home Cooking
+        </div>
+
+        {/* Loading dots */}
+        <div style={{display:"flex",gap:8,justifyContent:"center",marginTop:32}}>
+          {[0,1,2].map(i=>(
+            <div key={i} style={{
+              width:8, height:8, borderRadius:"50%",
+              background:"rgba(245,200,66,0.6)",
+              animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`,
+            }}/>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // ROOT
 // ════════════════════════════════════════════════════════════════
 export default function AfroCraveApp() {
+  const [showSplash, setShowSplash] = useState(true);
   const [view, setView] = useState("customer");
   const [cookBadge,  setCookBadge]  = useState(0);
   const [riderBadge, setRiderBadge] = useState(0);
+
+  // Register service worker for PWA
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(console.error);
+    }
+  }, []);
 
   const params = new URLSearchParams(window.location.search);
   const successOrderId = params.get("order");
@@ -351,6 +438,8 @@ export default function AfroCraveApp() {
     setShowSuccess(false);
     window.history.replaceState({},""," /");
   };
+
+  if(showSplash) return <SplashScreen onDone={()=>setShowSplash(false)}/>;
 
   if(showSuccess && successOrderId) return (
     <OrderSuccessPage orderId={successOrderId} onDone={handleSuccessDone}/>
@@ -803,6 +892,7 @@ function CustomerPage({ onOrderPlaced }) {
       </div>
 
       {/* Allergen notice */}
+      {/* Kitchen status from Supabase would go here - for now managed in cook dashboard */}
       <div style={{margin:"12px 12px 0",padding:"12px 14px",background:B.goldLight,
         border:`1px solid ${B.gold}30`,borderRadius:12,
         fontSize:13,color:B.gold,lineHeight:1.6,fontWeight:500}}>
@@ -938,6 +1028,7 @@ function CookDashboard() {
   const [orders,, fetchOrders] = useOrders();
   const [sel, setSel] = useState(null);
   const [tab, setTab] = useState("live");
+  const [isOpen, setIsOpen] = useState(true);
 
   const NEXT = {"New":"Preparing","Preparing":"Ready","Ready":"Out for delivery","Out for delivery":"Delivered"};
   const live = orders.filter(o=>!["Delivered","Cancelled"].includes(o.status));

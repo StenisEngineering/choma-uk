@@ -48,13 +48,10 @@ const SS = {
   "Cancelled":        { bg:B.surface,     color:B.textMid },
 };
 
-// normalise a raw Supabase order row so the rest of the app
-// can use consistent field names
 function normalise(o) {
   return {
     ...o,
-    items: typeof o.items === "string" ? JSON.parse(o.items) : (o.items || []),
-    // convenient aliases
+    items:         typeof o.items === "string" ? JSON.parse(o.items) : (o.items || []),
     customer:      o.customer_name,
     phone:         o.customer_phone,
     email:         o.customer_email,
@@ -147,28 +144,171 @@ function Section({ title, children, style={} }) {
   </div>;
 }
 
-// ─── Shared hook: fetch orders from Supabase with realtime ────
 function useOrders() {
   const [orders, setOrders] = useState([]);
-
   const fetchOrders = async () => {
     const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .from("orders").select("*").order("created_at", { ascending:false });
     if (!error && data) setOrders(data.map(normalise));
   };
-
   useEffect(() => {
     fetchOrders();
-    const sub = supabase
-      .channel("orders_global")
+    const sub = supabase.channel("orders_global")
       .on("postgres_changes", { event:"*", schema:"public", table:"orders" }, fetchOrders)
       .subscribe();
     return () => supabase.removeChannel(sub);
   }, []);
-
   return [orders, setOrders, fetchOrders];
+}
+
+// ════════════════════════════════════════════════════════════════
+// ORDER SUCCESS PAGE — shown after Stripe payment
+// ════════════════════════════════════════════════════════════════
+function OrderSuccessPage({ orderId, onDone }) {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      // Mark order as paid in Supabase
+      await supabase.from("orders").update({ paid:true, payment_method:"Stripe card" }).eq("id", orderId);
+      // Fetch the full order
+      const { data } = await supabase.from("orders").select("*").eq("id", orderId).single();
+      if (data) setOrder(normalise(data));
+      setLoading(false);
+    };
+    if (orderId) fetch();
+  }, [orderId]);
+
+  if (loading) return (
+    <div style={{ height:"100%",display:"flex",alignItems:"center",justifyContent:"center",
+      background:B.bg }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:40,marginBottom:12 }}>⏳</div>
+        <div style={{ fontSize:16,fontWeight:700,color:B.text }}>Confirming your order…</div>
+      </div>
+    </div>
+  );
+
+  if (!order) return (
+    <div style={{ height:"100%",display:"flex",alignItems:"center",justifyContent:"center",
+      background:B.bg,padding:32 }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:40,marginBottom:12 }}>✅</div>
+        <div style={{ fontSize:18,fontWeight:700,color:B.text,marginBottom:8 }}>Payment successful!</div>
+        <div style={{ fontSize:14,color:B.textMid,marginBottom:24 }}>Your order has been received.</div>
+        <Btn onClick={onDone}>Back to menu</Btn>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ height:"100%",background:B.bg,overflowY:"auto" }}>
+      <div style={{ maxWidth:480,margin:"0 auto",padding:"32px 20px 40px" }}>
+        {/* Success header */}
+        <div style={{ textAlign:"center",marginBottom:28 }}>
+          <div style={{ width:80,height:80,borderRadius:"50%",background:B.greenSoft,
+            border:`3px solid ${B.green}`,display:"flex",alignItems:"center",
+            justifyContent:"center",fontSize:36,margin:"0 auto 16px" }}>✓</div>
+          <div style={{ fontSize:24,fontWeight:800,color:B.text,marginBottom:6 }}>
+            Order confirmed!
+          </div>
+          <div style={{ fontSize:14,color:B.textMid,lineHeight:1.7 }}>
+            Thank you {order.customer.split(" ")[0]}!<br/>
+            Your food is being freshly prepared.
+          </div>
+          <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginTop:12,
+            padding:"6px 14px",background:B.greenSoft,
+            border:`1px solid ${B.green}30`,borderRadius:20 }}>
+            <span style={{ color:B.green,fontWeight:700,fontSize:13 }}>
+              💳 Payment confirmed · Stripe card
+            </span>
+          </div>
+        </div>
+
+        {/* Order ID */}
+        <Card style={{ marginBottom:14,background:B.surface,borderColor:"transparent" }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:11,color:B.textMid,fontWeight:600,
+                textTransform:"uppercase",letterSpacing:0.4 }}>Order number</div>
+              <div style={{ fontSize:18,fontWeight:800,color:B.text,marginTop:2 }}>{order.id}</div>
+            </div>
+            <div style={{ textAlign:"right" }}>
+              <div style={{ fontSize:11,color:B.textMid,fontWeight:600,
+                textTransform:"uppercase",letterSpacing:0.4 }}>Status</div>
+              <div style={{ marginTop:4 }}><Pill s={order.status} /></div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Items ordered */}
+        <Card style={{ marginBottom:14 }}>
+          <div style={{ fontSize:13,fontWeight:700,color:B.text,marginBottom:10 }}>
+            Items ordered
+          </div>
+          {order.items.map((it,i)=>(
+            <div key={i} style={{ display:"flex",justifyContent:"space-between",
+              padding:"8px 0",borderBottom:i<order.items.length-1?`1px solid ${B.divider}`:"none" }}>
+              <span style={{ fontSize:14,color:B.textMid }}>{it.name} ×{it.qty}</span>
+              <span style={{ fontSize:14,fontWeight:600,color:B.text }}>{fmt(it.price*it.qty)}</span>
+            </div>
+          ))}
+          <div style={{ display:"flex",justifyContent:"space-between",
+            padding:"8px 0",borderTop:`1px solid ${B.divider}`,fontSize:13 }}>
+            <span style={{ color:B.textMid }}>Delivery ({order.zone})</span>
+            <span style={{ color:B.text,fontWeight:600 }}>{fmt(order.deliveryFee)}</span>
+          </div>
+          <div style={{ display:"flex",justifyContent:"space-between",
+            paddingTop:10,fontWeight:800,fontSize:16 }}>
+            <span>Total paid</span>
+            <span style={{ color:B.green }}>{fmt(order.total)}</span>
+          </div>
+        </Card>
+
+        {/* Delivery details */}
+        <Card style={{ marginBottom:14 }}>
+          <div style={{ fontSize:13,fontWeight:700,color:B.text,marginBottom:10 }}>
+            Delivery details
+          </div>
+          <div style={{ fontSize:14,color:B.textMid,marginBottom:6 }}>
+            📍 {order.address}
+          </div>
+          <div style={{ fontSize:13,color:B.textMid,marginBottom:6 }}>
+            📮 {order.postcode}
+          </div>
+          {order.note&&(
+            <div style={{ fontSize:13,color:B.orange,fontStyle:"italic" }}>
+              💬 "{order.note}"
+            </div>
+          )}
+          <div style={{ marginTop:10,padding:"8px 10px",background:B.amberLight,
+            borderRadius:8,fontSize:12,color:B.amber,fontWeight:600 }}>
+            ⏱ Estimated delivery: 45–60 minutes
+          </div>
+        </Card>
+
+        {/* Track & WhatsApp */}
+        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:20 }}>
+          <Btn full v="wa" onClick={()=>openWA(order.phone,
+            `Hello ${order.customer.split(" ")[0]} 👋\n\nYour Choma order is confirmed and paid!\n\n`+
+            order.items.map(i=>`${i.name} ×${i.qty}`).join("\n")+
+            `\n\n💰 Total: ${fmt(order.total)}\n📍 Delivering to: ${order.address}\n⏱ Est. 45–60 min 🛵\n\nTrack your order: choma.co.uk/track/${order.id}`)}>
+            💬 Get WhatsApp updates
+          </Btn>
+          <Btn full v="ghost" onClick={onDone}>
+            Order again
+          </Btn>
+        </div>
+
+        {/* Legal footer */}
+        <div style={{ fontSize:11,color:B.textDim,textAlign:"center",lineHeight:1.6 }}>
+          A receipt has been sent to {order.email}<br/>
+          Questions? WhatsApp us at +44 7800 000000
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -179,7 +319,36 @@ export default function ChomaUK() {
   const [cookBadge,  setCookBadge]  = useState(0);
   const [riderBadge, setRiderBadge] = useState(0);
 
+  // Check URL params for Stripe redirect
+  const params = new URLSearchParams(window.location.search);
+  const successOrderId = params.get("order");
+  const isSuccess      = params.get("success") === "true";
+  const isCancelled    = params.get("cancelled") === "true";
+
+  const [showSuccess, setShowSuccess] = useState(isSuccess && !!successOrderId);
+
   const onOrderPlaced = () => setCookBadge(b => b + 1);
+
+  const handleSuccessDone = () => {
+    setShowSuccess(false);
+    // Clean URL
+    window.history.replaceState({}, "", "/");
+  };
+
+  // Show order success page after Stripe redirect
+  if (showSuccess && successOrderId) {
+    return (
+      <div style={{ minHeight:"100vh",background:B.bg,
+        fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif" }}>
+        <OrderSuccessPage orderId={successOrderId} onDone={handleSuccessDone} />
+      </div>
+    );
+  }
+
+  // Show cancelled banner
+  if (isCancelled) {
+    window.history.replaceState({}, "", "/");
+  }
 
   const TABS = [
     { id:"customer", label:"🛒 Customer"                     },
@@ -236,10 +405,10 @@ function CustomerPage({ onOrderPlaced }) {
   const [menuItems,  setMenuItems]  = useState([]);
   const [step,       setStep]       = useState("menu");
   const [info,       setInfo]       = useState({ name:"",phone:"",email:"",postcode:"",address:"",note:"" });
-  const [placed,     setPlaced]     = useState(null);
   const [filter,     setFilter]     = useState("All");
   const [showAllergens, setShowAllergens] = useState(null);
   const [payStep,    setPayStep]    = useState("form");
+  const [payError,   setPayError]   = useState("");
   const [gdpr,       setGdpr]       = useState(false);
 
   useEffect(() => {
@@ -260,7 +429,7 @@ function CustomerPage({ onOrderPlaced }) {
   const shown = menuItems.filter(m => filter==="All" || m.category===filter);
 
   const buildOrder = (paymentMethod) => ({
-    id: `CHO${Date.now().toString().slice(-3)}`,
+    id:            `CHO${Date.now().toString().slice(-4)}`,
     customer:      info.name,
     phone:         info.phone.replace(/\D/g,""),
     email:         info.email,
@@ -276,11 +445,11 @@ function CustomerPage({ onOrderPlaced }) {
     time:          new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
     rider:         null,
     paymentMethod,
-    paid:          paymentMethod === "Stripe card",
+    paid:          false,
   });
 
   const saveOrder = async (o) => {
-    await supabase.from("orders").insert([{
+    const { error } = await supabase.from("orders").insert([{
       id:               o.id,
       customer_name:    o.customer,
       customer_phone:   o.phone,
@@ -297,151 +466,146 @@ function CustomerPage({ onOrderPlaced }) {
       note:             o.note,
       items:            o.items,
     }]);
+    if (error) console.error("Save order error:", error);
+    return o;
   };
-
-  // ── Confirmed ──
-  if (step==="confirmed" && placed) return (
-    <div style={{ height:"100%",background:B.bg,display:"flex",flexDirection:"column",
-      alignItems:"center",justifyContent:"center",padding:32,overflowY:"auto" }}>
-      <div style={{ fontSize:64,marginBottom:14 }}>🎉</div>
-      <div style={{ fontSize:22,fontWeight:800,color:B.text,marginBottom:6,textAlign:"center" }}>Order confirmed!</div>
-      <div style={{ fontSize:14,color:B.textMid,textAlign:"center",lineHeight:1.7,marginBottom:6 }}>
-        Thank you {placed.customer.split(" ")[0]}.<br/>Your food is being freshly prepared.
-      </div>
-      <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:24,padding:"6px 14px",
-        background:B.greenSoft,border:`1px solid ${B.green}30`,borderRadius:20 }}>
-        <span style={{ color:B.green,fontWeight:700,fontSize:13 }}>💳 Payment confirmed · {placed.paymentMethod}</span>
-      </div>
-      <Card style={{ width:"100%",maxWidth:380,marginBottom:20 }}>
-        <div style={{ fontSize:12,color:B.textMid,fontWeight:700,textTransform:"uppercase",
-          letterSpacing:0.4,marginBottom:10 }}>Order summary</div>
-        {placed.items.map((it,i)=>(
-          <div key={i} style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",
-            borderBottom:i<placed.items.length-1?`1px solid ${B.divider}`:"none" }}>
-            <span style={{ fontSize:13,color:B.textMid }}>{it.name} ×{it.qty}</span>
-            <span style={{ fontSize:13,fontWeight:600,color:B.text }}>{fmt(it.price*it.qty)}</span>
-          </div>
-        ))}
-        <div style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",
-          borderTop:`1px solid ${B.divider}`,marginTop:2 }}>
-          <span style={{ fontSize:13,color:B.textMid }}>Delivery ({placed.zone})</span>
-          <span style={{ fontSize:13,color:B.text }}>{fmt(placed.deliveryFee)}</span>
-        </div>
-        <div style={{ display:"flex",justifyContent:"space-between",paddingTop:8,fontWeight:800,fontSize:15 }}>
-          <span>Total</span><span style={{ color:B.red }}>{fmt(placed.total)}</span>
-        </div>
-      </Card>
-      <div style={{ width:"100%",maxWidth:380,display:"flex",flexDirection:"column",gap:10 }}>
-        <Btn full v="wa" onClick={()=>openWA(placed.phone,
-          `Hello ${placed.customer.split(" ")[0]} 👋\n\nYour Choma order is confirmed!\n\n`+
-          placed.items.map(i=>`${i.name} ×${i.qty}`).join("\n")+
-          `\n\nDelivery to: ${placed.postcode}\nEstimated: 45–60 min 🛵\nTrack: choma.co.uk/track/${placed.id}`)}>
-          💬 Get WhatsApp updates
-        </Btn>
-        <Btn full v="ghost" onClick={()=>{ setCart({}); setStep("menu");
-          setInfo({name:"",phone:"",email:"",postcode:"",address:"",note:""}); setGdpr(false); }}>
-          Order again
-        </Btn>
-      </div>
-    </div>
-  );
 
   // ── Payment ──
   if (step==="payment") return (
     <div style={{ height:"100%",background:B.bg,overflowY:"auto" }}>
       <div style={{ maxWidth:520,margin:"0 auto",padding:"20px 20px 40px" }}>
-        <button onClick={()=>setStep("checkout")} style={{ background:B.card,
-          border:`1px solid ${B.border}`,borderRadius:8,padding:"8px 14px",
-          color:B.textMid,fontSize:13,cursor:"pointer",marginBottom:20 }}>‹ Back</button>
+        <button onClick={()=>{ setStep("checkout"); setPayStep("form"); setPayError(""); }}
+          style={{ background:B.card,border:`1px solid ${B.border}`,borderRadius:8,
+            padding:"8px 14px",color:B.textMid,fontSize:13,cursor:"pointer",marginBottom:20 }}>
+          ‹ Back
+        </button>
         <div style={{ fontSize:20,fontWeight:800,color:B.text,marginBottom:4 }}>Secure payment</div>
-        <div style={{ fontSize:13,color:B.textMid,marginBottom:20 }}>Payments processed securely by Stripe</div>
-        <div style={{ background:B.redLight,border:`1px solid ${B.red}25`,borderRadius:12,
-          padding:"12px 16px",marginBottom:20,display:"flex",justifyContent:"space-between" }}>
-          <span style={{ fontSize:14,color:B.textMid }}>Total to pay</span>
-          <span style={{ fontSize:16,fontWeight:800,color:B.red }}>{fmt(total)}</span>
+        <div style={{ fontSize:13,color:B.textMid,marginBottom:20 }}>
+          Powered by Stripe · 256-bit SSL encryption
         </div>
-        {payStep==="form" && (
+        <div style={{ background:B.redLight,border:`1px solid ${B.red}25`,borderRadius:12,
+          padding:"12px 16px",marginBottom:20,display:"flex",justifyContent:"space-between",
+          alignItems:"center" }}>
+          <span style={{ fontSize:14,color:B.textMid }}>Total to pay</span>
+          <span style={{ fontSize:18,fontWeight:800,color:B.red }}>{fmt(total)}</span>
+        </div>
+
+        {payError&&(
+          <div style={{ padding:"12px 14px",background:B.redSoft,border:`1px solid ${B.red}30`,
+            borderRadius:10,marginBottom:14,fontSize:13,color:B.red,fontWeight:600 }}>
+            ⚠️ {payError}
+          </div>
+        )}
+
+        {payStep==="form"&&(
           <>
-            <Card style={{ marginBottom:14 }}>
-              <div style={{ fontSize:13,fontWeight:700,color:B.text,marginBottom:12 }}>Card details</div>
-              <Input label="Cardholder name" value="" onChange={()=>{}} placeholder="Amara Osei" />
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:12,fontWeight:600,color:B.textMid,marginBottom:5,
-                  textTransform:"uppercase",letterSpacing:0.4 }}>Card number</div>
-                <div style={{ padding:"11px 13px",background:B.surface,border:`1.5px solid ${B.border}`,
-                  borderRadius:10,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                  <span style={{ fontSize:14,color:B.textDim }}>1234 5678 9012 3456</span>
-                  <span style={{ fontSize:18 }}>💳</span>
+            <Card style={{ marginBottom:14,background:B.surface,borderColor:"transparent" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
+                <span style={{ fontSize:20 }}>🔒</span>
+                <div>
+                  <div style={{ fontSize:13,fontWeight:700,color:B.text }}>Secure card payment</div>
+                  <div style={{ fontSize:12,color:B.textMid }}>You'll be redirected to Stripe's secure checkout</div>
                 </div>
               </div>
-              <div style={{ display:"flex",gap:10 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:12,fontWeight:600,color:B.textMid,marginBottom:5,
-                    textTransform:"uppercase",letterSpacing:0.4 }}>Expiry</div>
-                  <div style={{ padding:"11px 13px",background:B.surface,
-                    border:`1.5px solid ${B.border}`,borderRadius:10,color:B.textDim,fontSize:14 }}>MM / YY</div>
-                </div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:12,fontWeight:600,color:B.textMid,marginBottom:5,
-                    textTransform:"uppercase",letterSpacing:0.4 }}>CVC</div>
-                  <div style={{ padding:"11px 13px",background:B.surface,
-                    border:`1.5px solid ${B.border}`,borderRadius:10,color:B.textDim,fontSize:14 }}>•••</div>
-                </div>
+              <div style={{ display:"flex",gap:8,marginTop:4 }}>
+                {["💳 Visa","💳 Mastercard","💳 Amex"].map(c=>(
+                  <span key={c} style={{ fontSize:11,color:B.textMid,background:B.card,
+                    border:`1px solid ${B.border}`,borderRadius:6,padding:"3px 8px" }}>{c}</span>
+                ))}
               </div>
             </Card>
-            <div style={{ display:"flex",alignItems:"center",gap:10,background:B.surface,
-              borderRadius:10,padding:"10px 14px",marginBottom:20,fontSize:12,color:B.textMid }}>
-              <span style={{ fontSize:16 }}>🔒</span>
-              256-bit SSL encryption · Powered by Stripe
-            </div>
+
             <Btn full v="stripe" onClick={async ()=>{
-  setPayStep("processing");
-  try {
-    const o = buildOrder("Stripe card");
-    await saveOrder(o);
-    // Call Stripe checkout
-    const response = await fetch('/api/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: o.items,
-        deliveryFee: o.deliveryFee,
-        orderId: o.id,
-        customerEmail: o.email,
-      }),
-    });
-    const data = await response.json();
-    if (data.url) {
-      onOrderPlaced();
-      // Redirect to Stripe checkout page
-      window.location.href = data.url;
-    } else {
-      alert('Payment error: ' + data.error);
-      setPayStep("form");
-    }
-  } catch (err) {
-    alert('Something went wrong. Please try again.');
-    setPayStep("form");
-  }
-}}>Pay {fmt(total)} securely</Btn>
-            <div style={{ marginTop:12,textAlign:"center",fontSize:12,color:B.textMid }}>
-              Or{" "}
-              <span style={{ color:B.blue,cursor:"pointer",fontWeight:600 }}
-                onClick={async ()=>{
-                  const o = buildOrder("Bank transfer");
-                  await saveOrder(o);
-                  onOrderPlaced();
-                  setPlaced(o);
-                  setStep("confirmed");
-                }}>pay by bank transfer</span>
+              setPayStep("processing");
+              setPayError("");
+              try {
+                const o = buildOrder("Stripe card");
+                await saveOrder(o);
+                onOrderPlaced();
+
+                const response = await fetch("/api/create-checkout", {
+                  method:  "POST",
+                  headers: { "Content-Type":"application/json" },
+                  body:    JSON.stringify({
+                    items:         o.items,
+                    deliveryFee:   o.deliveryFee,
+                    orderId:       o.id,
+                    customerEmail: o.email,
+                  }),
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                  // Redirect to Stripe hosted checkout page
+                  window.location.href = data.url;
+                } else {
+                  setPayError(data.error || "Payment failed. Please try again.");
+                  setPayStep("form");
+                }
+              } catch (err) {
+                setPayError("Connection error. Please check your internet and try again.");
+                setPayStep("form");
+              }
+            }}>
+              🔒 Pay {fmt(total)} securely with Stripe
+            </Btn>
+
+            <div style={{ marginTop:16,textAlign:"center" }}>
+              <div style={{ fontSize:12,color:B.textMid,marginBottom:10 }}>— or —</div>
+              <Btn full v="ghost" onClick={async ()=>{
+                const o = buildOrder("Bank transfer");
+                await saveOrder(o);
+                onOrderPlaced();
+                // Show bank transfer instructions
+                setPayStep("bank");
+              }}>
+                🏦 Pay by bank transfer
+              </Btn>
             </div>
           </>
         )}
-        {payStep==="processing" && (
+
+        {payStep==="processing"&&(
           <div style={{ textAlign:"center",padding:"40px 20px" }}>
             <div style={{ fontSize:48,marginBottom:16 }}>⏳</div>
-            <div style={{ fontSize:16,fontWeight:700,color:B.text,marginBottom:8 }}>Processing payment…</div>
-            <div style={{ fontSize:13,color:B.textMid }}>Please don't close this page</div>
+            <div style={{ fontSize:16,fontWeight:700,color:B.text,marginBottom:8 }}>
+              Connecting to Stripe…
+            </div>
+            <div style={{ fontSize:13,color:B.textMid }}>
+              Please wait, do not close this page
+            </div>
+          </div>
+        )}
+
+        {payStep==="bank"&&(
+          <div>
+            <Card style={{ marginBottom:14,background:B.greenSoft,borderColor:`${B.green}30` }}>
+              <div style={{ fontSize:13,fontWeight:700,color:B.green,marginBottom:10 }}>
+                Bank transfer details
+              </div>
+              {[
+                ["Account name","Choma Kitchen Ltd"],
+                ["Sort code","12-34-56"],
+                ["Account number","12345678"],
+                ["Reference", `Your order ID`],
+              ].map(([l,v])=>(
+                <div key={l} style={{ display:"flex",justifyContent:"space-between",
+                  padding:"6px 0",borderBottom:`1px solid ${B.green}20`,fontSize:13 }}>
+                  <span style={{ color:B.textMid }}>{l}</span>
+                  <span style={{ fontWeight:600,color:B.text }}>{v}</span>
+                </div>
+              ))}
+            </Card>
+            <div style={{ fontSize:13,color:B.textMid,lineHeight:1.7,marginBottom:20,
+              padding:"12px 14px",background:B.surface,borderRadius:10 }}>
+              💬 Please send payment and WhatsApp us your order confirmation.
+              Your order will be prepared once payment is confirmed.
+            </div>
+            <Btn full v="wa" onClick={()=>openWA("447800000000",
+              `Hi Choma, I've just placed an order and paid by bank transfer. Please confirm receipt. Thank you!`)}>
+              💬 Confirm via WhatsApp
+            </Btn>
           </div>
         )}
       </div>
@@ -494,15 +658,16 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
         </Card>
         <Section title="Your details">
-          <Input label="Full name"        value={info.name}    onChange={v=>setInfo(i=>({...i,name:v}))}    placeholder="Amara Osei" />
-          <Input label="Phone / WhatsApp" value={info.phone}   onChange={v=>setInfo(i=>({...i,phone:v}))}   placeholder="+44 7xxx xxxxxx" hint="UK format — we'll send updates via WhatsApp" />
-          <Input label="Email"            value={info.email}   onChange={v=>setInfo(i=>({...i,email:v}))}   placeholder="amara@email.com" type="email" hint="For your order confirmation" />
+          <Input label="Full name"        value={info.name}  onChange={v=>setInfo(i=>({...i,name:v}))}  placeholder="Amara Osei" />
+          <Input label="Phone / WhatsApp" value={info.phone} onChange={v=>setInfo(i=>({...i,phone:v}))} placeholder="+44 7xxx xxxxxx" hint="UK format — we'll send updates here" />
+          <Input label="Email"            value={info.email} onChange={v=>setInfo(i=>({...i,email:v}))} placeholder="amara@email.com" type="email" hint="Stripe will send your receipt here" />
         </Section>
         <Section title="Delivery address">
-          <Input label="Postcode" value={info.postcode} onChange={v=>setInfo(i=>({...i,postcode:v}))} placeholder="E17 6JQ"
-            hint={zone ? `✓ ${zone.label} — delivery fee: ${fmt(zone.fee)}` : "Enter your postcode to check delivery"} />
+          <Input label="Postcode" value={info.postcode} onChange={v=>setInfo(i=>({...i,postcode:v}))}
+            placeholder="E17 6JQ"
+            hint={zone ? `✓ ${zone.label} — delivery fee: ${fmt(zone.fee)}` : "Enter postcode to check delivery"} />
           {info.postcode && !zone && info.postcode.length > 2 && (
-            <div style={{ padding:"10px 14px",background:"#FEF3E8",border:`1px solid ${B.orange}30`,
+            <div style={{ padding:"10px 14px",background:B.orangeLight,border:`1px solid ${B.orange}30`,
               borderRadius:10,marginTop:-8,marginBottom:14,fontSize:13,color:B.orange,fontWeight:600 }}>
               ⚠️ Sorry, we don't currently deliver to {info.postcode.toUpperCase()}.
             </div>
@@ -529,9 +694,9 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{ fontSize:13,color:B.textMid,lineHeight:1.6 }}>
               I agree to Choma's{" "}
               <span style={{ color:B.red,textDecoration:"underline",cursor:"pointer" }}>Privacy Policy</span>
-              {" "}and consent to my personal data being processed to fulfil this order.
+              {" "}and consent to my data being processed to fulfil this order.
               <span style={{ display:"block",marginTop:4,fontSize:11,color:B.textDim }}>
-                In compliance with UK GDPR · You can request deletion at any time
+                UK GDPR compliant · Request deletion any time
               </span>
             </div>
           </label>
@@ -540,9 +705,11 @@ function CustomerPage({ onOrderPlaced }) {
           disabled={!info.name||!info.phone||!info.postcode||!zone||!gdpr}>
           Continue to payment →
         </Btn>
-        {!gdpr&&info.name&&<div style={{ textAlign:"center",fontSize:12,color:B.textMid,marginTop:8 }}>
-          Please accept the privacy policy to continue
-        </div>}
+        {!gdpr&&info.name&&(
+          <div style={{ textAlign:"center",fontSize:12,color:B.textMid,marginTop:8 }}>
+            Please accept the privacy policy to continue
+          </div>
+        )}
       </div>
     </div>
   );
@@ -672,7 +839,7 @@ function CustomerPage({ onOrderPlaced }) {
 // 2. COOK DASHBOARD
 // ════════════════════════════════════════════════════════════════
 function CookDashboard() {
-  const [orders, setOrders, fetchOrders] = useOrders();
+  const [orders,, fetchOrders] = useOrders();
   const [sel, setSel] = useState(null);
   const [tab, setTab] = useState("live");
 
@@ -756,7 +923,7 @@ function CookDashboard() {
                 <div style={{ display:"flex",gap:8,alignItems:"center" }}>
                   {o.paid
                     ?<span style={{ fontSize:11,color:B.green,fontWeight:700 }}>💳 Paid</span>
-                    :<span style={{ fontSize:11,color:B.amber,fontWeight:700 }}>⏳ Awaiting transfer</span>}
+                    :<span style={{ fontSize:11,color:B.amber,fontWeight:700 }}>⏳ Awaiting</span>}
                   <span style={{ fontSize:13,fontWeight:700,color:B.red }}>{fmt(o.total)}</span>
                 </div>
               </div>
@@ -820,7 +987,7 @@ function CookDashboard() {
 // ════════════════════════════════════════════════════════════════
 function RiderApp() {
   const RIDER = "James";
-  const [orders, setOrders, fetchOrders] = useOrders();
+  const [orders,, fetchOrders] = useOrders();
   const [screen,      setScreen]      = useState("home");
   const [activeOrder, setActiveOrder] = useState(null);
 
@@ -848,7 +1015,7 @@ function RiderApp() {
     await supabase.from("orders").update({ status:"Delivered" }).eq("id", o.id);
     fetchOrders();
     openWA(o.phone,
-      `Hello ${o.customer.split(" ")[0]}, your order has been delivered! 🎉\n\nEnjoy your meal from Choma 🍛\nThank you for ordering — we hope to see you again soon!`);
+      `Hello ${o.customer.split(" ")[0]}, your order has been delivered! 🎉\n\nEnjoy your meal from Choma 🍛\nThank you for ordering!`);
     setActiveOrder(null);
     setScreen("home");
   };
@@ -1091,9 +1258,9 @@ function RiderApp() {
 // ════════════════════════════════════════════════════════════════
 function TrackingPage() {
   const [orders] = useOrders();
-  const [oid,       setOid]     = useState("");
-  const [found,     setFound]   = useState(null);
-  const [searched,  setSearched]= useState(false);
+  const [oid,      setOid]     = useState("");
+  const [found,    setFound]   = useState(null);
+  const [searched, setSearched]= useState(false);
 
   const STAGES = ["New","Preparing","Ready","Out for delivery","Delivered"];
   const MSGS = {
@@ -1116,7 +1283,7 @@ function TrackingPage() {
           <div style={{ fontSize:44,marginBottom:10 }}>📍</div>
           <div style={{ fontSize:22,fontWeight:800,color:B.text }}>Track your order</div>
           <div style={{ fontSize:14,color:B.textMid,marginTop:6,lineHeight:1.6 }}>
-            Enter your order number from the WhatsApp message you received
+            Enter your order number from your WhatsApp confirmation
           </div>
         </div>
         <div style={{ display:"flex",gap:10,marginBottom:14 }}>
@@ -1210,7 +1377,7 @@ function TrackingPage() {
             </Card>
             {found.status!=="Delivered"&&(
               <Btn full v="wa" onClick={()=>openWA(found.phone||"447800000000",
-                `Hi Choma, checking on order ${found.id}. Status shows: ${found.status}. Any update? 🙏`)}>
+                `Hi Choma, checking on order ${found.id}. Status: ${found.status}. Any update? 🙏`)}>
                 💬 Message kitchen
               </Btn>
             )}

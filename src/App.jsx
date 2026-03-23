@@ -761,7 +761,7 @@ function CustomerPage({ onOrderPlaced }) {
     <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
       {/* Hero */}
       <div style={{background:`linear-gradient(160deg, #2A1208 0%, #5C2A08 50%, #8A4510 100%)`,
-        padding:"40px 24px 36px",color:"#fff",position:"relative",overflow:"hidden",
+        padding:"24px 24px 22px",color:"#fff",position:"relative",overflow:"hidden",
         textAlign:"center"}}>
         {/* decorative circles */}
         <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,
@@ -771,19 +771,19 @@ function CustomerPage({ onOrderPlaced }) {
         <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",
           alignItems:"center"}}>
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
-            style={{width:110,height:110,borderRadius:22,objectFit:"cover",
-              marginBottom:18,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}/>
+            style={{width:80,height:80,borderRadius:16,objectFit:"cover",
+              marginBottom:12,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}/>
           <div style={{fontSize:11,color:"rgba(255,200,100,0.85)",fontWeight:700,
-            letterSpacing:3,textTransform:"uppercase",marginBottom:12}}>
+            letterSpacing:2.5,textTransform:"uppercase",marginBottom:8}}>
             ✦ Home Kitchen · Sunderland ✦
           </div>
-          <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginBottom:12,
+          <div style={{fontSize:28,fontWeight:900,letterSpacing:-0.5,marginBottom:8,
             lineHeight:1.15,textShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
             Authentic Nigerian<br/>
             <span style={{color:"#F5C842"}}>Home Cooking</span>
           </div>
           <div style={{fontSize:14,color:"rgba(255,255,255,0.75)",lineHeight:1.8,
-            marginBottom:22,maxWidth:320,fontWeight:400}}>
+            marginBottom:14,maxWidth:320,fontWeight:400}}>
             Made fresh to order, delivered hot to your door across Sunderland & the Northeast.
           </div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>

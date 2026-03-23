@@ -289,13 +289,13 @@ function CustomerPage({ onOrderPlaced }) {
 
   const zone = getZone(info.postcode);
   const deliveryFee = zone?.fee ?? 0;
-  const subtotal = Object.entries(cart).reduce((s,[id,q])=>{ const m=MENU.find(m=>m.id===id); return s+(m?m.price*q:0); },0);
+  const subtotal = Object.entries(cart).reduce((s,[id,q])=>{ const m=menuItems.find(m=>m.id===id); return s+(m?m.price*q:0); },0);
   const total = subtotal + (zone ? deliveryFee : 0);
   const count = Object.values(cart).reduce((s,q)=>s+q,0);
   const shown = menuItems.filter(m => filter === "All" || m.category === filter);
 
   // ── Allergen modal ──
-  const allergenItem = MENU.find(m=>m.id===showAllergens);
+  const allergenItem = menuItems.find(m=>m.id===showAllergens);
 
   // ── Confirmed ──
   if(step==="confirmed"&&placed) return (
@@ -417,15 +417,15 @@ function CustomerPage({ onOrderPlaced }) {
                   email:info.email, postcode:info.postcode,
                   address:info.address||`${info.postcode}, UK`,
                   note:info.note, zone:zone?.label||"",
-                  items:Object.entries(cart).map(([id,qty])=>{ const m=MENU.find(m=>m.id===id); return m?{name:m.name,qty,price:m.price}:null; }).filter(Boolean),
+                  items:Object.entries(cart).map(([id,qty])=>{ const m=menuItems.find(m=>m.id===id); return m?{name:m.name,qty,price:m.price}:null; }).filter(Boolean),
                   subtotal, deliveryFee, total,
                   status:"New", time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
                   rider:null, paymentMethod:"Stripe card", paid:true,
                 };
                 await supabase.from('orders').insert([{
   id: o.id,
-  customer_name: o.customer,
-  customer_phone: o.phone,
+  customer_name: o.customer_name || o.customer,
+  customer_phone: o.customer_phone || o.phone,
   customer_email: o.email,
   delivery_address: o.address,
   postcode: o.postcode,
@@ -437,7 +437,7 @@ function CustomerPage({ onOrderPlaced }) {
   payment_method: o.paymentMethod,
   paid: false,
   note: o.note,
-  items: o.items,
+  items: o.items || [],
 }]);
 onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
               },2000);
@@ -452,7 +452,7 @@ onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
                     email:info.email, postcode:info.postcode,
                     address:info.address||`${info.postcode}, UK`, note:info.note,
                     zone:zone?.label||"",
-                    items:Object.entries(cart).map(([id,qty])=>{ const m=MENU.find(m=>m.id===id); return m?{name:m.name,qty,price:m.price}:null; }).filter(Boolean),
+                    items:Object.entries(cart).map(([id,qty])=>{ const m=menuItems.find(m=>m.id===id); return m?{name:m.name,qty,price:m.price}:null; }).filter(Boolean),
                     subtotal, deliveryFee, total, status:"New",
                     time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
                     rider:null, paymentMethod:"Bank transfer", paid:false,
@@ -486,7 +486,7 @@ onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
 
         {/* Cart */}
         <Card style={{ marginBottom:20 }}>
-          {Object.entries(cart).map(([id,qty])=>{ const m=MENU.find(m=>m.id===id); return m?(
+          {Object.entries(cart).map(([id,qty])=>{ const m=menuItems.find(m=>m.id===id); return m?(
             <div key={id} style={{ display:"flex",justifyContent:"space-between",
               alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${B.divider}` }}>
               <div style={{ display:"flex",alignItems:"center",gap:10 }}>
@@ -721,10 +721,36 @@ onOrderPlaced(o); setPlaced(o); setPayStep("done"); setStep("confirmed");
 // ════════════════════════════════════════════════════════════════
 // 2. COOK DASHBOARD
 // ════════════════════════════════════════════════════════════════
-function CookDashboard({ orders, setOrders }) {
+function CookDashboard() {
   const [sel,setSel]=useState(null);
   const [tab,setTab]=useState("live");
+  const [orders, setOrders] = useState([]);
 
+useEffect(() => {
+  const fetchOrders = async () => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+      console.log('orders data:', data);
+    if (!error) setOrders(data.map(o => ({
+  ...o,
+  items: typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || [])
+})));
+  };
+  fetchOrders();
+
+  // Real-time listener - new orders appear instantly
+  const subscription = supabase
+    .channel('orders')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'orders' },
+      () => fetchOrders()
+    )
+    .subscribe();
+
+  return () => supabase.removeChannel(subscription);
+}, []);
   const NEXT={"New":"Preparing","Preparing":"Ready","Ready":"Out for delivery","Out for delivery":"Delivered"};
   const live=orders.filter(o=>!["Delivered","Cancelled"].includes(o.status));
   const done=orders.filter(o=>["Delivered","Cancelled"].includes(o.status));
@@ -739,7 +765,7 @@ function CookDashboard({ orders, setOrders }) {
       Ready:"✅ Your order is packed and ready for pickup by our rider.",
       "Out for delivery":"🛵 Your order is on its way!",
       Delivered:"🎉 Delivered! Thank you for ordering from Choma ❤️"};
-    openWA(o.phone,`Hello ${o.customer.split(" ")[0]},\n\n${msgs[next]||""}\n\nTrack: choma.co.uk/track/${o.id}`);
+    openWA(o.customer_phone,`Hello ${o.customer_name.split(" ")[0]},\n\n${msgs[next]||""}\n\nTrack: choma.co.uk/track/${o.id}`);
   };
 
   return (
@@ -792,13 +818,13 @@ function CookDashboard({ orders, setOrders }) {
                 borderLeft:`3px solid ${sel?.id===o.id?B.red:"transparent"}` }}>
               <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4 }}>
                 <div>
-                  <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer}</div>
+                  <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer_name}</div>
                   <div style={{ fontSize:11,color:B.textDim }}>{o.id} · {o.time} · {o.postcode}</div>
                 </div>
                 <Pill s={o.status} />
               </div>
               <div style={{ display:"flex",justifyContent:"space-between" }}>
-                <span style={{ fontSize:12,color:B.textMid }}>{o.items.length} item{o.items.length!==1?"s":""}</span>
+                <span style={{ fontSize:12,color:B.textMid }}>{(o.items||[]).length} item{(o.items||[]).length!==1?"s":""}</span>
                 <div style={{ display:"flex",gap:8,alignItems:"center" }}>
                   {o.paid
                     ?<span style={{ fontSize:11,color:B.green,fontWeight:700 }}>💳 Paid</span>
@@ -812,23 +838,23 @@ function CookDashboard({ orders, setOrders }) {
         {sel&&(
           <div style={{ flex:1,overflowY:"auto",padding:"14px 16px" }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-              <div style={{ fontSize:15,fontWeight:800,color:B.text }}>{sel.customer}</div>
+              <div style={{ fontSize:15,fontWeight:800,color:B.text }}>{sel.customer_name_name}</div>
               <button onClick={()=>setSel(null)} style={{ background:B.surface,
                 border:`1px solid ${B.border}`,borderRadius:8,width:28,height:28,
                 cursor:"pointer",color:B.textMid,fontSize:16 }}>✕</button>
             </div>
             <Card style={{ marginBottom:10 }}>
-              {sel.items.map((it,i)=>(
-                <div key={i} style={{ display:"flex",justifyContent:"space-between",padding:"7px 0",
-                  borderBottom:i<sel.items.length-1?`1px solid ${B.divider}`:"none",fontSize:13 }}>
-                  <span style={{ color:B.textMid }}>{it.name} ×{it.qty}</span>
-                  <span style={{ fontWeight:600,color:B.text }}>{fmt(it.price*it.qty)}</span>
-                </div>
-              ))}
+  {(sel.items||[]).map((it,i)=>(
+    <div key={i} style={{ display:"flex",justifyContent:"space-between",padding:"7px 0",
+      borderBottom:i<(sel.items||[]).length-1?`1px solid ${B.divider}`:"none",fontSize:13 }}>
+      <span style={{ color:B.textMid }}>{it.name} ×{it.qty}</span>
+      <span style={{ fontWeight:600,color:B.text }}>{fmt(it.price*it.qty)}</span>
+    </div>
+  ))}
               <div style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",
                 borderTop:`1px solid ${B.divider}`,fontSize:13 }}>
                 <span style={{ color:B.textMid }}>Delivery</span>
-                <span style={{ color:B.text }}>{fmt(sel.deliveryFee)}</span>
+                <span style={{ color:B.text }}>{fmt(sel.delivery_fee)}</span>
               </div>
               <div style={{ display:"flex",justifyContent:"space-between",paddingTop:8,fontWeight:700,fontSize:15 }}>
                 <span>Total</span><span style={{ color:B.red }}>{fmt(sel.total)}</span>
@@ -850,7 +876,7 @@ function CookDashboard({ orders, setOrders }) {
                 Mark as {NEXT[sel.status]} + notify 💬
               </Btn>
             )}
-            <Btn full v="wa" onClick={()=>openWA(sel.phone,`Hello ${sel.customer.split(" ")[0]}, update on your order ${sel.id}: ${sel.status}.`)}>
+            <Btn full v="wa" onClick={()=>openWA(sel.customer_phone,`Hello ${sel.customer_name_name.split(" ")[0]}, update on your order ${sel.id}: ${sel.status}.`)}>
               💬 Custom message
             </Btn>
           </div>
@@ -875,18 +901,18 @@ function RiderApp({ orders, setOrders }) {
 
   const claim = o => {
     setOrders(p=>p.map(x=>x.id===o.id?{...x,rider:RIDER}:x));
-    openWA("447800000000",`Hi, I'm claiming order ${o.id} for ${o.customer} (${o.postcode}). On my way to collect now 🛵`);
+    openWA("447800000000",`Hi, I'm claiming order ${o.id} for ${o.customer_name} (${o.postcode}). On my way to collect now 🛵`);
   };
 
   const pickup = o => {
     setOrders(p=>p.map(x=>x.id===o.id?{...x,status:"Out for delivery",rider:RIDER}:x));
-    openWA(o.phone,`Hello ${o.customer.split(" ")[0]} 👋, your Choma order is on its way!\n📍 Delivering to: ${o.address}\nEstimated arrival: 15–25 mins 🛵`);
+    openWA(o.customer_phone,`Hello ${o.customer_name.split(" ")[0]} 👋, your Choma order is on its way!\n📍 Delivering to: ${o.address}\nEstimated arrival: 15–25 mins 🛵`);
     setActiveOrder({...o,status:"Out for delivery"});
   };
 
   const deliver = o => {
     setOrders(p=>p.map(x=>x.id===o.id?{...x,status:"Delivered"}:x));
-    openWA(o.phone,`Hello ${o.customer.split(" ")[0]}, your order has been delivered! 🎉\n\nEnjoy your meal from Choma 🍛\nThank you for ordering — we hope to see you again soon!`);
+    openWA(o.customer_phone,`Hello ${o.customer_name.split(" ")[0]}, your order has been delivered! 🎉\n\nEnjoy your meal from Choma 🍛\nThank you for ordering — we hope to see you again soon!`);
     setActiveOrder(null); setScreen("home");
   };
 
@@ -929,7 +955,7 @@ function RiderApp({ orders, setOrders }) {
           <Card key={o.id} style={{ marginBottom:10 }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
               <div>
-                <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer}</div>
+                <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer_name}</div>
                 <div style={{ fontSize:12,color:B.textMid }}>📍 {o.postcode} · {o.time}</div>
               </div>
               <div style={{ fontSize:14,fontWeight:800,color:B.green }}>+£4.50</div>
@@ -1052,7 +1078,7 @@ function RiderApp({ orders, setOrders }) {
                 onClick={()=>{ setActiveOrder(o); setScreen("detail"); }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8 }}>
                   <div>
-                    <div style={{ fontSize:15,fontWeight:800,color:B.text }}>{o.customer}</div>
+                    <div style={{ fontSize:15,fontWeight:800,color:B.text }}>{o.customer_name}</div>
                     <div style={{ fontSize:13,color:B.textMid }}>📍 {o.address}</div>
                     <div style={{ fontSize:12,color:B.textMid }}>📮 {o.postcode}</div>
                   </div>
@@ -1073,7 +1099,7 @@ function RiderApp({ orders, setOrders }) {
           <Card key={o.id} style={{ marginBottom:10 }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8 }}>
               <div>
-                <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer}</div>
+                <div style={{ fontSize:14,fontWeight:700,color:B.text }}>{o.customer_name}</div>
                 <div style={{ fontSize:12,color:B.textMid }}>📮 {o.postcode} · {o.zone}</div>
                 <div style={{ fontSize:12,color:B.textMid }}>{o.items.length} item{o.items.length!==1?"s":""} · {o.time}</div>
               </div>
@@ -1096,7 +1122,7 @@ function RiderApp({ orders, setOrders }) {
               <Card key={o.id} style={{ marginBottom:10,opacity:0.7 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                   <div>
-                    <div style={{ fontSize:14,fontWeight:600,color:B.text }}>{o.customer}</div>
+                    <div style={{ fontSize:14,fontWeight:600,color:B.text }}>{o.customer_name}</div>
                     <div style={{ fontSize:12,color:B.textMid }}>📮 {o.postcode} · {o.time}</div>
                   </div>
                   <div style={{ fontSize:14,fontWeight:800,color:B.green }}>+£4.50</div>

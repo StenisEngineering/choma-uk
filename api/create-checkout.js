@@ -1,7 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-module.exports = async (req, res) => {
-  // Allow CORS
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,6 +7,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    const stripe = (await import('stripe')).default(process.env.STRIPE_SECRET_KEY);
     const { items, deliveryFee, orderId, customerEmail } = req.body;
 
     if (!items || !items.length) {
@@ -54,4 +52,4 @@ module.exports = async (req, res) => {
     console.error('Stripe error:', error.message);
     return res.status(500).json({ error: error.message });
   }
-};
+}

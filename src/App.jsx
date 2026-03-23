@@ -771,24 +771,27 @@ function CustomerPage({ onOrderPlaced }) {
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
             style={{width:100,height:100,borderRadius:20,objectFit:"cover",
               marginBottom:14,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}/>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.6)",fontWeight:600,
-            letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>
-            Home Kitchen · Sunderland
+          <div style={{fontSize:11,color:"rgba(255,200,100,0.8)",fontWeight:700,
+            letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>
+            ✦ Home Kitchen · Sunderland ✦
           </div>
-          <div style={{fontSize:30,fontWeight:800,letterSpacing:-0.5,marginBottom:6,
-            lineHeight:1.2}}>
-            AfroCrave Kitchen
+          <div style={{fontSize:34,fontWeight:900,letterSpacing:-1,marginBottom:10,
+            lineHeight:1.15,textShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+            Authentic Nigerian<br/>
+            <span style={{color:"#F5C842"}}>Home Cooking</span>
           </div>
-          <div style={{fontSize:15,color:"rgba(255,255,255,0.8)",lineHeight:1.7,
-            marginBottom:16,maxWidth:320}}>
-            Authentic Nigerian home cooking, made fresh to order. Delivering across Sunderland & the Northeast.
+          <div style={{fontSize:14,color:"rgba(255,255,255,0.75)",lineHeight:1.8,
+            marginBottom:20,maxWidth:300,fontWeight:400}}>
+            Made fresh to order, delivered hot to your door across Sunderland & the Northeast.
           </div>
-          <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-            {[["⏱","45–75 min"],["✓","All Halal"],["🏠","Home cooked"],["💳","Card / Transfer"]].map(([ic,tx])=>(
-              <div key={tx} style={{display:"flex",alignItems:"center",gap:6,
-                background:"rgba(255,255,255,0.1)",borderRadius:20,
-                padding:"6px 12px",fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.9)"}}>
-                <span>{ic}</span><span>{tx}</span>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {[["⏱ 45–75 min"],["✓ All Halal"],["🏠 Home cooked"],["💳 Card / Bank"]].map((tx)=>(
+              <div key={tx} style={{
+                background:"rgba(245,200,66,0.15)",
+                border:"1px solid rgba(245,200,66,0.3)",
+                borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:700,
+                color:"rgba(255,255,255,0.95)",letterSpacing:0.3}}>
+                {tx}
               </div>
             ))}
           </div>

@@ -1,0 +1,20 @@
+{
+  "name": "AfroCrave Kitchen",
+  "short_name": "AfroCrave",
+  "description": "Authentic Nigerian home cooking — order fresh meals delivered to your door",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF5",
+  "theme_color": "#D4580A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "shopping"],
+  "lang": "en-GB"
+}

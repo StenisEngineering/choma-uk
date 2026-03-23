@@ -395,16 +395,35 @@ function CustomerPage({ onOrderPlaced }) {
               256-bit SSL encryption · Powered by Stripe
             </div>
             <Btn full v="stripe" onClick={async ()=>{
-              setPayStep("processing");
-              setTimeout(async ()=>{
-                const o = buildOrder("Stripe card");
-                await saveOrder(o);
-                onOrderPlaced();
-                setPlaced(o);
-                setPayStep("done");
-                setStep("confirmed");
-              }, 2000);
-            }}>Pay {fmt(total)} securely</Btn>
+  setPayStep("processing");
+  try {
+    const o = buildOrder("Stripe card");
+    await saveOrder(o);
+    // Call Stripe checkout
+    const response = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: o.items,
+        deliveryFee: o.deliveryFee,
+        orderId: o.id,
+        customerEmail: o.email,
+      }),
+    });
+    const data = await response.json();
+    if (data.url) {
+      onOrderPlaced();
+      // Redirect to Stripe checkout page
+      window.location.href = data.url;
+    } else {
+      alert('Payment error: ' + data.error);
+      setPayStep("form");
+    }
+  } catch (err) {
+    alert('Something went wrong. Please try again.');
+    setPayStep("form");
+  }
+}}>Pay {fmt(total)} securely</Btn>
             <div style={{ marginTop:12,textAlign:"center",fontSize:12,color:B.textMid }}>
               Or{" "}
               <span style={{ color:B.blue,cursor:"pointer",fontWeight:600 }}

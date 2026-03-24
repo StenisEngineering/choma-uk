@@ -249,7 +249,7 @@ function OrderSuccessPage({ orderId, onDone }) {
   );
 
   return (
-    <div style={{minHeight:"100vh",background:B.bg,overflowY:"auto"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 100%)",overflowY:"auto"}}>
       {/* Header */}
       <div style={{background:`linear-gradient(135deg, ${B.primary} 0%, ${B.gold} 100%)`,
         padding:"40px 24px 32px",textAlign:"center",color:"#fff"}}>
@@ -325,12 +325,35 @@ function OrderSuccessPage({ orderId, onDone }) {
         </Card>
 
         {/* Actions */}
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+          {/* Print / Screenshot receipt */}
+          <button onClick={()=>window.print()}
+            style={{width:"100%",padding:"14px",borderRadius:14,
+              background:"#fff",border:`1.5px solid ${B.border}`,
+              fontSize:14,fontWeight:700,color:B.text,cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+              fontFamily:"inherit"}}>
+            🖨️ Print / Save receipt
+          </button>
           <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
             `Hello! My order ${o.id} is confirmed. Items: ${o.items.map(i=>`${i.name} ×${i.qty}`).join(", ")}. Total: ${fmt(o.total)}. Delivering to: ${o.address}.`)}>
             Message kitchen on WhatsApp
           </Btn>
           <Btn full v="ghost" onClick={onDone}>Order again</Btn>
+        </div>
+
+        {/* Screenshot tip */}
+        <div style={{background:B.goldLight,border:`1px solid ${B.gold}30`,
+          borderRadius:12,padding:"10px 14px",textAlign:"center",
+          marginBottom:16}}>
+          <div style={{fontSize:13,color:B.gold,fontWeight:600,marginBottom:3}}>
+            📸 Screenshot tip
+          </div>
+          <div style={{fontSize:12,color:B.textMid,lineHeight:1.6}}>
+            Take a screenshot of this page to save your order number{" "}
+            <strong style={{color:B.text}}>{o.id}</strong>.
+            You'll need it to track your order.
+          </div>
         </div>
 
         <div style={{marginTop:20,textAlign:"center",fontSize:13,color:B.textDim,lineHeight:1.7}}>
@@ -474,7 +497,7 @@ function StaffApp() {
   if (step === "role") return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
+      background:"linear-gradient(170deg,#3D1A06 0%,#5C2A0A 40%,#6B3210 70%,#7A3A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
@@ -559,7 +582,7 @@ function StaffApp() {
   if (step === "password") return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
+      background:"linear-gradient(170deg,#3D1A06 0%,#5C2A0A 40%,#6B3210 70%,#7A3A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
@@ -921,7 +944,7 @@ function LandingPage({ onOrder, onTrack }) {
   return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#8B4A1A 0%,#A05520 35%,#B06028 65%,#C07035 100%)",
+      background:"linear-gradient(170deg,#3D1A06 0%,#5C2A0A 40%,#6B3210 70%,#7A3A14 100%)",
       display:"flex",
       flexDirection:"column",
       alignItems:"center",
@@ -1160,7 +1183,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Payment ──
   if(step==="payment") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
           style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
@@ -1290,7 +1313,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Checkout ──
   if(step==="checkout") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>setStep("menu")} style={{background:B.card,
           border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
@@ -1431,7 +1454,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Main menu ──
   return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
       {/* Hero */}
       <div style={{background:`linear-gradient(160deg, #2A1208 0%, #5C2A08 50%, #8A4510 100%)`,
         padding:"24px 16px 22px",color:"#fff",position:"relative",overflow:"hidden",
@@ -1504,9 +1527,14 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{fontSize:16,fontWeight:600}}>Menu loading…</div>
           </div>
         )}
+        <div style={{
+          display:"grid",
+          gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,320px),1fr))",
+          gap:"12px",
+        }}>
         {shown.map(m=>(
           <div key={m.id} style={{background:B.card,border:`1px solid ${B.border}`,
-            borderRadius:18,padding:"16px",marginBottom:14,
+            borderRadius:18,padding:"16px",
             transition:"box-shadow 0.15s"}}>
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"flex-start",gap:12}}>
@@ -1583,6 +1611,7 @@ function CustomerPage({ onOrderPlaced }) {
             </div>
           </div>
         ))}
+        </div>
         <div style={{height:120}}/>
       </div>
 
@@ -1829,7 +1858,7 @@ function RiderApp() {
   };
 
   if(screen==="earnings") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{padding:"16px 20px 12px",background:B.card,
         borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
         <button onClick={()=>setScreen("home")} style={{background:B.surface,
@@ -1875,7 +1904,7 @@ function RiderApp() {
   if(screen==="detail"&&activeOrder) {
     const live = orders.find(o=>o.id===activeOrder.id)||activeOrder;
     return (
-      <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+      <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
         <div style={{padding:"16px 20px 12px",background:B.card,
           borderBottom:`1px solid ${B.border}`,display:"flex",
           justifyContent:"space-between",alignItems:"center"}}>
@@ -2123,7 +2152,7 @@ function TrackingPage() {
   };
 
   return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:520,margin:"0 auto",padding:"32px 20px 60px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>

@@ -6,7 +6,7 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#D4580A" />
+    <meta name="theme-color" content="#3D1A06" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -14,18 +14,26 @@
 
     <!-- SEO -->
     <title>AfroCrave Kitchen — Authentic Nigerian Home Cooking</title>
-    <meta name="description" content="Order fresh authentic Nigerian home-cooked meals. Jollof rice, fried rice, Nigerian soups, snacks and more. Delivering across Sunderland and the Northeast." />
-    <meta name="keywords" content="Nigerian food, jollof rice, African food, home cooking, Sunderland food delivery, halal food" />
+    <meta name="description" content="Order fresh authentic Nigerian home-cooked meals. Delivering across Sunderland and the Northeast." />
 
-    <!-- Open Graph (WhatsApp / Facebook previews) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="AfroCrave Kitchen" />
     <meta property="og:description" content="Authentic Nigerian home cooking, made fresh to order. Delivering across Sunderland & the Northeast." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/icons.svg" />
+    <meta property="og:image" content="/favicon_512.png" />
 
+    <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon_32.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon_180.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon_180.png" />
+
+    <!-- Print styles for order receipt -->
+    <style>
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .no-print { display: none !important; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

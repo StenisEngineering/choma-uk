@@ -422,6 +422,167 @@ function SplashScreen({ onDone }) {
 }
 
 
+
+// ════════════════════════════════════════════════════════════════
+// RIDER LOGIN — Accessed via /rider
+// ════════════════════════════════════════════════════════════════
+const RIDER_PASS = "|funtoride26|";
+
+function RiderLogin() {
+  const [authed,   setAuthed]   = useState(false);
+  const [password, setPassword] = useState("");
+  const [error,    setError]    = useState("");
+  const [showPass, setShowPass] = useState(false);
+
+  const login = () => {
+    if (password === RIDER_PASS) {
+      setAuthed(true); setError("");
+    } else {
+      setError("Incorrect password. Please try again.");
+      setPassword("");
+    }
+  };
+
+  if (authed) return (
+    <div style={{minHeight:"100vh",background:"#FFFBF5",display:"flex",
+      flexDirection:"column",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      {/* Rider nav */}
+      <div style={{background:"#2A1208",padding:"12px 16px",
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
+            style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>Rider Dashboard</div>
+            <div style={{fontSize:10,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
+              AfroCrave Kitchen
+            </div>
+          </div>
+        </div>
+        <button onClick={()=>{setAuthed(false);setPassword("");}}
+          style={{background:"rgba(255,255,255,0.08)",
+            border:"0.5px solid rgba(255,255,255,0.15)",
+            borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
+            fontSize:11,fontWeight:600,cursor:"pointer",
+            display:"flex",alignItems:"center",gap:4}}>
+          <LogOut size={12}/>
+          Sign out
+        </button>
+      </div>
+      <div style={{flex:1,overflow:"hidden"}}>
+        <RiderApp/>
+      </div>
+    </div>
+  );
+
+  // Rider login screen
+  return (
+    <div style={{
+      minHeight:"100vh",
+      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
+      display:"flex",alignItems:"center",justifyContent:"center",
+      padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      boxSizing:"border-box",
+    }}>
+      <div style={{width:"100%",maxWidth:"360px"}}>
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:"28px"}}>
+          <div style={{width:72,height:72,borderRadius:18,
+            background:"rgba(255,255,255,0.09)",
+            border:"1.5px solid rgba(200,150,10,0.4)",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            margin:"0 auto 14px",overflow:"hidden"}}>
+            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+              style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          </div>
+          <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>
+            Rider Login
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>
+            AfroCrave Kitchen · Delivery Team
+          </div>
+        </div>
+
+        {/* Login card */}
+        <div style={{background:"rgba(255,255,255,0.08)",
+          border:"0.5px solid rgba(255,255,255,0.15)",
+          borderRadius:20,padding:"24px 20px"}}>
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",
+              marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>
+              Password
+            </div>
+            <div style={{position:"relative"}}>
+              <input
+                type={showPass?"text":"password"}
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&login()}
+                placeholder="Enter your rider password"
+                style={{
+                  width:"100%",padding:"13px 44px 13px 14px",
+                  background:"rgba(255,255,255,0.08)",
+                  border:`1.5px solid ${error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}`,
+                  borderRadius:12,color:"#fff",fontSize:15,
+                  outline:"none",boxSizing:"border-box",fontFamily:"inherit",
+                }}
+                onFocus={e=>e.target.style.borderColor="rgba(200,150,10,0.6)"}
+                onBlur={e=>e.target.style.borderColor=error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}
+              />
+              <button onClick={()=>setShowPass(s=>!s)}
+                style={{position:"absolute",right:12,top:"50%",
+                  transform:"translateY(-50%)",background:"none",border:"none",
+                  cursor:"pointer",display:"flex",alignItems:"center",padding:0}}>
+                {showPass
+                  ? <EyeOff size={18} color="rgba(255,255,255,0.4)"/>
+                  : <Eye size={18} color="rgba(255,255,255,0.4)"/>
+                }
+              </button>
+            </div>
+          </div>
+
+          {error&&(
+            <div style={{fontSize:13,color:"#FF8A7A",marginBottom:14,
+              background:"rgba(220,80,50,0.15)",padding:"10px 12px",
+              borderRadius:10,border:"0.5px solid rgba(220,80,50,0.3)"}}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <button onClick={login} disabled={!password}
+            style={{
+              width:"100%",
+              background:password?"linear-gradient(135deg,#E05A0A,#C8960A)":"rgba(255,255,255,0.1)",
+              border:"none",borderRadius:14,padding:"14px",
+              fontSize:15,fontWeight:700,
+              color:password?"#fff":"rgba(255,255,255,0.3)",
+              cursor:password?"pointer":"not-allowed",
+              fontFamily:"inherit",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+            }}>
+            <Bike size={16}/>
+            Sign in as Rider
+          </button>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:16,fontSize:12,
+          color:"rgba(255,255,255,0.25)"}}>
+          AfroCrave Kitchen delivery team only
+        </div>
+        <div style={{textAlign:"center",marginTop:10}}>
+          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.35)",
+            textDecoration:"none",display:"flex",alignItems:"center",
+            justifyContent:"center",gap:4}}>
+            <ChevronLeft size={14} color="rgba(255,255,255,0.35)"/>
+            Back to customer app
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // STAFF APP — Kitchen / Rider / Admin (accessed via /staff)
 // ════════════════════════════════════════════════════════════════
@@ -675,9 +836,11 @@ export default function AfroCraveApp() {
   const successOrderId = params.get("order");
   const isSuccess      = params.get("success") === "true";
   const isStaffRoute   = window.location.pathname === "/staff";
+  const isRiderRoute   = window.location.pathname === "/rider";
 
   const [showSuccess, setShowSuccess] = useState(isSuccess && !!successOrderId);
   const [isStaff,     setIsStaff]     = useState(isStaffRoute);
+  const [isRider,     setIsRider]     = useState(isRiderRoute);
 
   const handleSuccessDone = () => {
     setShowSuccess(false);
@@ -688,6 +851,9 @@ export default function AfroCraveApp() {
 
   // Staff route — show staff app directly
   if(isStaff) return <StaffApp/>;
+
+  // Rider route — show rider login directly
+  if(isRider) return <RiderLogin/>;
 
   // Customer landing page
   if(page==="landing") return (

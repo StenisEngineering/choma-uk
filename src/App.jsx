@@ -424,60 +424,54 @@ function SplashScreen({ onDone }) {
 
 
 // ════════════════════════════════════════════════════════════════
-// RIDER LOGIN — Accessed via /rider
+// STAFF APP — One URL /staff with role selector
 // ════════════════════════════════════════════════════════════════
-const RIDER_PASS = "|funtoride26|";
+const PASSWORDS = {
+  kitchen: "|tislife2026|",
+  rider:   "|funtoride26|",
+  manager: "|tislife2026|",
+  admin:   "|willsucc££d2026",
+};
 
-function RiderLogin() {
-  const [authed,   setAuthed]   = useState(false);
-  const [password, setPassword] = useState("");
-  const [error,    setError]    = useState("");
-  const [showPass, setShowPass] = useState(false);
+const ROLES = [
+  { id:"kitchen", label:"Kitchen Staff", icon:"👩‍🍳", desc:"Manage orders & kitchen" },
+  { id:"rider",   label:"Rider",         icon:"🛵", desc:"Delivery assignments"   },
+  { id:"manager", label:"Manager",       icon:"⚡", desc:"Kitchen + oversight"    },
+  { id:"admin",   label:"Admin",         icon:"🔐", desc:"Full platform access"   },
+];
+
+function RiderLogin() { return null; } // kept for compatibility
+
+function StaffApp() {
+  const [step,      setStep]     = useState("role"); // role | password | app
+  const [role,      setRole]     = useState(null);
+  const [password,  setPassword] = useState("");
+  const [error,     setError]    = useState("");
+  const [showPass,  setShowPass] = useState(false);
+  const [view,      setView]     = useState("cook");
+  const [cookBadge, setCookBadge]  = useState(0);
+  const [riderBadge,setRiderBadge] = useState(0);
+
+  const selectRole = (r) => {
+    setRole(r);
+    setPassword("");
+    setError("");
+    setStep("password");
+  };
 
   const login = () => {
-    if (password === RIDER_PASS) {
-      setAuthed(true); setError("");
+    if (password === PASSWORDS[role.id]) {
+      setStep("app");
+      setError("");
+      setView(role.id === "rider" ? "rider" : "cook");
     } else {
       setError("Incorrect password. Please try again.");
       setPassword("");
     }
   };
 
-  if (authed) return (
-    <div style={{minHeight:"100vh",background:"#FFFBF5",display:"flex",
-      flexDirection:"column",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
-      {/* Rider nav */}
-      <div style={{background:"#2A1208",padding:"12px 16px",
-        display:"flex",alignItems:"center",justifyContent:"space-between",
-        flexShrink:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
-            style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
-          <div>
-            <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>Rider Dashboard</div>
-            <div style={{fontSize:10,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
-              AfroCrave Kitchen
-            </div>
-          </div>
-        </div>
-        <button onClick={()=>{setAuthed(false);setPassword("");}}
-          style={{background:"rgba(255,255,255,0.08)",
-            border:"0.5px solid rgba(255,255,255,0.15)",
-            borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
-            fontSize:11,fontWeight:600,cursor:"pointer",
-            display:"flex",alignItems:"center",gap:4}}>
-          <LogOut size={12}/>
-          Sign out
-        </button>
-      </div>
-      <div style={{flex:1,overflow:"hidden"}}>
-        <RiderApp/>
-      </div>
-    </div>
-  );
-
-  // Rider login screen
-  return (
+  // ── Role selector ──
+  if (step === "role") return (
     <div style={{
       minHeight:"100vh",
       background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
@@ -485,7 +479,7 @@ function RiderLogin() {
       padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
     }}>
-      <div style={{width:"100%",maxWidth:"360px"}}>
+      <div style={{width:"100%",maxWidth:"380px"}}>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:"28px"}}>
           <div style={{width:72,height:72,borderRadius:18,
@@ -497,14 +491,103 @@ function RiderLogin() {
               style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           </div>
           <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>
-            Rider Login
+            Staff Portal
           </div>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>
-            AfroCrave Kitchen · Delivery Team
+            AfroCrave Kitchen · Select your role
           </div>
         </div>
 
-        {/* Login card */}
+        {/* Role cards */}
+        <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}}>
+          {ROLES.map(r=>(
+            <button key={r.id} onClick={()=>selectRole(r)}
+              style={{
+                width:"100%",
+                background:"rgba(255,255,255,0.08)",
+                border:"0.5px solid rgba(255,255,255,0.15)",
+                borderRadius:"16px",
+                padding:"16px 20px",
+                display:"flex",alignItems:"center",gap:"14px",
+                cursor:"pointer",
+                textAlign:"left",
+                transition:"all 0.15s",
+                fontFamily:"inherit",
+              }}
+              onMouseEnter={e=>{
+                e.currentTarget.style.background="rgba(255,255,255,0.14)";
+                e.currentTarget.style.borderColor="rgba(200,150,10,0.4)";
+              }}
+              onMouseLeave={e=>{
+                e.currentTarget.style.background="rgba(255,255,255,0.08)";
+                e.currentTarget.style.borderColor="rgba(255,255,255,0.15)";
+              }}>
+              <div style={{width:44,height:44,borderRadius:12,
+                background:"rgba(200,150,10,0.15)",
+                border:"0.5px solid rgba(200,150,10,0.3)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:22,flexShrink:0}}>
+                {r.icon}
+              </div>
+              <div>
+                <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:2}}>
+                  {r.label}
+                </div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>
+                  {r.desc}
+                </div>
+              </div>
+              <ChevronRight size={18} color="rgba(255,255,255,0.3)"
+                style={{marginLeft:"auto",flexShrink:0}}/>
+            </button>
+          ))}
+        </div>
+
+        <div style={{textAlign:"center"}}>
+          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.3)",
+            textDecoration:"none",display:"flex",alignItems:"center",
+            justifyContent:"center",gap:4}}>
+            <ChevronLeft size={14} color="rgba(255,255,255,0.3)"/>
+            Back to customer app
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Password screen ──
+  if (step === "password") return (
+    <div style={{
+      minHeight:"100vh",
+      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
+      display:"flex",alignItems:"center",justifyContent:"center",
+      padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      boxSizing:"border-box",
+    }}>
+      <div style={{width:"100%",maxWidth:"360px"}}>
+        {/* Back + role indicator */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"24px"}}>
+          <button onClick={()=>{setStep("role");setError("");setPassword("");}}
+            style={{background:"rgba(255,255,255,0.08)",border:"0.5px solid rgba(255,255,255,0.15)",
+              borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",
+              justifyContent:"center",cursor:"pointer",flexShrink:0}}>
+            <ChevronLeft size={18} color="rgba(255,255,255,0.6)"/>
+          </button>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:10,
+              background:"rgba(200,150,10,0.15)",
+              border:"0.5px solid rgba(200,150,10,0.3)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>
+              {role.icon}
+            </div>
+            <div>
+              <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>{role.label}</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>Enter your password</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Password card */}
         <div style={{background:"rgba(255,255,255,0.08)",
           border:"0.5px solid rgba(255,255,255,0.15)",
           borderRadius:20,padding:"24px 20px"}}>
@@ -519,7 +602,8 @@ function RiderLogin() {
                 value={password}
                 onChange={e=>setPassword(e.target.value)}
                 onKeyDown={e=>e.key==="Enter"&&login()}
-                placeholder="Enter your rider password"
+                placeholder={`${role.label} password`}
+                autoFocus
                 style={{
                   width:"100%",padding:"13px 44px 13px 14px",
                   background:"rgba(255,255,255,0.08)",
@@ -561,148 +645,8 @@ function RiderLogin() {
               fontFamily:"inherit",
               display:"flex",alignItems:"center",justifyContent:"center",gap:8,
             }}>
-            <Bike size={16}/>
-            Sign in as Rider
-          </button>
-        </div>
-
-        <div style={{textAlign:"center",marginTop:16,fontSize:12,
-          color:"rgba(255,255,255,0.25)"}}>
-          AfroCrave Kitchen delivery team only
-        </div>
-        <div style={{textAlign:"center",marginTop:10}}>
-          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.35)",
-            textDecoration:"none",display:"flex",alignItems:"center",
-            justifyContent:"center",gap:4}}>
-            <ChevronLeft size={14} color="rgba(255,255,255,0.35)"/>
-            Back to customer app
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// STAFF APP — Kitchen / Rider / Admin (accessed via /staff)
-// ════════════════════════════════════════════════════════════════
-const STAFF_PASS  = "|willsucc££d2026";
-const KITCHEN_STAFF_PASS = "|tislife2026|";
-
-function StaffApp() {
-  const [authed,     setAuthed]     = useState(false);
-  const [role,       setRole]       = useState(null);
-  const [password,   setPassword]   = useState("");
-  const [error,      setError]      = useState("");
-  const [showPass,   setShowPass]   = useState(false);
-  const [view,       setView]       = useState("cook");
-  const [cookBadge,  setCookBadge]  = useState(0);
-  const [riderBadge, setRiderBadge] = useState(0);
-
-  const login = () => {
-    if (password === STAFF_PASS) {
-      setAuthed(true); setRole("super");
-      setView("cook"); setError("");
-    } else if (password === KITCHEN_STAFF_PASS) {
-      setAuthed(true); setRole("kitchen");
-      setView("cook"); setError("");
-    } else {
-      setError("Incorrect password. Please try again.");
-      setPassword("");
-    }
-  };
-
-  // Staff login screen
-  if (!authed) return (
-    <div style={{
-      minHeight:"100vh",
-      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"24px", fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
-      boxSizing:"border-box",
-    }}>
-      <div style={{width:"100%", maxWidth:"360px"}}>
-        {/* Logo */}
-        <div style={{textAlign:"center", marginBottom:"28px"}}>
-          <div style={{width:72,height:72,borderRadius:18,
-            background:"rgba(255,255,255,0.09)",
-            border:"1.5px solid rgba(200,150,10,0.4)",
-            display:"flex",alignItems:"center",justifyContent:"center",
-            margin:"0 auto 14px",overflow:"hidden"}}>
-            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
-              style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-          </div>
-          <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>
-            Staff Login
-          </div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>
-            AfroCrave Kitchen · Choma Platform
-          </div>
-        </div>
-
-        {/* Login card */}
-        <div style={{background:"rgba(255,255,255,0.08)",
-          border:"0.5px solid rgba(255,255,255,0.15)",
-          borderRadius:20,padding:"24px 20px"}}>
-
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",
-              marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>
-              Password
-            </div>
-            <div style={{position:"relative"}}>
-              <input
-                type={showPass?"text":"password"}
-                value={password}
-                onChange={e=>setPassword(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&login()}
-                placeholder="Enter your staff password"
-                style={{
-                  width:"100%", padding:"13px 44px 13px 14px",
-                  background:"rgba(255,255,255,0.08)",
-                  border:`1.5px solid ${error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}`,
-                  borderRadius:12, color:"#fff", fontSize:15,
-                  outline:"none", boxSizing:"border-box",
-                  fontFamily:"inherit",
-                }}
-                onFocus={e=>e.target.style.borderColor="rgba(200,150,10,0.6)"}
-                onBlur={e=>e.target.style.borderColor=error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}
-              />
-              <button onClick={()=>setShowPass(s=>!s)}
-                style={{position:"absolute",right:12,top:"50%",
-                  transform:"translateY(-50%)",background:"none",border:"none",
-                  cursor:"pointer",color:"rgba(255,255,255,0.4)",
-                  display:"flex",alignItems:"center",padding:0}}>
-                {showPass
-                  ? <EyeOff size={18} color="rgba(255,255,255,0.4)"/>
-                  : <Eye size={18} color="rgba(255,255,255,0.4)"/>
-                }
-              </button>
-            </div>
-          </div>
-
-          {error&&(
-            <div style={{fontSize:13,color:"#FF8A7A",marginBottom:14,
-              background:"rgba(220,80,50,0.15)",padding:"10px 12px",
-              borderRadius:10,border:"0.5px solid rgba(220,80,50,0.3)"}}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          <button onClick={login} disabled={!password}
-            style={{
-              width:"100%",
-              background:password?"linear-gradient(135deg,#E05A0A,#C8960A)":"rgba(255,255,255,0.1)",
-              border:"none",borderRadius:14,padding:"14px",
-              fontSize:15,fontWeight:700,
-              color:password?"#fff":"rgba(255,255,255,0.3)",
-              cursor:password?"pointer":"not-allowed",
-              fontFamily:"inherit",
-              transition:"all 0.2s",
-              display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-            }}>
             <Lock size={16}/>
-            Sign in
+            Sign in as {role.label}
           </button>
         </div>
 
@@ -710,41 +654,40 @@ function StaffApp() {
           color:"rgba(255,255,255,0.25)"}}>
           Authorised staff only · AfroCrave Kitchen
         </div>
-
-        {/* Back to customer app */}
-        <div style={{textAlign:"center",marginTop:12}}>
-          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.35)",
-            textDecoration:"none",display:"flex",alignItems:"center",
-            justifyContent:"center",gap:4}}>
-            <ChevronLeft size={14} color="rgba(255,255,255,0.35)"/>
-            Back to customer app
-          </a>
-        </div>
       </div>
     </div>
   );
 
-  // Staff tabs based on role
-  const TABS = role === "super"
+  // ── App screen — show correct tabs based on role ──
+  const TABS = role.id === "admin"
     ? [
-        {id:"order",   label:"Order",   icon:<ShoppingCart size={16}/>},
-        {id:"cook",    label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
-        {id:"rider",   label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
-        {id:"tracking",label:"Track",   icon:<MapPin size={16}/>},
-        {id:"admin",   label:"Admin",   icon:<Lock size={16}/>},
+        {id:"order",    label:"Order",   icon:<ShoppingCart size={16}/>},
+        {id:"cook",     label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider",    label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"tracking", label:"Track",   icon:<MapPin size={16}/>},
+        {id:"admin",    label:"Admin",   icon:<Lock size={16}/>},
       ]
-    : [
-        {id:"order",   label:"Order",   icon:<ShoppingCart size={16}/>},
-        {id:"cook",    label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
-        {id:"rider",   label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
-        {id:"tracking",label:"Track",   icon:<MapPin size={16}/>},
+    : role.id === "manager"
+    ? [
+        {id:"order",    label:"Order",   icon:<ShoppingCart size={16}/>},
+        {id:"cook",     label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider",    label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"tracking", label:"Track",   icon:<MapPin size={16}/>},
+      ]
+    : role.id === "rider"
+    ? [
+        {id:"rider",    label:"Rider",   icon:<Bike size={16}/>},
+        {id:"tracking", label:"Track",   icon:<MapPin size={16}/>},
+      ]
+    : [ // kitchen staff
+        {id:"cook",     label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"tracking", label:"Track",   icon:<MapPin size={16}/>},
       ];
 
   return (
     <div style={{minHeight:"100vh",background:"#FFFBF5",display:"flex",
       flexDirection:"column",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
       width:"100%"}}>
-
       {/* Staff nav bar */}
       <div style={{background:"#2A1208",padding:"10px 16px",
         flexShrink:0,position:"sticky",top:0,zIndex:100,
@@ -759,11 +702,11 @@ function StaffApp() {
                 AfroCrave Kitchen
               </div>
               <div style={{fontSize:10,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
-                {role==="super"?"⚡ Super Admin":"👩‍🍳 Kitchen Staff"}
+                {role.icon} {role.label}
               </div>
             </div>
           </div>
-          <button onClick={()=>{setAuthed(false);setPassword("");setRole(null);}}
+          <button onClick={()=>{setStep("role");setRole(null);setPassword("");}}
             style={{background:"rgba(255,255,255,0.08)",
               border:"0.5px solid rgba(255,255,255,0.15)",
               borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
@@ -773,7 +716,6 @@ function StaffApp() {
             Sign out
           </button>
         </div>
-
         {/* Tabs */}
         <div style={{display:"flex",gap:4}}>
           {TABS.map(t=>(
@@ -803,13 +745,12 @@ function StaffApp() {
           ))}
         </div>
       </div>
-
       <div style={{flex:1,overflow:"hidden"}}>
         {view==="order"    && <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>}
         {view==="cook"     && <CookDashboard/>}
         {view==="rider"    && <RiderApp/>}
         {view==="tracking" && <TrackingPage/>}
-        {view==="admin"    && role==="super" && <AdminPanel/>}
+        {view==="admin"    && role.id==="admin" && <AdminPanel/>}
       </div>
     </div>
   );
@@ -835,12 +776,10 @@ export default function AfroCraveApp() {
   const params        = new URLSearchParams(window.location.search);
   const successOrderId = params.get("order");
   const isSuccess      = params.get("success") === "true";
-  const isStaffRoute   = window.location.pathname === "/staff";
-  const isRiderRoute   = window.location.pathname === "/rider";
+  const isStaffRoute = window.location.pathname === "/staff";
 
   const [showSuccess, setShowSuccess] = useState(isSuccess && !!successOrderId);
   const [isStaff,     setIsStaff]     = useState(isStaffRoute);
-  const [isRider,     setIsRider]     = useState(isRiderRoute);
 
   const handleSuccessDone = () => {
     setShowSuccess(false);
@@ -851,9 +790,6 @@ export default function AfroCraveApp() {
 
   // Staff route — show staff app directly
   if(isStaff) return <StaffApp/>;
-
-  // Rider route — show rider login directly
-  if(isRider) return <RiderLogin/>;
 
   // Customer landing page
   if(page==="landing") return (

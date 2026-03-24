@@ -335,10 +335,19 @@ function OrderSuccessPage({ orderId, onDone }) {
               fontFamily:"inherit"}}>
             🖨️ Print / Save receipt
           </button>
-          <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
-            `Hello! My order ${o.id} is confirmed. Items: ${o.items.map(i=>`${i.name} ×${i.qty}`).join(", ")}. Total: ${fmt(o.total)}. Delivering to: ${o.address}.`)}>
-            Message kitchen on WhatsApp
-          </Btn>
+          {o.phone && (
+            <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
+              `Hello! My order ${o.id} is confirmed. Items: ${o.items.map(i=>`${i.name} ×${i.qty}`).join(", ")}. Total: ${fmt(o.total)}. Delivering to: ${o.address}.`)}>
+              Message kitchen on WhatsApp
+            </Btn>
+          )}
+          {!o.phone && (
+            <div style={{padding:"12px 16px",background:B.goldLight,
+              border:`1px solid ${B.gold}30`,borderRadius:12,
+              fontSize:13,color:B.gold,textAlign:"center",fontWeight:600}}>
+              💡 Track your order using number <strong>{o.id}</strong>
+            </div>
+          )}
           <Btn full v="ghost" onClick={onDone}>Order again</Btn>
         </div>
 
@@ -1204,6 +1213,7 @@ function CustomerPage({ onOrderPlaced }) {
     status:        "New",
     time:          new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
     rider:         null, paymentMethod, paid:false,
+    hasPhone:      !!info.phone,
   });
 
   const saveOrder = async (o) => {
@@ -1412,12 +1422,12 @@ function CustomerPage({ onOrderPlaced }) {
         <Section title="Your details">
           <Input label="Full name" value={info.name}
             onChange={v=>setInfo(i=>({...i,name:v}))} placeholder="Your full name"/>
-          <Input label="Phone / WhatsApp" value={info.phone}
+          <Input label="Phone / WhatsApp (optional)" value={info.phone}
             onChange={v=>setInfo(i=>({...i,phone:v}))} placeholder="+44 7xxx xxxxxx"
-            hint="UK format — we'll send order updates here"/>
+            hint="Add your number to receive live WhatsApp updates on your order"/>
           <Input label="Email address" value={info.email}
             onChange={v=>setInfo(i=>({...i,email:v}))} placeholder="your@email.com"
-            type="email" hint="Your Stripe receipt will be sent here"/>
+            type="email" hint="Required — your order confirmation will be sent here"/>
         </Section>
 
         <Section title="Delivery address">
@@ -1457,6 +1467,13 @@ function CustomerPage({ onOrderPlaced }) {
         </Card>
 
         {/* GDPR */}
+        {!info.phone && (
+          <div style={{padding:"10px 14px",background:B.blueSoft,
+            border:`1px solid ${B.blue}20`,borderRadius:10,marginBottom:12,
+            fontSize:13,color:B.blue,lineHeight:1.6}}>
+            ℹ️ No phone number? No problem — you can track your order using your order number after payment.
+          </div>
+        )}
         <div style={{background:B.surface,border:`1px solid ${B.border}`,
           borderRadius:14,padding:"16px",marginBottom:24}}>
           <label style={{display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer"}}>
@@ -1477,7 +1494,7 @@ function CustomerPage({ onOrderPlaced }) {
 
         <Btn full style={{fontSize:16,padding:"16px"}}
           onClick={()=>setStep("payment")}
-          disabled={!info.name||!info.phone||!info.postcode||!delivery?.available||!gdpr}>
+          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr}>
           Continue to payment →
         </Btn>
         {!gdpr&&info.name&&(

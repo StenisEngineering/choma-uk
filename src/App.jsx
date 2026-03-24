@@ -429,7 +429,7 @@ function SplashScreen({ onDone }) {
 const PASSWORDS = {
   kitchen: "|tislife2026|",
   rider:   "|funtoride26|",
-  manager: "|tislife2026|",
+  manager: "|favour2026|",
   admin:   "|willsucc££d2026",
 };
 

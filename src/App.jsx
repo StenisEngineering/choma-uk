@@ -421,6 +421,233 @@ function SplashScreen({ onDone }) {
   );
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// STAFF APP — Kitchen / Rider / Admin (accessed via /staff)
+// ════════════════════════════════════════════════════════════════
+const STAFF_PASS  = "|willsucc££d2026";
+const KITCHEN_STAFF_PASS = "|tislife2026|";
+
+function StaffApp() {
+  const [authed,     setAuthed]     = useState(false);
+  const [role,       setRole]       = useState(null);
+  const [password,   setPassword]   = useState("");
+  const [error,      setError]      = useState("");
+  const [showPass,   setShowPass]   = useState(false);
+  const [view,       setView]       = useState("cook");
+  const [cookBadge,  setCookBadge]  = useState(0);
+  const [riderBadge, setRiderBadge] = useState(0);
+
+  const login = () => {
+    if (password === STAFF_PASS) {
+      setAuthed(true); setRole("super");
+      setView("cook"); setError("");
+    } else if (password === KITCHEN_STAFF_PASS) {
+      setAuthed(true); setRole("kitchen");
+      setView("cook"); setError("");
+    } else {
+      setError("Incorrect password. Please try again.");
+      setPassword("");
+    }
+  };
+
+  // Staff login screen
+  if (!authed) return (
+    <div style={{
+      minHeight:"100vh",
+      background:"linear-gradient(170deg,#5C2A0A 0%,#7A3A10 35%,#8A4A18 65%,#9A5520 100%)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:"24px", fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      boxSizing:"border-box",
+    }}>
+      <div style={{width:"100%", maxWidth:"360px"}}>
+        {/* Logo */}
+        <div style={{textAlign:"center", marginBottom:"28px"}}>
+          <div style={{width:72,height:72,borderRadius:18,
+            background:"rgba(255,255,255,0.09)",
+            border:"1.5px solid rgba(200,150,10,0.4)",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            margin:"0 auto 14px",overflow:"hidden"}}>
+            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+              style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          </div>
+          <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>
+            Staff Login
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>
+            AfroCrave Kitchen · Choma Platform
+          </div>
+        </div>
+
+        {/* Login card */}
+        <div style={{background:"rgba(255,255,255,0.08)",
+          border:"0.5px solid rgba(255,255,255,0.15)",
+          borderRadius:20,padding:"24px 20px"}}>
+
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",
+              marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>
+              Password
+            </div>
+            <div style={{position:"relative"}}>
+              <input
+                type={showPass?"text":"password"}
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&login()}
+                placeholder="Enter your staff password"
+                style={{
+                  width:"100%", padding:"13px 44px 13px 14px",
+                  background:"rgba(255,255,255,0.08)",
+                  border:`1.5px solid ${error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}`,
+                  borderRadius:12, color:"#fff", fontSize:15,
+                  outline:"none", boxSizing:"border-box",
+                  fontFamily:"inherit",
+                }}
+                onFocus={e=>e.target.style.borderColor="rgba(200,150,10,0.6)"}
+                onBlur={e=>e.target.style.borderColor=error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}
+              />
+              <button onClick={()=>setShowPass(s=>!s)}
+                style={{position:"absolute",right:12,top:"50%",
+                  transform:"translateY(-50%)",background:"none",border:"none",
+                  cursor:"pointer",color:"rgba(255,255,255,0.4)",
+                  display:"flex",alignItems:"center",padding:0}}>
+                {showPass
+                  ? <EyeOff size={18} color="rgba(255,255,255,0.4)"/>
+                  : <Eye size={18} color="rgba(255,255,255,0.4)"/>
+                }
+              </button>
+            </div>
+          </div>
+
+          {error&&(
+            <div style={{fontSize:13,color:"#FF8A7A",marginBottom:14,
+              background:"rgba(220,80,50,0.15)",padding:"10px 12px",
+              borderRadius:10,border:"0.5px solid rgba(220,80,50,0.3)"}}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <button onClick={login} disabled={!password}
+            style={{
+              width:"100%",
+              background:password?"linear-gradient(135deg,#E05A0A,#C8960A)":"rgba(255,255,255,0.1)",
+              border:"none",borderRadius:14,padding:"14px",
+              fontSize:15,fontWeight:700,
+              color:password?"#fff":"rgba(255,255,255,0.3)",
+              cursor:password?"pointer":"not-allowed",
+              fontFamily:"inherit",
+              transition:"all 0.2s",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+            }}>
+            <Lock size={16}/>
+            Sign in
+          </button>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:16,fontSize:12,
+          color:"rgba(255,255,255,0.25)"}}>
+          Authorised staff only · AfroCrave Kitchen
+        </div>
+
+        {/* Back to customer app */}
+        <div style={{textAlign:"center",marginTop:12}}>
+          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.35)",
+            textDecoration:"none",display:"flex",alignItems:"center",
+            justifyContent:"center",gap:4}}>
+            <ChevronLeft size={14} color="rgba(255,255,255,0.35)"/>
+            Back to customer app
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Staff tabs based on role
+  const TABS = role === "super"
+    ? [
+        {id:"cook",  label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider", label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"admin", label:"Admin",   icon:<Lock size={16}/>},
+      ]
+    : [
+        {id:"cook",  label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider", label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+      ];
+
+  return (
+    <div style={{minHeight:"100vh",background:"#FFFBF5",display:"flex",
+      flexDirection:"column",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      width:"100%"}}>
+
+      {/* Staff nav bar */}
+      <div style={{background:"#2A1208",padding:"10px 16px",
+        flexShrink:0,position:"sticky",top:0,zIndex:100,
+        boxShadow:"0 2px 12px rgba(0,0,0,0.3)"}}>
+        <div style={{display:"flex",alignItems:"center",
+          justifyContent:"space-between",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+              style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
+            <div>
+              <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>
+                AfroCrave Kitchen
+              </div>
+              <div style={{fontSize:10,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
+                {role==="super"?"⚡ Super Admin":"👩‍🍳 Kitchen Staff"}
+              </div>
+            </div>
+          </div>
+          <button onClick={()=>{setAuthed(false);setPassword("");setRole(null);}}
+            style={{background:"rgba(255,255,255,0.08)",
+              border:"0.5px solid rgba(255,255,255,0.15)",
+              borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
+              fontSize:11,fontWeight:600,cursor:"pointer",
+              display:"flex",alignItems:"center",gap:4}}>
+            <LogOut size={12}/>
+            Sign out
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{display:"flex",gap:4}}>
+          {TABS.map(t=>(
+            <button key={t.id} onClick={()=>{
+              setView(t.id);
+              if(t.id==="cook")  setCookBadge(0);
+              if(t.id==="rider") setRiderBadge(0);
+            }}
+              style={{flex:1,padding:"8px 4px",borderRadius:12,
+                fontSize:12,fontWeight:700,cursor:"pointer",border:"none",
+                position:"relative",letterSpacing:0.2,
+                display:"flex",alignItems:"center",justifyContent:"center",gap:5,
+                background:view===t.id?"rgba(255,255,255,0.15)":"transparent",
+                color:view===t.id?"#fff":"rgba(255,255,255,0.5)",
+                transition:"all 0.15s"}}>
+              {t.icon}
+              {t.label}
+              {(t.badge||0)>0&&(
+                <span style={{position:"absolute",top:-4,right:-2,width:18,height:18,
+                  borderRadius:9,background:"#C8960A",color:"#fff",fontSize:10,
+                  fontWeight:800,display:"flex",alignItems:"center",
+                  justifyContent:"center"}}>
+                  {t.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{flex:1,overflow:"hidden"}}>
+        {view==="cook"  && <CookDashboard/>}
+        {view==="rider" && <RiderApp/>}
+        {view==="admin" && role==="super" && <AdminPanel/>}
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // ROOT
 // ════════════════════════════════════════════════════════════════
@@ -438,13 +665,13 @@ export default function AfroCraveApp() {
     }
   }, []);
 
-  const params = new URLSearchParams(window.location.search);
+  const params        = new URLSearchParams(window.location.search);
   const successOrderId = params.get("order");
   const isSuccess      = params.get("success") === "true";
+  const isStaffRoute   = window.location.pathname === "/staff";
 
   const [showSuccess, setShowSuccess] = useState(isSuccess && !!successOrderId);
-
-  const onOrderPlaced = () => setCookBadge(b=>b+1);
+  const [isStaff,     setIsStaff]     = useState(isStaffRoute);
 
   const handleSuccessDone = () => {
     setShowSuccess(false);
@@ -452,6 +679,9 @@ export default function AfroCraveApp() {
   };
 
   if(showSplash) return <SplashScreen onDone={()=>setShowSplash(false)}/>;
+
+  // Staff route — show staff app directly
+  if(isStaff) return <StaffApp/>;
 
   // Customer landing page
   if(page==="landing") return (
@@ -1958,6 +2188,7 @@ function TrackingPage() {
 // ════════════════════════════════════════════════════════════════
 // ADMIN PANEL
 // ════════════════════════════════════════════════════════════════
+// Passwords defined in StaffApp
 const ADMIN_PASS  = "|willsucc££d2026";
 const KITCHEN_PASS = "|tislife2026|";
 

@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
+import {
+  ShoppingCart, ChefHat, Bike, MapPin, Lock,
+  Home, Package, Wallet, Star, Settings,
+  Plus, Pencil, Trash2, Check, X, Eye, EyeOff,
+  Phone, MessageCircle, Clock, MapPinned,
+  ChevronRight, ChevronLeft, AlertTriangle,
+  CheckCircle, XCircle, RefreshCw, LogOut,
+  Users, UtensilsCrossed, ClipboardList,
+  TrendingUp, Bell, Search, Filter, ToggleLeft,
+  ToggleRight, BadgeCheck, Leaf, Flame,
+} from "lucide-react";
 
 // ─── AfroCrave Kitchen Brand Tokens ───────────────────────────
 const B = {
@@ -244,7 +255,7 @@ function OrderSuccessPage({ orderId, onDone }) {
         padding:"40px 24px 32px",textAlign:"center",color:"#fff"}}>
         <div style={{width:80,height:80,borderRadius:"50%",background:"rgba(255,255,255,0.2)",
           display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,
-          margin:"0 auto 16px",border:"3px solid rgba(255,255,255,0.5)"}}>✓</div>
+          margin:"0 auto 16px",border:"3px solid rgba(255,255,255,0.5)"}}><CheckCircle size={36} color={B.green}/></div>
         <div style={{fontSize:28,fontWeight:800,marginBottom:6,letterSpacing:-0.5}}>
           Order confirmed!
         </div>
@@ -317,7 +328,7 @@ function OrderSuccessPage({ orderId, onDone }) {
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
             `Hello! My order ${o.id} is confirmed. Items: ${o.items.map(i=>`${i.name} ×${i.qty}`).join(", ")}. Total: ${fmt(o.total)}. Delivering to: ${o.address}.`)}>
-            💬 Message kitchen on WhatsApp
+            Message kitchen on WhatsApp
           </Btn>
           <Btn full v="ghost" onClick={onDone}>Order again</Btn>
         </div>
@@ -414,10 +425,11 @@ function SplashScreen({ onDone }) {
 // ROOT
 // ════════════════════════════════════════════════════════════════
 export default function AfroCraveApp() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [view, setView] = useState("customer");
-  const [cookBadge,  setCookBadge]  = useState(0);
-  const [riderBadge, setRiderBadge] = useState(0);
+  const [showSplash,   setShowSplash]   = useState(true);
+  const [page,         setPage]         = useState("landing"); // landing | order | tracking
+  const [view,         setView]         = useState("cook");
+  const [cookBadge,    setCookBadge]    = useState(0);
+  const [riderBadge,   setRiderBadge]   = useState(0);
 
   // Register service worker for PWA
   useEffect(() => {
@@ -441,15 +453,63 @@ export default function AfroCraveApp() {
 
   if(showSplash) return <SplashScreen onDone={()=>setShowSplash(false)}/>;
 
+  // Customer landing page
+  if(page==="landing") return (
+    <LandingPage
+      onOrder={()=>setPage("order")}
+      onTrack={()=>setPage("tracking")}
+    />
+  );
+
+  // Customer order flow
+  if(page==="order") return (
+    <div style={{minHeight:"100vh",background:"#FFFBF5",
+      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      <div style={{background:"#fff",padding:"10px 16px",
+        borderBottom:"1px solid #EDE8E0",display:"flex",
+        alignItems:"center",gap:10}}>
+        <button onClick={()=>setPage("landing")}
+          style={{background:"none",border:"none",cursor:"pointer",
+            fontSize:22,color:"#D4580A",padding:"0 4px",lineHeight:1}}>‹</button>
+        <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
+          style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,color:"#1A1208"}}>AfroCrave Kitchen</div>
+          <div style={{fontSize:11,color:"#D4580A",fontWeight:600}}>AUTHENTIC NIGERIAN CUISINE</div>
+        </div>
+        <button onClick={()=>setPage("tracking")}
+          style={{marginLeft:"auto",background:"none",border:"0.5px solid #EDE8E0",
+            borderRadius:8,padding:"5px 10px",fontSize:12,color:"#6B5D4A",
+            cursor:"pointer",fontWeight:600}}>Track order</button>
+      </div>
+      <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>
+    </div>
+  );
+
+  // Customer tracking flow
+  if(page==="tracking") return (
+    <div style={{minHeight:"100vh",background:"#FFFBF5",
+      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      <div style={{background:"#fff",padding:"10px 16px",
+        borderBottom:"1px solid #EDE8E0",display:"flex",
+        alignItems:"center",gap:10}}>
+        <button onClick={()=>setPage("landing")}
+          style={{background:"none",border:"none",cursor:"pointer",
+            fontSize:22,color:"#D4580A",padding:"0 4px",lineHeight:1}}>‹</button>
+        <div style={{fontSize:15,fontWeight:700,color:"#1A1208"}}>Track your order</div>
+      </div>
+      <TrackingPage/>
+    </div>
+  );
+
   if(showSuccess && successOrderId) return (
     <OrderSuccessPage orderId={successOrderId} onDone={handleSuccessDone}/>
   );
 
   const TABS = [
-    {id:"customer", label:"🛒 Order"},
-    {id:"cook",     label:"👩‍🍳 Kitchen", badge:cookBadge},
-    {id:"rider",    label:"🛵 Rider",   badge:riderBadge},
-    {id:"tracking", label:"📍 Track"},
+    {id:"cook",  label:"Kitchen", icon:<ChefHat size={16}/>, badge:cookBadge},
+    {id:"rider", label:"Rider",   icon:<Bike size={16}/>, badge:riderBadge},
+    {id:"admin", label:"Admin",   icon:<Lock size={16}/>},
   ];
 
   return (
@@ -490,7 +550,10 @@ export default function AfroCraveApp() {
                 cursor:"pointer",border:"none",position:"relative",letterSpacing:0.2,
                 background:view===t.id?B.primary:B.surface,
                 color:view===t.id?"#fff":B.textMid,transition:"all 0.15s"}}>
-              {t.label}
+              <span style={{display:"flex",alignItems:"center",gap:5}}>
+                {t.icon}
+                {t.label}
+              </span>
               {(t.badge||0)>0&&(
                 <span style={{position:"absolute",top:-4,right:-2,width:18,height:18,
                   borderRadius:9,background:B.gold,color:"#fff",fontSize:10,fontWeight:800,
@@ -504,10 +567,191 @@ export default function AfroCraveApp() {
       </div>
 
       <div style={{flex:1,overflow:"hidden"}}>
-        {view==="customer" && <CustomerPage onOrderPlaced={onOrderPlaced}/>}
-        {view==="cook"     && <CookDashboard/>}
-        {view==="rider"    && <RiderApp/>}
-        {view==="tracking" && <TrackingPage/>}
+        {view==="cook"  && <CookDashboard/>}
+        {view==="rider" && <RiderApp/>}
+        {view==="admin" && <AdminPanel/>}
+      </div>
+    </div>
+  );
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// LANDING PAGE — Customer entry point
+// ════════════════════════════════════════════════════════════════
+function LandingPage({ onOrder, onTrack }) {
+  return (
+    <div style={{
+      minHeight:"100vh",
+      background:"linear-gradient(170deg,#8B4A1A 0%,#A05520 35%,#B06028 65%,#C07035 100%)",
+      display:"flex",
+      flexDirection:"column",
+      alignItems:"center",
+      justifyContent:"space-between",
+      padding:"clamp(24px,6vw,40px) clamp(20px,5vw,32px) clamp(18px,4vw,28px)",
+      position:"relative",
+      overflow:"hidden",
+      boxSizing:"border-box",
+      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+    }}>
+      {/* Decorative glows */}
+      <div style={{position:"absolute",top:"-60px",right:"-60px",width:"200px",height:"200px",
+        borderRadius:"50%",background:"rgba(212,88,10,0.10)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",bottom:"60px",left:"-50px",width:"160px",height:"160px",
+        borderRadius:"50%",background:"rgba(200,150,10,0.07)",pointerEvents:"none"}}/>
+
+      {/* TOP — Logo + Brand */}
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",
+        position:"relative",zIndex:1,textAlign:"center"}}>
+        {/* Logo */}
+        <div style={{
+          width:"clamp(72px,18vw,90px)",
+          height:"clamp(72px,18vw,90px)",
+          borderRadius:"22px",
+          background:"rgba(255,255,255,0.09)",
+          border:"1.5px solid rgba(200,150,10,0.4)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          marginBottom:"clamp(12px,3vw,18px)",
+          overflow:"hidden",
+          flexShrink:0,
+        }}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
+            style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        </div>
+        {/* Location tag */}
+        <div style={{
+          fontSize:"clamp(8px,2vw,10px)",
+          color:"rgba(245,200,66,0.8)",
+          fontWeight:600,
+          letterSpacing:"2px",
+          textTransform:"uppercase",
+          marginBottom:"clamp(6px,1.5vw,10px)",
+        }}>✦ Home Kitchen · Sunderland ✦</div>
+        {/* Main headline */}
+        <div style={{
+          fontSize:"clamp(20px,5.5vw,26px)",
+          fontWeight:700,
+          color:"#ffffff",
+          lineHeight:1.2,
+          marginBottom:"3px",
+        }}>Authentic Nigerian</div>
+        <div style={{
+          fontSize:"clamp(20px,5.5vw,26px)",
+          fontWeight:700,
+          color:"#F5C842",
+          lineHeight:1.2,
+        }}>Home Cooking</div>
+      </div>
+
+      {/* MIDDLE — Tagline + Badges + Rating */}
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",
+        gap:"clamp(12px,3vw,18px)",position:"relative",zIndex:1,width:"100%",
+        textAlign:"center"}}>
+        {/* Tagline */}
+        <div style={{
+          fontSize:"clamp(11px,2.8vw,13px)",
+          color:"rgba(255,255,255,0.65)",
+          lineHeight:1.7,
+          maxWidth:"300px",
+        }}>
+          Made fresh to order, delivered hot<br/>
+          to your door across Sunderland<br/>
+          &amp; the Northeast
+        </div>
+
+        {/* Badges */}
+        <div style={{display:"flex",gap:"6px",flexWrap:"wrap",justifyContent:"center"}}>
+          {["⏱ 45–75 min","🍲 Naija Standard","💳 Card & Bank"].map(b=>(
+            <div key={b} style={{
+              background:"rgba(245,200,66,0.10)",
+              border:"0.5px solid rgba(245,200,66,0.25)",
+              borderRadius:"20px",
+              padding:"4px 11px",
+              fontSize:"clamp(9px,2.2vw,11px)",
+              color:"rgba(255,255,255,0.85)",
+              fontWeight:600,
+              whiteSpace:"nowrap",
+            }}>{b}</div>
+          ))}
+        </div>
+
+        {/* Food hygiene */}
+        <div style={{
+          background:"rgba(255,255,255,0.07)",
+          border:"0.5px solid rgba(255,255,255,0.13)",
+          borderRadius:"10px",
+          padding:"6px 14px",
+          display:"flex",
+          alignItems:"center",
+          gap:"8px",
+          marginBottom:"4px",
+        }}>
+          <div style={{display:"flex",gap:"3px",flexShrink:0}}>
+            {[1,2,3,4,5].map(s=>(
+              <div key={s} style={{width:"8px",height:"8px",
+                background:"#F5C842",borderRadius:"2px"}}/>
+            ))}
+          </div>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:"10px",color:"#F5C842",fontWeight:600,lineHeight:1.3}}>
+              Food Hygiene Rating
+            </div>
+            <div style={{fontSize:"9px",color:"rgba(255,255,255,0.4)",lineHeight:1.3}}>
+              Rated by local authority · Sunderland
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM — CTAs */}
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",
+        flexDirection:"column",gap:"12px",position:"relative",zIndex:1,
+        marginTop:"8px"}}>
+        {/* Primary CTA */}
+        <button onClick={onOrder} style={{
+          width:"100%",
+          background:"linear-gradient(135deg,#E05A0A,#C8960A)",
+          border:"none",
+          borderRadius:"16px",
+          padding:"clamp(13px,3.5vw,16px)",
+          fontSize:"clamp(13px,3.5vw,15px)",
+          fontWeight:700,
+          color:"#fff",
+          cursor:"pointer",
+          letterSpacing:"0.3px",
+          boxShadow:"0 6px 20px rgba(212,88,10,0.45)",
+          fontFamily:"inherit",
+        }}>
+          Start your order →
+        </button>
+        {/* Secondary CTA */}
+        <button onClick={onTrack} style={{
+          width:"100%",
+          background:"rgba(255,255,255,0.08)",
+          border:"0.5px solid rgba(255,255,255,0.18)",
+          borderRadius:"14px",
+          padding:"clamp(11px,3vw,13px)",
+          fontSize:"clamp(12px,3vw,14px)",
+          fontWeight:600,
+          color:"rgba(255,255,255,0.75)",
+          cursor:"pointer",
+          fontFamily:"inherit",
+        }}>
+          Track my order
+        </button>
+        {/* Powered by */}
+        <div style={{textAlign:"center",paddingTop:"2px",
+          background:"rgba(0,0,0,0.18)",borderRadius:"20px",
+          padding:"5px 16px",display:"inline-block",alignSelf:"center"}}>
+          <span style={{fontSize:"9px",
+            color:"rgba(255,255,255,0.55)",letterSpacing:"1.2px"}}>
+            POWERED BY{" "}
+          </span>
+          <span style={{fontSize:"9px",
+            color:"#F5C842",fontWeight:700,letterSpacing:"1.5px"}}>
+            CHOMA
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -698,7 +942,7 @@ function CustomerPage({ onOrderPlaced }) {
             </div>
             <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
               `Hi AfroCrave Kitchen! I've just placed an order and will be paying by bank transfer. Please confirm bank details. Thank you!`)}>
-              💬 Confirm via WhatsApp
+              Confirm via WhatsApp
             </Btn>
           </div>
         )}
@@ -878,7 +1122,7 @@ function CustomerPage({ onOrderPlaced }) {
             Made fresh to order, delivered hot to your door across Sunderland & the Northeast.
           </div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
-            {["⏱ 45–75 min","✓ All Halal","🏠 Home cooked","💳 Card / Bank"].map((tx)=>(
+            {["⏱ 45–75 min","🍲 Home Cooked. Naija Standard","💳 Card / Bank","📍 Sunderland & NE"].map((tx)=>(
               <div key={tx} style={{
                 background:"rgba(245,200,66,0.15)",
                 border:"1px solid rgba(245,200,66,0.3)",
@@ -931,7 +1175,13 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{display:"flex",alignItems:"flex-start",gap:14,flex:1}}>
                 <div style={{width:62,height:62,borderRadius:16,background:B.surface,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:32,flexShrink:0}}>{m.emoji}</div>
+                  fontSize:32,flexShrink:0,overflow:"hidden"}}>
+                  {m.image_url
+                    ? <img src={m.image_url} alt={m.name}
+                        style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    : m.emoji
+                  }
+                </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:16,fontWeight:700,color:B.text,lineHeight:1.3,
                     marginBottom:4}}>{m.name}</div>
@@ -947,9 +1197,11 @@ function CustomerPage({ onOrderPlaced }) {
                   </div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
                     {m.is_halal&&(
-                      <span style={{fontSize:12,background:B.greenSoft,color:B.green,
-                        borderRadius:6,padding:"2px 8px",fontWeight:700,
-                        border:`1px solid ${B.green}20`}}>✓ Halal</span>
+                      <span style={{fontSize:12,background:B.goldLight,color:B.gold,
+                        borderRadius:6,padding:"3px 10px",fontWeight:700,fontStyle:"italic",
+                        border:`1px solid ${B.gold}30`,letterSpacing:0.2}}>
+                        🍲 Home Cooked. Naija Standard
+                      </span>
                     )}
                     {m.is_vegan&&(
                       <span style={{fontSize:12,background:B.purpleSoft,color:B.purple,
@@ -1060,7 +1312,7 @@ function CookDashboard() {
         boxSizing:"border-box"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div>
-            <div style={{fontSize:20,fontWeight:800,color:B.text}}>🍳 Kitchen live</div>
+            <div style={{fontSize:20,fontWeight:800,color:B.text}}><span style={{display:"flex",alignItems:"center",gap:8}}><ChefHat size={20} color={B.primary}/> Kitchen live</span></div>
             <div style={{fontSize:13,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
           </div>
           <div style={{textAlign:"right"}}>
@@ -1071,13 +1323,13 @@ function CookDashboard() {
           </div>
         </div>
         <div style={{display:"flex",gap:8}}>
-          {[["New",B.blue,B.blueSoft],["Cooking",B.primary,B.primaryLight],
+          {[["New",B.blue,B.blueSoft],["Preparing",B.primary,B.primaryLight],
             ["On way","#9A6B00","#FFF8E6"],["Done",B.green,B.greenSoft]].map(([l,c,bg])=>(
             <div key={l} style={{flex:1,background:bg,borderRadius:12,
               padding:"10px 6px",textAlign:"center"}}>
               <div style={{fontSize:20,fontWeight:800,color:c}}>
                 {orders.filter(o=>o.status===(
-                  l==="Cooking"?"Preparing":l==="On way"?"Out for delivery":
+                  l==="Preparing"?"Preparing":l==="On way"?"Out for delivery":
                   l==="Done"?"Delivered":l)).length}
               </div>
               <div style={{fontSize:11,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
@@ -1186,13 +1438,13 @@ function CookDashboard() {
             </div>
             {NEXT[sel.status]&&(
               <Btn full onClick={()=>advance(sel)} style={{marginBottom:10,fontSize:14}}>
-                Mark as {NEXT[sel.status]} + notify 💬
+                Mark as {NEXT[sel.status]}
               </Btn>
             )}
             <Btn full v="wa" style={{fontSize:14}}
               onClick={()=>openWA(sel.phone,
                 `Hello ${sel.customer.split(" ")[0]}, update on order ${sel.id}: ${sel.status}. AfroCrave Kitchen 🍛`)}>
-              💬 Custom message
+              Custom message
             </Btn>
           </div>
         )}
@@ -1264,7 +1516,7 @@ function RiderApp() {
               <div style={{fontSize:13,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
               <div style={{fontSize:26,fontWeight:800,color:B.gold}}>£4.50</div>
             </div>
-            <div style={{fontSize:40}}>🛵</div>
+            <div style={{fontSize:40}}><Bike size={22} color="#fff"/></div>
           </div>
         </Card>
         {completed.map(o=>(
@@ -1357,7 +1609,7 @@ function RiderApp() {
             <Btn full v="wa" style={{fontSize:14}}
               onClick={()=>openWA(live.phone,
                 `Hello ${live.customer.split(" ")[0]}, I'm your AfroCrave Kitchen delivery rider. I'll be with you at ${live.postcode} shortly 🛵`)}>
-              💬 Message customer
+              Message customer
             </Btn>
             <Btn full v="ghost" style={{fontSize:14}}
               onClick={()=>openWA(B.kitchenWA,
@@ -1490,13 +1742,17 @@ function RiderApp() {
       {/* Bottom nav */}
       <div style={{display:"flex",background:B.card,borderTop:`1px solid ${B.border}`,
         paddingTop:6,paddingBottom:12,flexShrink:0}}>
-        {[["🏠","Home","home"],["📦","Orders","home"],["💰","Earnings","earnings"]].map(([ic,lb,sc])=>(
-          <button key={lb} onClick={()=>setScreen(sc)}
+        {[
+          {icon:<Home size={22}/>, label:"Home",     sc:"home"},
+          {icon:<Package size={22}/>, label:"Orders", sc:"home"},
+          {icon:<Wallet size={22}/>, label:"Earnings",sc:"earnings"},
+        ].map(({icon,label,sc})=>(
+          <button key={label} onClick={()=>setScreen(sc)}
             style={{flex:1,background:"none",border:"none",cursor:"pointer",
               display:"flex",flexDirection:"column",alignItems:"center",gap:3,
               padding:"6px 0",color:screen===sc?B.primary:B.textDim,transition:"color 0.15s"}}>
-            <span style={{fontSize:22}}>{ic}</span>
-            <span style={{fontSize:11,fontWeight:screen===sc?700:500}}>{lb}</span>
+            {icon}
+            <span style={{fontSize:11,fontWeight:screen===sc?700:500}}>{label}</span>
             {screen===sc&&<div style={{width:4,height:4,borderRadius:2,background:B.primary}}/>}
           </button>
         ))}
@@ -1532,7 +1788,13 @@ function TrackingPage() {
     <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:520,margin:"0 auto",padding:"32px 20px 60px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{fontSize:52,marginBottom:12}}>📍</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
+            <div style={{width:72,height:72,borderRadius:"50%",
+              background:B.primaryLight,display:"flex",alignItems:"center",
+              justifyContent:"center"}}>
+              <MapPin size={36} color={B.primary}/>
+            </div>
+          </div>
           <div style={{fontSize:26,fontWeight:800,color:B.text,letterSpacing:-0.5}}>
             Track your order
           </div>
@@ -1683,11 +1945,711 @@ function TrackingPage() {
               <Btn full v="wa" style={{fontSize:15}}
                 onClick={()=>openWA(B.kitchenWA,
                   `Hi AfroCrave Kitchen, checking on order ${found.id}. Status shows: ${found.status}. Any update? 🙏`)}>
-                💬 Message kitchen
+                Message kitchen
               </Btn>
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════════════════════════════
+const ADMIN_PASS  = "|willsucc££d2026";
+const KITCHEN_PASS = "|tislife2026|";
+
+function AdminPanel() {
+  const [authed,    setAuthed]    = useState(false);
+  const [role,      setRole]      = useState(null); // "super" | "kitchen"
+  const [password,  setPassword]  = useState("");
+  const [error,     setError]     = useState("");
+  const [section,   setSection]   = useState("menu"); // menu | riders | orders | settings
+  const [menuItems, setMenuItems] = useState([]);
+  const [orders,    setOrders]    = useState([]);
+  const [riders,    setRiders]    = useState([]);
+  const [loading,   setLoading]   = useState(false);
+  const [toast,     setToast]     = useState("");
+
+  // Menu form state
+  const [editingItem, setEditingItem] = useState(null);
+  const [menuForm,    setMenuForm]    = useState({
+    name:"", description:"", price:"", category:"Rice Dishes",
+    emoji:"🍛", portion:"", calories:"", available:true, is_halal:true, is_vegan:false,
+    imagePreview:null, imageFile:null, imageUrl:"",
+  });
+
+  // Rider form state
+  const [riderForm, setRiderForm] = useState({ name:"", phone:"" });
+  const [addingRider, setAddingRider] = useState(false);
+
+  // Settings form
+  const [settings, setSettings] = useState({
+    kitchenName:"AfroCrave Kitchen",
+    phone:"+44 7823 644323",
+    address:"Sunderland, UK",
+    minOrder:"0",
+    deliveryTime:"45–75 min",
+  });
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
+
+  const login = () => {
+    if (password === ADMIN_PASS) {
+      setAuthed(true); setRole("super"); setError("");
+      loadAll();
+    } else if (password === KITCHEN_PASS) {
+      setAuthed(true); setRole("kitchen"); setError("");
+      loadAll();
+    } else {
+      setError("Incorrect password. Please try again.");
+      setPassword("");
+    }
+  };
+
+  const loadAll = async () => {
+    setLoading(true);
+    const [menuRes, ordersRes, ridersRes] = await Promise.all([
+      supabase.from("menu_items").select("*").order("category"),
+      supabase.from("orders").select("*").order("created_at", {ascending:false}).limit(50),
+      supabase.from("riders").select("*").order("name"),
+    ]);
+    if (menuRes.data)   setMenuItems(menuRes.data);
+    if (ordersRes.data) setOrders(ordersRes.data.map(o=>({
+      ...o,
+      items: typeof o.items==="string" ? JSON.parse(o.items) : (o.items||[]),
+    })));
+    if (ridersRes.data) setRiders(ridersRes.data);
+    setLoading(false);
+  };
+
+  // ── Login screen ──
+  if (!authed) return (
+    <div style={{minHeight:"100%",background:B.bg,display:"flex",alignItems:"center",
+      justifyContent:"center",padding:24}}>
+      <div style={{width:"100%",maxWidth:380}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:56,marginBottom:12,display:"flex",justifyContent:"center"}}><Lock size={56} color={B.primary}/></div>
+          <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:6}}>
+            Admin Access
+          </div>
+          <div style={{fontSize:14,color:B.textMid}}>
+            AfroCrave Kitchen · Choma Platform
+          </div>
+        </div>
+        <Card>
+          <Input label="Password" value={password}
+            onChange={v=>setPassword(v)} placeholder="Enter your password"
+            type="password"/>
+          {error&&(
+            <div style={{fontSize:13,color:B.red,marginBottom:12,
+              padding:"10px 12px",background:B.redSoft,borderRadius:10}}>
+              ⚠️ {error}
+            </div>
+          )}
+          <Btn full onClick={login} disabled={!password}>
+            🔐 Sign in
+          </Btn>
+        </Card>
+        <div style={{textAlign:"center",marginTop:16,fontSize:12,color:B.textDim}}>
+          Kitchen staff use your kitchen password<br/>
+          Choma admin use the platform password
+        </div>
+      </div>
+    </div>
+  );
+
+  const SECTIONS = [
+    {id:"menu",     label:"Menu",    icon:<UtensilsCrossed size={14}/>, desc:"Add, edit, remove dishes"},
+    {id:"orders",   label:"Orders",  icon:<ClipboardList size={14}/>, desc:"View all orders"},
+    {id:"riders",   label:"Riders",  icon:<Bike size={14}/>, desc:"Manage delivery riders"},
+    {id:"settings", label:"Settings",icon:<Settings size={14}/>, desc:"Kitchen info & zones"},
+  ];
+
+  const CATEGORIES = ["Rice Dishes","Nigerian Soups","Snacks","Cakes"];
+
+  // ── Save menu item ──
+  const saveMenuItem = async () => {
+    if (!menuForm.name || !menuForm.price) return;
+    setLoading(true);
+
+    // Upload image to Supabase storage if a new image was selected
+    let imageUrl = menuForm.imageUrl || "";
+    if (menuForm.imageFile) {
+      const fileName = `menu/${Date.now()}_${menuForm.name.replace(/\s+/g,"_")}.jpg`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("food-images")
+        .upload(fileName, menuForm.imageFile, { upsert: true });
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from("food-images")
+          .getPublicUrl(fileName);
+        imageUrl = urlData.publicUrl;
+      }
+    }
+
+    const data = {
+      name:        menuForm.name,
+      description: menuForm.description,
+      price:       parseFloat(menuForm.price),
+      category:    menuForm.category,
+      emoji:       menuForm.emoji,
+      portion:     menuForm.portion,
+      calories:    parseInt(menuForm.calories)||0,
+      available:   menuForm.available,
+      is_halal:    menuForm.is_halal,
+      is_vegan:    menuForm.is_vegan,
+      allergens:   [],
+      image_url:   imageUrl,
+    };
+    if (editingItem) {
+      await supabase.from("menu_items").update(data).eq("id", editingItem.id);
+      showToast("✅ Menu item updated");
+    } else {
+      await supabase.from("menu_items").insert([data]);
+      showToast("✅ Menu item added");
+    }
+    setEditingItem(null);
+    setMenuForm({name:"",description:"",price:"",category:"Rice Dishes",
+      emoji:"🍛",portion:"",calories:"",available:true,is_halal:true,is_vegan:false});
+    await loadAll();
+    setLoading(false);
+  };
+
+  const deleteMenuItem = async (id) => {
+    if (!window.confirm("Delete this menu item?")) return;
+    await supabase.from("menu_items").delete().eq("id", id);
+    showToast("🗑️ Item deleted");
+    await loadAll();
+  };
+
+  const toggleAvailable = async (item) => {
+    await supabase.from("menu_items").update({available:!item.available}).eq("id",item.id);
+    showToast(item.available ? "❌ Item marked sold out" : "✅ Item marked available");
+    await loadAll();
+  };
+
+  const editItem = (item) => {
+    setEditingItem(item);
+    setMenuForm({
+      name:         item.name,
+      description:  item.description||"",
+      price:        item.price.toString(),
+      category:     item.category,
+      emoji:        item.emoji||"🍛",
+      portion:      item.portion||"",
+      calories:     item.calories?.toString()||"",
+      available:    item.available,
+      is_halal:     item.is_halal,
+      is_vegan:     item.is_vegan,
+      imagePreview: item.image_url||null,
+      imageFile:    null,
+      imageUrl:     item.image_url||"",
+    });
+  };
+
+  // ── Save rider ──
+  const saveRider = async () => {
+    if (!riderForm.name || !riderForm.phone) return;
+    await supabase.from("riders").insert([{
+      name:  riderForm.name,
+      phone: riderForm.phone.replace(/\D/g,""),
+    }]);
+    showToast("✅ Rider added");
+    setRiderForm({name:"",phone:""});
+    setAddingRider(false);
+    await loadAll();
+  };
+
+  const deleteRider = async (id) => {
+    if (!window.confirm("Remove this rider?")) return;
+    await supabase.from("riders").delete().eq("id",id);
+    showToast("🗑️ Rider removed");
+    await loadAll();
+  };
+
+  return (
+    <div style={{minHeight:"100%",background:B.bg,display:"flex",flexDirection:"column"}}>
+
+      {/* Toast notification */}
+      {toast&&(
+        <div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",
+          zIndex:9999,background:B.text,color:"#fff",padding:"12px 24px",
+          borderRadius:20,fontSize:14,fontWeight:700,
+          boxShadow:"0 8px 24px rgba(0,0,0,0.2)"}}>
+          {toast}
+        </div>
+      )}
+
+      {/* Admin header */}
+      <div style={{background:`linear-gradient(135deg,#2A1208,#5C2A08)`,
+        padding:"16px 16px 14px",color:"#fff",flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:18,fontWeight:800}}>
+              {role==="super" ? "⚡ Super Admin" : "👩‍🍳 Kitchen Admin"}
+            </div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginTop:2}}>
+              AfroCrave Kitchen · Choma Platform
+            </div>
+          </div>
+          <button onClick={()=>{setAuthed(false);setPassword("");setRole(null);}}
+            style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",
+              borderRadius:10,padding:"6px 14px",color:"#fff",fontSize:12,
+              fontWeight:700,cursor:"pointer"}}>
+            Sign out
+          </button>
+        </div>
+
+        {/* Section tabs */}
+        <div style={{display:"flex",gap:4,marginTop:14,overflowX:"auto"}}>
+          {SECTIONS.map(s=>(
+            <button key={s.id} onClick={()=>setSection(s.id)}
+              style={{padding:"8px 14px",borderRadius:12,fontSize:12,fontWeight:700,
+                cursor:"pointer",border:"none",whiteSpace:"nowrap",
+                display:"flex",alignItems:"center",gap:6,
+                background:section===s.id?"rgba(255,255,255,0.2)":"transparent",
+                color:section===s.id?"#fff":"rgba(255,255,255,0.6)"}}>
+              {s.icon}
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading&&(
+        <div style={{padding:"20px",textAlign:"center",color:B.textMid,fontSize:14}}>
+          Loading…
+        </div>
+      )}
+
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 40px"}}>
+
+        {/* ── MENU SECTION ── */}
+        {section==="menu"&&(
+          <div>
+            {/* Add/Edit form */}
+            <Card style={{marginBottom:20,background:editingItem?B.goldLight:B.card,
+              borderColor:editingItem?B.gold:"transparent"}}>
+              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+                {editingItem ? "✏️ Edit menu item" : "➕ Add new item"}
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:B.textMid,marginBottom:5,
+                    textTransform:"uppercase",letterSpacing:0.4}}>Food photo</div>
+                  <label style={{display:"block",cursor:"pointer"}}>
+                    <div style={{width:"100%",aspectRatio:"1",background:B.surface,
+                      border:`1.5px dashed ${menuForm.imagePreview?B.primary:B.border}`,
+                      borderRadius:12,display:"flex",flexDirection:"column",
+                      alignItems:"center",justifyContent:"center",overflow:"hidden",
+                      position:"relative"}}>
+                      {menuForm.imagePreview ? (
+                        <img src={menuForm.imagePreview} alt="Food"
+                          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                      ) : (
+                        <>
+                          <Plus size={24} color={B.textDim}/>
+                          <div style={{fontSize:11,color:B.textDim,marginTop:6,
+                            textAlign:"center",padding:"0 8px"}}>
+                            Tap to add photo
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <input type="file" accept="image/*" style={{display:"none"}}
+                      onChange={e=>{
+                        const file = e.target.files[0];
+                        if(file){
+                          const reader = new FileReader();
+                          reader.onload = ev => setMenuForm(f=>({
+                            ...f,
+                            imageFile: file,
+                            imagePreview: ev.target.result,
+                          }));
+                          reader.readAsDataURL(file);
+                        }
+                      }}/>
+                  </label>
+                  {menuForm.imagePreview&&(
+                    <button onClick={()=>setMenuForm(f=>({...f,imagePreview:null,imageFile:null}))}
+                      style={{marginTop:6,fontSize:11,color:B.red,background:"none",
+                        border:"none",cursor:"pointer",fontWeight:600}}>
+                      Remove photo
+                    </button>
+                  )}
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:B.textMid,marginBottom:5,
+                    textTransform:"uppercase",letterSpacing:0.4}}>Category</div>
+                  <select value={menuForm.category}
+                    onChange={e=>setMenuForm(f=>({...f,category:e.target.value}))}
+                    style={{width:"100%",padding:"10px 12px",background:B.surface,
+                      border:`1.5px solid ${B.border}`,borderRadius:10,fontSize:14,
+                      boxSizing:"border-box",fontFamily:"inherit",color:B.text}}>
+                    {CATEGORIES.map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <Input label="Dish name" value={menuForm.name}
+                onChange={v=>setMenuForm(f=>({...f,name:v}))}
+                placeholder="e.g. Jollof Rice + Chicken"/>
+              <Input label="Description" value={menuForm.description}
+                onChange={v=>setMenuForm(f=>({...f,description:v}))}
+                placeholder="Short description of the dish"/>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                <Input label="Price (£)" value={menuForm.price}
+                  onChange={v=>setMenuForm(f=>({...f,price:v}))}
+                  placeholder="12.50" type="number"/>
+                <Input label="Portion size" value={menuForm.portion}
+                  onChange={v=>setMenuForm(f=>({...f,portion:v}))}
+                  placeholder="e.g. 450g"/>
+              </div>
+
+              <Input label="Calories (optional)" value={menuForm.calories}
+                onChange={v=>setMenuForm(f=>({...f,calories:v}))}
+                placeholder="e.g. 620" type="number"/>
+
+              {/* Toggles */}
+              <div style={{display:"flex",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+                {[
+                  ["available","Available for order",B.green],
+                  ["is_vegan","Vegan",B.purple],
+                ].map(([key,label,color])=>(
+                  <button key={key}
+                    onClick={()=>setMenuForm(f=>({...f,[key]:!f[key]}))}
+                    style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",
+                      borderRadius:20,border:`1.5px solid ${menuForm[key]?color:B.border}`,
+                      background:menuForm[key]?`${color}15`:"transparent",
+                      cursor:"pointer",fontSize:13,fontWeight:700,
+                      color:menuForm[key]?color:B.textMid}}>
+                    <div style={{width:14,height:14,borderRadius:"50%",
+                      background:menuForm[key]?color:B.border}}/>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{display:"flex",gap:10}}>
+                <Btn full onClick={saveMenuItem}
+                  disabled={!menuForm.name||!menuForm.price}>
+                  {editingItem ? "Save changes" : "Add to menu"}
+                </Btn>
+                {editingItem&&(
+                  <Btn v="ghost" onClick={()=>{
+                    setEditingItem(null);
+                    setMenuForm({name:"",description:"",price:"",category:"Rice Dishes",
+                      emoji:"🍛",portion:"",calories:"",available:true,
+                      is_halal:true,is_vegan:false,imagePreview:null,imageFile:null,imageUrl:""});
+                  }}>Cancel</Btn>
+                )}
+              </div>
+            </Card>
+
+            {/* Menu items list grouped by category */}
+            {CATEGORIES.map(cat=>{
+              const items = menuItems.filter(m=>m.category===cat);
+              if(!items.length) return null;
+              return (
+                <div key={cat} style={{marginBottom:20}}>
+                  <div style={{fontSize:13,fontWeight:700,color:B.textMid,
+                    textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+                    {cat} ({items.length})
+                  </div>
+                  {items.map(item=>(
+                    <Card key={item.id} style={{marginBottom:10,
+                      opacity:item.available?1:0.6,
+                      borderLeft:`4px solid ${item.available?B.green:B.red}`}}>
+                      <div style={{display:"flex",justifyContent:"space-between",
+                        alignItems:"flex-start",gap:10}}>
+                        <div style={{display:"flex",gap:10,flex:1}}>
+                          <div style={{width:48,height:48,borderRadius:10,
+                          background:B.surface,overflow:"hidden",flexShrink:0,
+                          display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>
+                          {item.image_url
+                            ? <img src={item.image_url} alt={item.name}
+                                style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                            : item.emoji
+                          }
+                        </div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                              {item.name}
+                            </div>
+                            <div style={{fontSize:13,color:B.textMid,marginTop:2}}>
+                              {item.description}
+                            </div>
+                            <div style={{display:"flex",gap:8,marginTop:6,
+                              alignItems:"center",flexWrap:"wrap"}}>
+                              <span style={{fontSize:16,fontWeight:800,color:B.primary}}>
+                                £{item.price.toFixed(2)}
+                              </span>
+                              {item.portion&&item.portion!=="0"&&(
+                                <span style={{fontSize:12,color:B.textDim}}>
+                                  {item.portion}
+                                </span>
+                              )}
+                              <span style={{fontSize:12,fontWeight:700,
+                                color:item.available?B.green:B.red}}>
+                                {item.available?"● Available":"● Sold out"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
+                          <button onClick={()=>toggleAvailable(item)}
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                              fontWeight:700,cursor:"pointer",border:"none",
+                              background:item.available?B.redSoft:B.greenSoft,
+                              color:item.available?B.red:B.green}}>
+                            {item.available?"Sold out":"Available"}
+                          </button>
+                          <button onClick={()=>editItem(item)}
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                              fontWeight:700,cursor:"pointer",border:"none",
+                              background:B.goldLight,color:B.gold}}>
+                            ✏️ Edit
+                          </button>
+                          <button onClick={()=>deleteMenuItem(item.id)}
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                              fontWeight:700,cursor:"pointer",border:"none",
+                              background:B.redSoft,color:B.red}}>
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── ORDERS SECTION ── */}
+        {section==="orders"&&(
+          <div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+              {[
+                ["Total orders",orders.length,B.primary],
+                ["Paid orders",orders.filter(o=>o.paid).length,B.green],
+                ["Pending",orders.filter(o=>!o.paid).length,B.gold],
+                ["Revenue",`£${orders.filter(o=>o.paid).reduce((s,o)=>s+o.total,0).toFixed(2)}`,B.green],
+              ].map(([label,value,color])=>(
+                <Card key={label} style={{textAlign:"center",padding:"14px 10px",
+                  background:B.surface,borderColor:"transparent"}}>
+                  <div style={{fontSize:22,fontWeight:800,color}}>{value}</div>
+                  <div style={{fontSize:12,color:B.textMid,marginTop:4,fontWeight:600}}>
+                    {label}
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {orders.map(o=>(
+              <Card key={o.id} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",
+                  alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                      {o.customer_name}
+                    </div>
+                    <div style={{fontSize:12,color:B.textDim}}>
+                      {o.id} · {o.postcode}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <Pill s={o.status}/>
+                    <div style={{fontSize:15,fontWeight:800,color:B.primary,marginTop:4}}>
+                      £{o.total?.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                <div style={{fontSize:13,color:B.textMid,marginBottom:6}}>
+                  📍 {o.delivery_address}
+                </div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  {(o.items||[]).map((it,i)=>(
+                    <span key={i} style={{fontSize:12,background:B.surface,
+                      borderRadius:8,padding:"4px 10px",color:B.textMid,fontWeight:600}}>
+                      {it.name} ×{it.qty}
+                    </span>
+                  ))}
+                </div>
+                <div style={{marginTop:8,display:"flex",justifyContent:"space-between",
+                  alignItems:"center"}}>
+                  <span style={{fontSize:12,fontWeight:700,
+                    color:o.paid?B.green:B.gold}}>
+                    {o.paid?"💳 Paid":"⏳ Awaiting payment"}
+                  </span>
+                  <span style={{fontSize:12,color:B.textDim}}>
+                    {new Date(o.created_at).toLocaleDateString("en-GB",
+                      {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* ── RIDERS SECTION ── */}
+        {section==="riders"&&(
+          <div>
+            <Btn full style={{marginBottom:16}}
+              onClick={()=>setAddingRider(true)}>
+              ➕ Add new rider
+            </Btn>
+
+            {addingRider&&(
+              <Card style={{marginBottom:16,background:B.goldLight,
+                borderColor:B.gold}}>
+                <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+                  Add rider
+                </div>
+                <Input label="Full name" value={riderForm.name}
+                  onChange={v=>setRiderForm(f=>({...f,name:v}))}
+                  placeholder="Rider's full name"/>
+                <Input label="Phone / WhatsApp" value={riderForm.phone}
+                  onChange={v=>setRiderForm(f=>({...f,phone:v}))}
+                  placeholder="+44 7xxx xxxxxx"/>
+                <div style={{display:"flex",gap:10}}>
+                  <Btn full onClick={saveRider}
+                    disabled={!riderForm.name||!riderForm.phone}>
+                    Add rider
+                  </Btn>
+                  <Btn v="ghost" onClick={()=>{
+                    setAddingRider(false);
+                    setRiderForm({name:"",phone:""});
+                  }}>Cancel</Btn>
+                </div>
+              </Card>
+            )}
+
+            {riders.length===0&&!addingRider&&(
+              <Card style={{textAlign:"center",padding:"32px 20px"}}>
+                <div style={{fontSize:36,marginBottom:12}}><Bike size={22} color="#fff"/></div>
+                <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+                  No riders yet
+                </div>
+                <div style={{fontSize:14,color:B.textMid,marginTop:6}}>
+                  Add your first delivery rider above
+                </div>
+              </Card>
+            )}
+
+            {riders.map(rider=>(
+              <Card key={rider.id} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",
+                  alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:44,height:44,borderRadius:12,
+                      background:`linear-gradient(135deg,${B.primary},${B.gold})`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:22,flexShrink:0}}><Bike size={22} color="#fff"/></div>
+                    <div>
+                      <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                        {rider.name}
+                      </div>
+                      <div style={{fontSize:13,color:B.textMid}}>
+                        +{rider.phone}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    <Btn v="wa" style={{padding:"8px 12px",fontSize:13}}
+                      onClick={()=>openWA(rider.phone,
+                        `Hi ${rider.name}, this is AfroCrave Kitchen. Are you available for deliveries today?`)}>
+                      💬
+                    </Btn>
+                    <Btn v="danger" style={{padding:"8px 12px",fontSize:13}}
+                      onClick={()=>deleteRider(rider.id)}>
+                      🗑️
+                    </Btn>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* ── SETTINGS SECTION ── */}
+        {section==="settings"&&(
+          <div>
+            <Card style={{marginBottom:16}}>
+              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+                Kitchen information
+              </div>
+              <Input label="Kitchen name" value={settings.kitchenName}
+                onChange={v=>setSettings(s=>({...s,kitchenName:v}))}
+                placeholder="AfroCrave Kitchen"/>
+              <Input label="WhatsApp / Phone" value={settings.phone}
+                onChange={v=>setSettings(s=>({...s,phone:v}))}
+                placeholder="+44 7823 644323"/>
+              <Input label="Address / Location" value={settings.address}
+                onChange={v=>setSettings(s=>({...s,address:v}))}
+                placeholder="Sunderland, UK"/>
+              <Input label="Minimum order (£)" value={settings.minOrder}
+                onChange={v=>setSettings(s=>({...s,minOrder:v}))}
+                placeholder="15.00" type="number"
+                hint="Set to 0 for no minimum order"/>
+              <Input label="Estimated delivery time" value={settings.deliveryTime}
+                onChange={v=>setSettings(s=>({...s,deliveryTime:v}))}
+                placeholder="45–75 min"
+                hint="Shown to customers on the order page"/>
+              <Btn full v="green" onClick={()=>showToast("✅ Settings saved — contact Choma support to apply")}>
+                Save settings
+              </Btn>
+              <div style={{fontSize:12,color:B.textMid,marginTop:10,textAlign:"center"}}>
+                Some settings require a code update to take effect.
+              </div>
+            </Card>
+
+            {/* Delivery zones */}
+            <Card style={{marginBottom:16}}>
+              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+                📍 Delivery zones
+              </div>
+              <div style={{fontSize:13,color:B.textMid,lineHeight:1.8,marginBottom:10}}>
+                <strong style={{color:B.text}}>Sunderland (all SR postcodes)</strong> — £5.00 flat fee<br/>
+                <strong style={{color:B.text}}>Outside Sunderland</strong> — £5.00 + £0.75/mile<br/>
+                <strong style={{color:B.text}}>Maximum charge</strong> — £15.00
+              </div>
+              <div style={{padding:"12px 14px",background:B.goldLight,borderRadius:10,
+                fontSize:13,color:B.gold,fontWeight:600}}>
+                💡 To change delivery pricing, WhatsApp Choma support
+              </div>
+            </Card>
+
+            {/* Platform info */}
+            <Card style={{background:B.surface,borderColor:"transparent"}}>
+              <div style={{fontSize:13,fontWeight:700,color:B.textMid,
+                textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+                Platform
+              </div>
+              {[
+                ["Platform","Choma"],
+                ["Kitchen","AfroCrave Kitchen"],
+                ["Plan","Starter"],
+                ["Support","WhatsApp: +44 7823 644323"],
+              ].map(([label,value])=>(
+                <div key={label} style={{display:"flex",justifyContent:"space-between",
+                  padding:"8px 0",borderBottom:`1px solid ${B.divider}`,fontSize:14}}>
+                  <span style={{color:B.textMid}}>{label}</span>
+                  <span style={{fontWeight:600,color:B.text}}>{value}</span>
+                </div>
+              ))}
+            </Card>
+          </div>
+        )}
+
       </div>
     </div>
   );

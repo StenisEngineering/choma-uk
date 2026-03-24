@@ -566,13 +566,17 @@ function StaffApp() {
   // Staff tabs based on role
   const TABS = role === "super"
     ? [
-        {id:"cook",  label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
-        {id:"rider", label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
-        {id:"admin", label:"Admin",   icon:<Lock size={16}/>},
+        {id:"order",   label:"Order",   icon:<ShoppingCart size={16}/>},
+        {id:"cook",    label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider",   label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"tracking",label:"Track",   icon:<MapPin size={16}/>},
+        {id:"admin",   label:"Admin",   icon:<Lock size={16}/>},
       ]
     : [
-        {id:"cook",  label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
-        {id:"rider", label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"order",   label:"Order",   icon:<ShoppingCart size={16}/>},
+        {id:"cook",    label:"Kitchen", icon:<ChefHat size={16}/>,  badge:cookBadge},
+        {id:"rider",   label:"Rider",   icon:<Bike size={16}/>,     badge:riderBadge},
+        {id:"tracking",label:"Track",   icon:<MapPin size={16}/>},
       ];
 
   return (
@@ -640,9 +644,11 @@ function StaffApp() {
       </div>
 
       <div style={{flex:1,overflow:"hidden"}}>
-        {view==="cook"  && <CookDashboard/>}
-        {view==="rider" && <RiderApp/>}
-        {view==="admin" && role==="super" && <AdminPanel/>}
+        {view==="order"    && <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>}
+        {view==="cook"     && <CookDashboard/>}
+        {view==="rider"    && <RiderApp/>}
+        {view==="tracking" && <TrackingPage/>}
+        {view==="admin"    && role==="super" && <AdminPanel/>}
       </div>
     </div>
   );

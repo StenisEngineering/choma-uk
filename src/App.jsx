@@ -249,7 +249,7 @@ function OrderSuccessPage({ orderId, onDone }) {
   );
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 100%)",overflowY:"auto"}}>
+    <div style={{minHeight:"100vh",background:"#F5E6D0",overflowY:"auto"}}>
       {/* Header */}
       <div style={{background:`linear-gradient(135deg, ${B.primary} 0%, ${B.gold} 100%)`,
         padding:"40px 24px 32px",textAlign:"center",color:"#fff"}}>
@@ -830,7 +830,7 @@ export default function AfroCraveApp() {
 
   // Customer order flow
   if(page==="order") return (
-    <div style={{minHeight:"100vh",background:"#FFFBF5",
+    <div style={{minHeight:"100vh",background:"#F5E6D0",
       fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
       <div style={{background:"#fff",padding:"10px 16px",
         borderBottom:"1px solid #EDE8E0",display:"flex",
@@ -855,7 +855,7 @@ export default function AfroCraveApp() {
 
   // Customer tracking flow
   if(page==="tracking") return (
-    <div style={{minHeight:"100vh",background:"#FFFBF5",
+    <div style={{minHeight:"100vh",background:"#F5E6D0",
       fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
       <div style={{background:"#fff",padding:"10px 16px",
         borderBottom:"1px solid #EDE8E0",display:"flex",
@@ -1220,7 +1220,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Payment ──
   if(step==="payment") return (
-    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
           style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
@@ -1350,7 +1350,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Checkout ──
   if(step==="checkout") return (
-    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>setStep("menu")} style={{background:B.card,
           border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
@@ -1491,7 +1491,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Main menu ──
   return (
-    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
       {/* Hero */}
       <div style={{background:`linear-gradient(160deg, #2A1208 0%, #5C2A08 50%, #8A4510 100%)`,
         padding:"24px 16px 22px",color:"#fff",position:"relative",overflow:"hidden",
@@ -1897,7 +1897,7 @@ function RiderApp() {
   };
 
   if(screen==="earnings") return (
-    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{padding:"16px 20px 12px",background:B.card,
         borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
         <button onClick={()=>setScreen("home")} style={{background:B.surface,
@@ -1943,7 +1943,7 @@ function RiderApp() {
   if(screen==="detail"&&activeOrder) {
     const live = orders.find(o=>o.id===activeOrder.id)||activeOrder;
     return (
-      <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+      <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
         <div style={{padding:"16px 20px 12px",background:B.card,
           borderBottom:`1px solid ${B.border}`,display:"flex",
           justifyContent:"space-between",alignItems:"center"}}>
@@ -2191,7 +2191,7 @@ function TrackingPage() {
   };
 
   return (
-    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"linear-gradient(180deg,#FFF4E8 0%,#FFF8F0 30%,#FFF4E8 100%)",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:520,margin:"0 auto",padding:"32px 20px 60px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>

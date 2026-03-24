@@ -809,13 +809,19 @@ export default function AfroCraveApp() {
     window.history.replaceState({},""," /");
   };
 
-  if(showSplash) return <SplashScreen onDone={()=>setShowSplash(false)}/>;
+  // Skip splash if coming back from Stripe payment
+  if(showSplash && !isSuccess) return <SplashScreen onDone={()=>setShowSplash(false)}/>;
 
   // Staff route — show staff app directly
   if(isStaff) return <StaffApp/>;
 
+  // Order success page — must check BEFORE landing page
+  if(showSuccess && successOrderId) return (
+    <OrderSuccessPage orderId={successOrderId} onDone={handleSuccessDone}/>
+  );
+
   // Customer landing page
-  if(page==="landing") return (
+  if(page==="landing" && !isSuccess) return (
     <LandingPage
       onOrder={()=>setPage("order")}
       onTrack={()=>setPage("tracking")}
@@ -1061,6 +1067,37 @@ function LandingPage({ onOrder, onTrack }) {
               Rated by local authority · Sunderland
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* HOW IT WORKS */}
+      <div style={{width:"100%",position:"relative",zIndex:1}}>
+        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",
+          textAlign:"center",textTransform:"uppercase",letterSpacing:"2px",
+          marginBottom:"10px"}}>How it works</div>
+        <div style={{display:"flex",gap:"6px",justifyContent:"center"}}>
+          {[
+            {n:"1",label:"Browse menu"},
+            {n:"2",label:"Checkout"},
+            {n:"3",label:"Track order"},
+          ].map((s,i)=>(
+            <div key={s.n} style={{display:"flex",alignItems:"center",gap:"4px"}}>
+              <div style={{display:"flex",flexDirection:"column",
+                alignItems:"center",gap:"4px"}}>
+                <div style={{width:"28px",height:"28px",borderRadius:"50%",
+                  background:"rgba(245,200,66,0.15)",
+                  border:"0.5px solid rgba(245,200,66,0.3)",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:"11px",fontWeight:"700",color:"#F5C842"}}>
+                  {s.n}
+                </div>
+                <div style={{fontSize:"9px",color:"rgba(255,255,255,0.5)",
+                  textAlign:"center",whiteSpace:"nowrap"}}>{s.label}</div>
+              </div>
+              {i<2&&<div style={{width:"20px",height:"1px",
+                background:"rgba(255,255,255,0.15)",marginBottom:"14px"}}/>}
+            </div>
+          ))}
         </div>
       </div>
 

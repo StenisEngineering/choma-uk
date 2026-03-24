@@ -1183,7 +1183,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Payment ──
   if(step==="payment") return (
-    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
           style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
@@ -1313,7 +1313,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Checkout ──
   if(step==="checkout") return (
-    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>setStep("menu")} style={{background:B.card,
           border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
@@ -1454,7 +1454,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // ── Main menu ──
   return (
-    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
       {/* Hero */}
       <div style={{background:`linear-gradient(160deg, #2A1208 0%, #5C2A08 50%, #8A4510 100%)`,
         padding:"24px 16px 22px",color:"#fff",position:"relative",overflow:"hidden",
@@ -1498,7 +1498,7 @@ function CustomerPage({ onOrderPlaced }) {
 
       {/* Allergen notice */}
       {/* Kitchen status from Supabase would go here - for now managed in cook dashboard */}
-      <div style={{margin:"12px 12px 0",padding:"12px 14px",background:B.goldLight,
+      <div style={{margin:"0",padding:"12px 16px",background:B.goldLight,
         border:`1px solid ${B.gold}30`,borderRadius:12,
         fontSize:13,color:B.gold,lineHeight:1.6,fontWeight:500}}>
         ⚠️ <strong>Allergen info:</strong> Tap any item to see allergen details.
@@ -1507,7 +1507,7 @@ function CustomerPage({ onOrderPlaced }) {
 
       {/* Category filters */}
       <div style={{padding:"12px 12px 8px",display:"flex",gap:8,overflowX:"auto",
-        WebkitOverflowScrolling:"touch"}}>
+        WebkitOverflowScrolling:"touch",background:"#FFF8F0"}}>
         {["All",...cats].map(f=>(
           <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 18px",borderRadius:20,
             fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
@@ -1530,12 +1530,14 @@ function CustomerPage({ onOrderPlaced }) {
         <div style={{
           display:"grid",
           gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,320px),1fr))",
-          gap:"12px",
+          gap:"0",
         }}>
-        {shown.map(m=>(
-          <div key={m.id} style={{background:B.card,border:`1px solid ${B.border}`,
-            borderRadius:18,padding:"16px",
-            transition:"box-shadow 0.15s"}}>
+        {shown.map((m,idx)=>(
+          <div key={m.id} style={{
+            background: idx%2===0 ? "#FFFBF5" : "#FFF3E8",
+            borderBottom:`1px solid ${B.border}`,
+            padding:"16px",
+            transition:"background 0.15s"}}>
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"flex-start",gap:12}}>
               <div style={{display:"flex",alignItems:"flex-start",gap:14,flex:1}}>
@@ -1858,7 +1860,7 @@ function RiderApp() {
   };
 
   if(screen==="earnings") return (
-    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
       <div style={{padding:"16px 20px 12px",background:B.card,
         borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
         <button onClick={()=>setScreen("home")} style={{background:B.surface,
@@ -1904,7 +1906,7 @@ function RiderApp() {
   if(screen==="detail"&&activeOrder) {
     const live = orders.find(o=>o.id===activeOrder.id)||activeOrder;
     return (
-      <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+      <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
         <div style={{padding:"16px 20px 12px",background:B.card,
           borderBottom:`1px solid ${B.border}`,display:"flex",
           justifyContent:"space-between",alignItems:"center"}}>
@@ -2152,7 +2154,7 @@ function TrackingPage() {
   };
 
   return (
-    <div style={{background:"linear-gradient(180deg,#FFF8F0 0%,#FFFBF5 40%,#FFF8EE 100%)",minHeight:"100%",overflowY:"auto"}}>
+    <div style={{background:"#FFF8F0",minHeight:"100%",overflowY:"auto"}}>
       <div style={{maxWidth:520,margin:"0 auto",padding:"32px 20px 60px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>

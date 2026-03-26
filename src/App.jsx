@@ -1320,7 +1320,8 @@ function CustomerPage({ onOrderPlaced }) {
   const Wrap = ({children})=>(
     <div style={{background:B.bg,minHeight:"100vh",overflowY:"auto",paddingBottom:72,
       fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
-      maxWidth:560,margin:"0 auto",position:"relative"}}>
+      maxWidth:560,margin:"0 auto",position:"relative",
+      overflowX:"hidden",width:"100%",boxSizing:"border-box"}}>
       {children}
       <Nav/>
     </div>
@@ -1453,7 +1454,8 @@ function CustomerPage({ onOrderPlaced }) {
               <div key={m.id} style={{background:B.surface,
                 border:`1px solid ${B.border}`,borderRadius:14,
                 padding:12,display:"flex",gap:12,
-                alignItems:"center",marginBottom:8}}>
+                alignItems:"center",marginBottom:8,
+                overflow:"hidden",width:"100%",boxSizing:"border-box"}}>
                 <FoodImg m={m} size={60} radius={10}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:14,fontWeight:700,color:B.text,
@@ -1515,7 +1517,8 @@ function CustomerPage({ onOrderPlaced }) {
     <Wrap>
       {/* Dark header with search */}
       <div style={{background:`linear-gradient(135deg,#1A0C04,#3D1A06,#5A3418)`,
-        padding:"14px 16px 16px",position:"sticky",top:0,zIndex:100}}>
+        padding:"14px 16px 16px",position:"sticky",top:0,zIndex:100,
+        width:"100%",boxSizing:"border-box"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
             style={{width:34,height:34,borderRadius:9,objectFit:"cover",flexShrink:0}}/>
@@ -1711,7 +1714,8 @@ function CustomerPage({ onOrderPlaced }) {
       <div style={{background:"#fff",padding:"16px",
         borderBottom:`1px solid ${B.border}`,
         display:"flex",alignItems:"center",justifyContent:"space-between",
-        position:"sticky",top:0,zIndex:100}}>
+        position:"sticky",top:0,zIndex:100,
+        width:"100%",boxSizing:"border-box"}}>
         <div style={{fontSize:20,fontWeight:900,color:B.text}}>Your order</div>
         <button onClick={()=>setScreen("menu")}
           style={{fontSize:13,fontWeight:700,color:B.primary,
@@ -1747,7 +1751,7 @@ function CustomerPage({ onOrderPlaced }) {
                   display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
                   borderBottom:i<cartItems.length-1?`1px solid ${B.divider}`:"none"}}>
                   <FoodImg m={item} size={48} radius={10}/>
-                  <div style={{flex:1,minWidth:0}}>
+                  <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
                     <div style={{fontSize:14,fontWeight:700,color:B.text,
                       marginBottom:1,overflow:"hidden",textOverflow:"ellipsis",
                       whiteSpace:"nowrap"}}>{item.name}</div>

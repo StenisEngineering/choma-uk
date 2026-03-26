@@ -513,7 +513,7 @@ function StaffApp() {
       minHeight:"100vh",
       background:"linear-gradient(170deg,#3D1A06 0%,#5C2A0A 40%,#6B3210 70%,#7A3A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
-      padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      padding:"24px",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
     }}>
       <div style={{width:"100%",maxWidth:"380px"}}>
@@ -598,7 +598,7 @@ function StaffApp() {
       minHeight:"100vh",
       background:"linear-gradient(170deg,#3D1A06 0%,#5C2A0A 40%,#6B3210 70%,#7A3A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
-      padding:"24px",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      padding:"24px",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
     }}>
       <div style={{width:"100%",maxWidth:"360px"}}>
@@ -723,7 +723,7 @@ function StaffApp() {
 
   return (
     <div style={{minHeight:"100vh",background:"#FFFBF5",display:"flex",
-      flexDirection:"column",fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      flexDirection:"column",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       width:"100%"}}>
       {/* Staff nav bar */}
       <div style={{background:"#2A1208",padding:"10px 16px",
@@ -845,7 +845,7 @@ export default function AfroCraveApp() {
   // Customer order flow
   if(page==="order") return (
     <div style={{minHeight:"100vh",background:"#F5E6D0",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
       <div style={{background:"#fff",padding:"10px 16px",
         borderBottom:"1px solid #EDE8E0",display:"flex",
         alignItems:"center",gap:10}}>
@@ -870,7 +870,7 @@ export default function AfroCraveApp() {
   // Customer tracking flow
   if(page==="tracking") return (
     <div style={{minHeight:"100vh",background:"#F5E6D0",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
       <div style={{background:"#fff",padding:"10px 16px",
         borderBottom:"1px solid #EDE8E0",display:"flex",
         alignItems:"center",gap:10}}>
@@ -895,7 +895,7 @@ export default function AfroCraveApp() {
 
   return (
     <div style={{minHeight:"100vh",background:B.bg,display:"flex",flexDirection:"column",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",width:"100%",
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",width:"100%",
       overflowX:"hidden"}}>
       {/* Top nav bar */}
       <div style={{background:B.card,borderBottom:`1px solid ${B.divider}`,
@@ -973,7 +973,7 @@ function LandingPage({ onOrder, onTrack }) {
       position:"relative",
       overflow:"hidden",
       boxSizing:"border-box",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
     }}>
       {/* Decorative glows */}
       <div style={{position:"absolute",top:"-60px",right:"-60px",width:"200px",height:"200px",
@@ -1605,17 +1605,35 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{fontSize:16,fontWeight:600}}>Menu loading…</div>
           </div>
         )}
-        <div style={{
-          display:"grid",
-          gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,320px),1fr))",
-          gap:"0",
-        }}>
-        {shown.map((m,idx)=>(
-          <div key={m.id} style={{
-            background: idx%2===0 ? "#FFFBF5" : "#FFF3E8",
-            borderBottom:`1px solid ${B.border}`,
-            padding:"16px",
-            transition:"background 0.15s"}}>
+        {/* Group menu items by category */}
+        {[...new Set(shown.map(m=>m.category))].map(cat=>(
+          <div key={cat}>
+            {/* Category header */}
+            <div style={{
+              display:"flex",alignItems:"center",gap:10,
+              padding:"14px 4px 8px"}}>
+              <div style={{flex:1,height:"1px",background:B.border}}/>
+              <div style={{fontSize:11,fontWeight:800,color:B.primary,
+                textTransform:"uppercase",letterSpacing:2,
+                padding:"4px 14px",background:B.primaryLight,
+                borderRadius:20,border:`1px solid ${B.primary}20`,
+                whiteSpace:"nowrap"}}>
+                {cat}
+              </div>
+              <div style={{flex:1,height:"1px",background:B.border}}/>
+            </div>
+            {/* Items grid */}
+            <div style={{
+              display:"grid",
+              gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,320px),1fr))",
+              gap:"0",
+            }}>
+            {shown.filter(m=>m.category===cat).map((m,idx)=>(
+              <div key={m.id} style={{
+                background: idx%2===0 ? "#FFFBF5" : "#FFF3E8",
+                borderBottom:`1px solid ${B.border}`,
+                padding:"16px",
+                transition:"background 0.15s"}}>
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"flex-start",gap:12}}>
               <div style={{display:"flex",alignItems:"flex-start",gap:14,flex:1}}>
@@ -1691,7 +1709,9 @@ function CustomerPage({ onOrderPlaced }) {
             </div>
           </div>
         ))}
-        </div>
+            </div>
+          </div>
+        ))}
         <div style={{height:120}}/>
       </div>
 
@@ -3195,7 +3215,7 @@ function AdminPanel() {
 function PrivacyPolicy({ onBack }) {
   return (
     <div style={{minHeight:"100vh",background:"#FFF8F0",
-      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
       {/* Header */}
       <div style={{background:"#2A1208",padding:"14px 20px",
         display:"flex",alignItems:"center",gap:12,

@@ -1221,6 +1221,54 @@ function LandingPage({ onOrder, onTrack }) {
 // ════════════════════════════════════════════════════════════════
 // 1. CUSTOMER PAGE
 // ════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// STEP INDICATOR
+// ════════════════════════════════════════════════════════════════
+function StepIndicator({current}) {
+  const steps = [
+    {id:"menu",     label:"Menu"},
+    {id:"cart",     label:"Cart"},
+    {id:"checkout", label:"Details"},
+    {id:"payment",  label:"Payment"},
+  ];
+  const curr = steps.findIndex(s=>s.id===current);
+  return (
+    <div style={{display:"flex",alignItems:"center",
+      padding:"10px 16px 8px",background:"#fff",
+      borderBottom:`1px solid ${B.border}`}}>
+      {steps.map((s,i)=>(
+        <React.Fragment key={s.id}>
+          <div style={{display:"flex",flexDirection:"column",
+            alignItems:"center",gap:3}}>
+            <div style={{
+              width:26,height:26,borderRadius:"50%",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:11,fontWeight:800,
+              background:i<curr?B.green:i===curr?B.primary:B.border,
+              color:i<=curr?"#fff":B.textMid,
+              transition:"all 0.3s",
+            }}>
+              {i<curr?"✓":i+1}
+            </div>
+            <div style={{fontSize:9,fontWeight:700,
+              color:i===curr?B.primary:i<curr?B.green:B.textDim,
+              whiteSpace:"nowrap",letterSpacing:0.3}}>
+              {s.label}
+            </div>
+          </div>
+          {i<steps.length-1&&(
+            <div style={{flex:1,height:2,borderRadius:2,
+              margin:"0 4px 14px",
+              background:i<curr?B.green:B.border,
+              transition:"background 0.3s"}}/>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 function CustomerPage({ onOrderPlaced }) {
   const [cart,        setCart]        = useState({});
   const [menuItems,   setMenuItems]   = useState([]);
@@ -1988,7 +2036,6 @@ function CustomerPage({ onOrderPlaced }) {
   // ══════════════════════════════════════════
   // PAYMENT
   // ══════════════════════════════════════════
-  if(screen==="payment") {
     const handleStripe = async () => {
       setPayStep("loading"); setPayError("");
       const orderId = "ACK"+(Math.random()*9000+1000|0).toString().padStart(4,"0");
@@ -2031,6 +2078,7 @@ function CustomerPage({ onOrderPlaced }) {
       setPayStep("bank_pending");
     };
 
+  if(screen==="payment") {
     if(payStep==="loading") return (
       <Wrap>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",
@@ -2044,7 +2092,6 @@ function CustomerPage({ onOrderPlaced }) {
         </div>
       </Wrap>
     );
-
     if(payStep==="bank_pending") return (
       <Wrap>
         <div style={{padding:20,maxWidth:560,margin:"0 auto"}}>
@@ -2084,7 +2131,6 @@ function CustomerPage({ onOrderPlaced }) {
         </div>
       </Wrap>
     );
-
     return (
       <Wrap>
         <div style={{background:"#fff",padding:"14px 16px",
@@ -2184,7 +2230,7 @@ function CustomerPage({ onOrderPlaced }) {
     );
   }
 
-  // ══════════════════════════════════════════
+    // ══════════════════════════════════════════
   // TRACK (from bottom nav)
   // ══════════════════════════════════════════
   if(screen==="track") return (

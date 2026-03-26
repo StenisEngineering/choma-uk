@@ -4,13 +4,14 @@ import { supabase } from "./supabase";
 import {
   ShoppingCart, ChefHat, Bike, MapPin, Lock,
   Home, Package, Wallet, Star, Settings,
-  Plus, Pencil, Trash2, Check, X, Eye, EyeOff,
+  Plus, Minus, Pencil, Trash2, Check, X, Eye, EyeOff,
   Phone, MessageCircle, Clock, MapPinned,
   ChevronRight, ChevronLeft, AlertTriangle,
   CheckCircle, XCircle, RefreshCw, LogOut,
   Users, UtensilsCrossed, ClipboardList,
   TrendingUp, Bell, Search, Filter, ToggleLeft,
   ToggleRight, BadgeCheck, Leaf, Flame,
+  CreditCard, ShieldCheck,
 } from "lucide-react";
 
 // ─── AfroCrave Kitchen Brand Tokens ───────────────────────────
@@ -912,27 +913,7 @@ export default function AfroCraveApp() {
 
   // Customer order flow
   if(page==="order") return (
-    <div style={{minHeight:"100vh",background:B.bg,
-      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
-      <div style={{background:"#fff",padding:"10px 16px",
-        borderBottom:"1px solid #E9DDD0",display:"flex",
-        alignItems:"center",gap:10}}>
-        <button onClick={()=>setPage("landing")}
-          style={{background:"none",border:"none",cursor:"pointer",
-            fontSize:22,color:"#C96A1B",padding:"0 4px",lineHeight:1}}>‹</button>
-        <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
-          style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
-        <div>
-          <div style={{fontSize:16,fontWeight:700,color:"#1F1A17"}}>AfroCrave Kitchen</div>
-          <div style={{fontSize:16,color:"#C96A1B",fontWeight:600}}>AUTHENTIC NIGERIAN CUISINE</div>
-        </div>
-        <button onClick={()=>setPage("tracking")}
-          style={{marginLeft:"auto",background:"none",border:"0.5px solid #E9DDD0",
-            borderRadius:8,padding:"5px 10px",fontSize:16,color:"#6F655E",
-            cursor:"pointer",fontWeight:600}}>Track order</button>
-      </div>
-      <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>
-    </div>
+    <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>
   );
 
   // Customer tracking flow
@@ -1241,591 +1222,1033 @@ function LandingPage({ onOrder, onTrack }) {
 // 1. CUSTOMER PAGE
 // ════════════════════════════════════════════════════════════════
 function CustomerPage({ onOrderPlaced }) {
-  const [cart,          setCart]          = useState({});
-  const [menuItems,     setMenuItems]     = useState([]);
-  const [step,          setStep]          = useState("menu");
-  const [info,          setInfo]          = useState({name:"",phone:"",email:"",postcode:"",address:"",note:""});
-  const [filter,        setFilter]        = useState("All");
-  const [showAllergens, setShowAllergens] = useState(null);
-  const [payStep,       setPayStep]       = useState("form");
-  const [payError,      setPayError]      = useState("");
-  const [gdpr,          setGdpr]          = useState(false);
-  const [showPrivacy,   setShowPrivacy]   = useState(false);
+  const [cart,        setCart]        = useState({});
+  const [menuItems,   setMenuItems]   = useState([]);
+  const [screen,      setScreen]      = useState("home"); // home|menu|cart|checkout|payment|confirm|track
+  const [info,        setInfo]        = useState({name:"",phone:"",email:"",address:"",postcode:"",note:""});
+  const [payStep,     setPayStep]     = useState("form");
+  const [payError,    setPayError]    = useState("");
+  const [gdpr,        setGdpr]        = useState(false);
+  const [delivery,    setDelivery]    = useState(null);
+  const [catFilter,   setCatFilter]   = useState("All");
+  const [search,      setSearch]      = useState("");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [savedOrder,  setSavedOrder]  = useState(null);
 
   useEffect(()=>{
     supabase.from("menu_items")
-      .select("id,name,description,price,category,emoji,portion,calories,allergens,is_halal,is_vegan,available,image_url")
+      .select("id,name,description,price,category,emoji,portion,calories,allergens,is_halal,is_vegan,available,image_url,chef_pick")
       .eq("available",true)
       .order("category")
-      .then(({data,error})=>{if(!error&&data) setMenuItems(data);});
+      .then(({data,error})=>{ if(!error&&data) setMenuItems(data); });
   },[]);
 
-  const add = id => setCart(c=>({...c,[id]:(c[id]||0)+1}));
-  const rem = id => setCart(c=>{const n={...c};n[id]>1?n[id]--:delete n[id];return n;});
+  const items = Object.values(cart);
+  const count = items.reduce((s,i)=>s+i.qty,0);
+  const subtotal = items.reduce((s,i)=>s+i.price*i.qty,0);
+  const deliveryFee = delivery?.fee || 0;
+  const total = subtotal + deliveryFee;
+  const fmt = v => `£${v.toFixed(2)}`;
 
-  const delivery    = info.postcode.length>2 ? calculateDelivery(info.postcode) : null;
-  const deliveryFee = delivery?.fee ?? 0;
-  const subtotal    = Object.entries(cart).reduce((s,[id,q])=>{
-    const m=menuItems.find(m=>m.id===id); return s+(m?m.price*q:0);
-  },0);
-  const total = subtotal + (delivery?.available ? deliveryFee : 0);
-  const count = Object.values(cart).reduce((s,q)=>s+q,0);
-  const shown = menuItems.filter(m=>filter==="All"||m.category===filter);
-
-  const cats = [...new Set(menuItems.map(m=>m.category))];
-
-  const buildOrder = (paymentMethod) => ({
-    id:            `ACK${Date.now().toString().slice(-4)}`,
-    customer:      info.name,
-    phone:         info.phone.replace(/\D/g,""),
-    email:         info.email,
-    postcode:      info.postcode.toUpperCase(),
-    address:       info.address||`${info.postcode.toUpperCase()}, UK`,
-    note:          info.note,
-    zone:          delivery?.label||"",
-    items:         Object.entries(cart).map(([id,qty])=>{
-      const m=menuItems.find(m=>m.id===id); return m?{name:m.name,qty,price:m.price}:null;
-    }).filter(Boolean),
-    subtotal, deliveryFee, total,
-    status:        "New",
-    time:          new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
-    rider:         null, paymentMethod, paid:false,
-    hasPhone:      !!info.phone,
+  const addItem = (m) => setCart(c=>({...c,[m.id]:{...m,qty:(c[m.id]?.qty||0)+1}}));
+  const removeItem = (m) => setCart(c=>{
+    const qty = (c[m.id]?.qty||0)-1;
+    if(qty<=0){ const n={...c}; delete n[m.id]; return n; }
+    return {...c,[m.id]:{...c[m.id],qty}};
   });
 
-  const saveOrder = async (o) => {
-    await supabase.from("orders").insert([{
-      id:o.id, customer_name:o.customer, customer_phone:o.phone,
-      customer_email:o.email, delivery_address:o.address,
-      postcode:o.postcode, delivery_zone:o.zone,
-      delivery_fee:o.deliveryFee, subtotal:o.subtotal,
-      total:o.total, status:"New", payment_method:o.paymentMethod,
-      paid:o.paid, note:o.note, items:o.items,
-    }]);
-    return o;
-  };
+  const categories = ["All", ...new Set(menuItems.map(m=>m.category))];
+  const shown = menuItems.filter(m=>{
+    const catMatch = catFilter==="All" || m.category===catFilter;
+    const searchMatch = !search || m.name.toLowerCase().includes(search.toLowerCase());
+    return catMatch && searchMatch;
+  });
+  const popular = menuItems.filter(m=>m.chef_pick).slice(0,3);
 
-  // ── Privacy Policy ──
-  if(showPrivacy) return (
-    <PrivacyPolicy onBack={()=>setShowPrivacy(false)}/>
-  );
+  // Delivery fee calc
+  useEffect(()=>{
+    if(!info.postcode) return;
+    const pc = info.postcode.toUpperCase().replace(/\s/g,"");
+    const sr = /^SR[1-6]/.test(pc);
+    if(sr){
+      setDelivery({fee:5.00,zone:"Sunderland",available:true,label:"£5.00 — Sunderland"});
+    } else if(pc.length>=2){
+      setDelivery({fee:7.50,zone:"Northeast",available:true,label:"£7.50 — Northeast"});
+    }
+  },[info.postcode]);
 
-  // ── Payment ──
-  if(step==="payment") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      <StepIndicator current="cart"/>
-      <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
-        <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
-          style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
-            padding:"10px 16px",color:B.textMid,fontSize:16,cursor:"pointer",
-            marginBottom:24,display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
-          ‹ Back
-        </button>
+  // Privacy policy
+  if(showPrivacy) return <PrivacyPolicy onBack={()=>setShowPrivacy(false)}/>;
 
-        <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:4,letterSpacing:-0.5}}>
-          Secure payment
-        </div>
-        <div style={{fontSize:15,color:B.textMid,marginBottom:24}}>
-          Powered by Stripe · 256-bit SSL encryption
-        </div>
-
-        <div style={{background:`linear-gradient(135deg,${B.primaryLight},${B.goldLight})`,
-          border:`1px solid ${B.primary}25`,borderRadius:16,
-          padding:"16px 20px",marginBottom:24,
-          display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:14,color:B.textMid,fontWeight:600}}>Total to pay</span>
-          <span style={{fontSize:22,fontWeight:800,color:B.primary}}>{fmt(total)}</span>
-        </div>
-
-        {payError&&(
-          <div style={{padding:"14px 16px",background:B.redSoft,border:`1px solid ${B.red}30`,
-            borderRadius:12,marginBottom:16,fontSize:16,color:B.red,fontWeight:600}}>
-            ⚠️ {payError}
-          </div>
-        )}
-
-        {payStep==="form"&&(
-          <>
-            <Card style={{marginBottom:16,background:B.surface}}>
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
-                <span style={{fontSize:24}}>🔒</span>
-                <div>
-                  <div style={{fontSize:16,fontWeight:700,color:B.text}}>Secure card payment</div>
-                  <div style={{fontSize:15,color:B.textMid}}>
-                    You'll be redirected to Stripe's secure checkout
-                  </div>
-                </div>
-              </div>
-              <div style={{display:"flex",gap:8}}>
-                {["💳 Visa","💳 Mastercard","💳 Amex"].map(c=>(
-                  <span key={c} style={{fontSize:16,color:B.textMid,background:B.card,
-                    border:`1px solid ${B.border}`,borderRadius:8,padding:"4px 10px",fontWeight:600}}>
-                    {c}
-                  </span>
-                ))}
-              </div>
-            </Card>
-
-            <Btn full v="stripe" style={{fontSize:16,padding:"16px"}} onClick={async()=>{
-              setPayStep("processing"); setPayError("");
-              try {
-                const o = buildOrder("Card payment");
-                await saveOrder(o);
-                onOrderPlaced();
-                const response = await fetch("/api/create-checkout",{
-                  method:"POST",
-                  headers:{"Content-Type":"application/json"},
-                  body:JSON.stringify({items:o.items,deliveryFee:o.deliveryFee,
-                    orderId:o.id,customerEmail:o.email}),
-                });
-                const data = await response.json();
-                if(data.url){ window.location.assign(data.url); }
-                else { setPayError(data.error||"Payment failed. Please try again."); setPayStep("form"); }
-              } catch(err) {
-                setPayError("Connection error. Please check your internet and try again.");
-                setPayStep("form");
-              }
-            }}>🔒 Pay {fmt(total)} securely</Btn>
-
-            <div style={{marginTop:16,textAlign:"center"}}>
-              <div style={{fontSize:15,color:B.textMid,marginBottom:12}}>— or —</div>
-              <Btn full v="ghost" style={{fontSize:15}} onClick={async()=>{
-                const o = buildOrder("Bank transfer");
-                await saveOrder(o);
-                onOrderPlaced();
-                setPayStep("bank");
-              }}>🏦 Pay by bank transfer</Btn>
-            </div>
-          </>
-        )}
-
-        {payStep==="processing"&&(
-          <div style={{textAlign:"center",padding:"48px 20px"}}>
-            <div style={{fontSize:56,marginBottom:16}}>⏳</div>
-            <div style={{fontSize:16,fontWeight:700,color:B.text,marginBottom:8}}>
-              Connecting to Stripe…
-            </div>
-            <div style={{fontSize:15,color:B.textMid}}>
-              Please wait, do not close this page
-            </div>
-          </div>
-        )}
-
-        {payStep==="bank"&&(
-          <div>
-            <Card style={{marginBottom:14,background:B.greenSoft,borderColor:`${B.green}30`}}>
-              <div style={{fontSize:16,fontWeight:700,color:B.green,marginBottom:12}}>
-                Bank transfer details
-              </div>
-              {[["Account name","AfroCrave Kitchen Ltd"],["Sort code","XX-XX-XX"],
-                ["Account number","XXXXXXXX"],["Reference","Your order ID"]].map(([l,v])=>(
-                <div key={l} style={{display:"flex",justifyContent:"space-between",
-                  padding:"8px 0",borderBottom:`1px solid ${B.green}20`,fontSize:14}}>
-                  <span style={{color:B.textMid}}>{l}</span>
-                  <span style={{fontWeight:700,color:B.text}}>{v}</span>
-                </div>
-              ))}
-            </Card>
-            <div style={{fontSize:15,color:B.textMid,lineHeight:1.7,marginBottom:20,
-              padding:"14px 16px",background:B.surface,borderRadius:12}}>
-              💬 Please send payment and WhatsApp us to confirm.
-              Your order will be prepared once payment is verified.
-            </div>
-            <Btn full v="wa" onClick={()=>openWA(B.kitchenWA,
-              `Hi AfroCrave Kitchen! I've just placed an order and will be paying by bank transfer. Please confirm bank details. Thank you!`)}>
-              Confirm via WhatsApp
-            </Btn>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // ── Checkout ──
-  if(step==="checkout") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
-        <button onClick={()=>setStep("menu")} style={{background:B.card,
-          border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
-          color:B.textMid,fontSize:16,cursor:"pointer",marginBottom:24,
-          display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
-          ‹ Back to menu
-        </button>
-        <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:20,letterSpacing:-0.5}}>
-          Your order
-        </div>
-
-        {/* Cart items */}
-        <Card style={{marginBottom:20}}>
-          {Object.entries(cart).map(([id,qty])=>{
-            const m=menuItems.find(m=>m.id===id); return m?(
-            <div key={id} style={{display:"flex",justifyContent:"space-between",
-              alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${B.divider}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <span style={{fontSize:26}}>{m.emoji}</span>
-                <div>
-                  <div style={{fontSize:16,fontWeight:600,color:B.text}}>{m.name}</div>
-                  <div style={{fontSize:15,color:B.textMid}}>{fmt(m.price)} each</div>
-                </div>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <button onClick={()=>rem(m.id)} style={{width:32,height:32,borderRadius:10,
-                  background:B.surface,border:`1px solid ${B.border}`,cursor:"pointer",fontSize:16,
-                  display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
-                <span style={{fontSize:16,fontWeight:700,color:B.primary,minWidth:20,
-                  textAlign:"center"}}>{qty}</span>
-                <button onClick={()=>add(m.id)} style={{width:32,height:32,borderRadius:10,
-                  background:B.primary,border:"none",color:"#fff",cursor:"pointer",fontSize:16,
-                  display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
-              </div>
-            </div>
-          ):null;})}
-          <div style={{paddingTop:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:14}}>
-              <span style={{color:B.textMid}}>Subtotal</span>
-              <span style={{color:B.text,fontWeight:600}}>{fmt(subtotal)}</span>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",padding:"6px 0",fontSize:14}}>
-              <span style={{color:B.textMid}}>Delivery</span>
-              <span style={{color:delivery?.available?B.text:B.textDim,fontWeight:600}}>
-                {delivery?.available ? fmt(deliveryFee) : "Enter postcode below"}
-              </span>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",paddingTop:10,
-              fontWeight:800,fontSize:18,borderTop:`1px solid ${B.divider}`,marginTop:4}}>
-              <span>Total</span>
-              <span style={{color:B.primary}}>
-                {delivery?.available ? fmt(total) : "—"}
-              </span>
-            </div>
-            {subtotal>0&&subtotal<15&&(
-              <div style={{marginTop:10,padding:"10px 12px",
-                background:"#FCECEA",border:"1px solid rgba(200,50,30,0.15)",
-                borderRadius:10,fontSize:16,color:"#B23A30",fontWeight:600,
-                textAlign:"center"}}>
-                Minimum order £15 · Add {fmt(15-subtotal)} more to continue
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Customer details */}
-        <Section title="Your details">
-          <Input label="Full name" value={info.name}
-            onChange={v=>setInfo(i=>({...i,name:v}))} placeholder="Your full name"/>
-          <Input label="Phone / WhatsApp (optional)" value={info.phone}
-            onChange={v=>setInfo(i=>({...i,phone:v.replace(/[^0-9+]/g,"")}))}
-            placeholder="+44 7xxx xxxxxx" type="tel"
-            hint="Add your number to receive live WhatsApp updates on your order"/>
-          <Input label="Email address" value={info.email}
-            onChange={v=>setInfo(i=>({...i,email:v}))} placeholder="your@email.com"
-            type="email" hint="Required — your order confirmation will be sent here"/>
-        </Section>
-
-        <Section title="Delivery address">
-          <Input label="Postcode" value={info.postcode}
-            onChange={v=>setInfo(i=>({...i,postcode:v}))} placeholder="SR1 1AA"
-            hint={
-              delivery?.available
-                ? `✓ ${delivery.label} — delivery fee: ${fmt(delivery.fee)}${delivery.miles>5?` (${delivery.miles} miles)`:""}`
-                : delivery && !delivery.available
-                ? "⚠️ Sorry, we don't currently deliver to this area"
-                : "Enter your postcode to calculate delivery"
-            }/>
-          {delivery && !delivery.available && info.postcode.length > 3 && (
-            <div style={{padding:"12px 16px",background:B.redSoft,border:`1px solid ${B.red}30`,
-              borderRadius:12,marginTop:-8,marginBottom:16,fontSize:16,color:B.red,fontWeight:600}}>
-              ⚠️ We don't currently deliver to {info.postcode.toUpperCase()}.
-              We deliver across Sunderland and the Northeast.
+  // ── Bottom Nav ──
+  const BottomNav = () => (
+    <div style={{
+      position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
+      width:"100%",maxWidth:560,
+      background:"rgba(255,253,249,0.97)",
+      borderTop:`1px solid ${B.border}`,
+      display:"flex",zIndex:200,
+      padding:"8px 0 max(8px,env(safe-area-inset-bottom))",
+      backdropFilter:"blur(12px)",
+    }}>
+      {[
+        {id:"home",   label:"Home",   icon:<Home size={22}/>},
+        {id:"menu",   label:"Menu",   icon:<UtensilsCrossed size={22}/>},
+        {id:"cart",   label:"Cart",   icon:<ShoppingCart size={22}/>},
+        {id:"track",  label:"Track",  icon:<MapPin size={22}/>},
+      ].map(tab=>(
+        <button key={tab.id} onClick={()=>setScreen(tab.id)}
+          style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",
+            gap:3,background:"none",border:"none",cursor:"pointer",
+            padding:"4px 0",position:"relative",
+            color:screen===tab.id?B.primary:B.textMid,
+            transition:"color 0.15s"}}>
+          {tab.icon}
+          <span style={{fontSize:10,fontWeight:screen===tab.id?800:600,
+            letterSpacing:0.2}}>
+            {tab.label}
+          </span>
+          {tab.id==="cart"&&count>0&&(
+            <div style={{position:"absolute",top:0,right:"22%",
+              width:18,height:18,borderRadius:9,
+              background:B.primary,color:"#fff",
+              fontSize:10,fontWeight:800,
+              display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {count}
             </div>
           )}
-          <Input label="Full address" value={info.address}
-            onChange={v=>setInfo(i=>({...i,address:v}))}
-            placeholder="123 High Street, Sunderland SR1 1AA"/>
-          <Input label="Delivery note (optional)" value={info.note}
-            onChange={v=>setInfo(i=>({...i,note:v}))}
-            placeholder="Leave at door, ring bell twice, etc."/>
-        </Section>
-
-        {/* Delivery info */}
-        <Card style={{marginBottom:20,background:B.surface,borderColor:"transparent"}}>
-          <div style={{fontSize:13,fontWeight:700,color:B.textMid,textTransform:"uppercase",
-            letterSpacing:0.5,marginBottom:12}}>Delivery pricing</div>
-          <div style={{fontSize:15,color:B.textMid,lineHeight:1.8}}>
-            📍 <strong style={{color:B.text}}>Sunderland (all SR postcodes)</strong> — flat £5.00<br/>
-            🗺 <strong style={{color:B.text}}>Outside Sunderland</strong> — £5.00 + £0.75/mile<br/>
-            📦 <strong style={{color:B.text}}>Newcastle, Durham, Seaham</strong> and more
-          </div>
-        </Card>
-
-        {/* GDPR */}
-        {!info.phone && (
-          <div style={{padding:"10px 14px",background:B.blueSoft,
-            border:`1px solid ${B.blue}20`,borderRadius:10,marginBottom:12,
-            fontSize:14,color:B.blue,lineHeight:1.6}}>
-            ℹ️ No phone number? No problem — you can track your order using your order number after payment.
-          </div>
-        )}
-        <div style={{background:B.surface,border:`1px solid ${B.border}`,
-          borderRadius:14,padding:"16px",marginBottom:24}}>
-          <label style={{display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer"}}>
-            <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)}
-              style={{marginTop:3,flexShrink:0,width:18,height:18}}/>
-            <div style={{fontSize:15,color:B.textMid,lineHeight:1.7}}>
-              I agree to AfroCrave Kitchen Ltd's{" "}
-              <span style={{color:B.primary,textDecoration:"underline",cursor:"pointer"}}
-                onClick={()=>setShowPrivacy(true)}>
-                Privacy Policy
-              </span>
-              {" "}and consent to my data being processed to fulfil this order.
-              <span style={{display:"block",marginTop:4,fontSize:14,color:B.textDim}}>
-                UK GDPR compliant · You can request deletion at any time
-              </span>
-            </div>
-          </label>
-        </div>
-
-        <Btn full style={{fontSize:16,padding:"16px"}}
-          onClick={()=>setStep("payment")}
-          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr||subtotal<15}>
-          Continue to payment →
-        </Btn>
-        {!gdpr&&info.name&&(
-          <div style={{textAlign:"center",fontSize:16,color:B.textMid,marginTop:10}}>
-            Please accept the privacy policy to continue
-          </div>
-        )}
-      </div>
+          {screen===tab.id&&(
+            <div style={{position:"absolute",bottom:-8,width:20,height:3,
+              borderRadius:2,background:B.primary}}/>
+          )}
+        </button>
+      ))}
     </div>
   );
 
-  // ── Main menu ──
-  return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      {/* Hero */}
-      <div style={{background:`linear-gradient(160deg, #5A3418 0%, #5A3418 50%, #8A4510 100%)`,
-        padding:"24px 16px 22px",color:"#fff",position:"relative",overflow:"hidden",
-        textAlign:"center",width:"100%",boxSizing:"border-box"}}>
-        {/* decorative circles */}
-        <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,
-          borderRadius:"50%",background:"rgba(255,255,255,0.04)"}}/>
-        <div style={{position:"absolute",bottom:-60,left:-30,width:160,height:160,
-          borderRadius:"50%",background:"rgba(212,88,10,0.15)"}}/>
-        <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",
-          alignItems:"center"}}>
-          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
-            style={{width:80,height:80,borderRadius:16,objectFit:"cover",
-              marginBottom:12,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}/>
-          <div style={{fontSize:16,color:"rgba(255,200,100,0.85)",fontWeight:700,
-            letterSpacing:2.5,textTransform:"uppercase",marginBottom:8}}>
-            ✦ Home Kitchen · Sunderland ✦
+  // ── Page wrapper ──
+  const Page = ({children, noPad=false}) => (
+    <div style={{background:B.bg,minHeight:"100vh",
+      fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
+      overflowY:"auto",paddingBottom:80}}>
+      {children}
+      <BottomNav/>
+    </div>
+  );
+
+  // ── Top bar ──
+  const TopBar = ({title, back, backFn, action, actionFn}) => (
+    <div style={{background:B.surface,borderBottom:`1px solid ${B.border}`,
+      padding:"14px 16px",display:"flex",alignItems:"center",
+      justifyContent:"space-between",
+      position:"sticky",top:0,zIndex:100}}>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        {back&&(
+          <button onClick={backFn||(() => setScreen("home"))}
+            style={{background:"none",border:"none",cursor:"pointer",
+              display:"flex",alignItems:"center",color:B.primary,padding:0}}>
+            <ChevronLeft size={24}/>
+          </button>
+        )}
+        <div style={{fontSize:17,fontWeight:800,color:B.text}}>{title}</div>
+      </div>
+      {action&&(
+        <button onClick={actionFn}
+          style={{fontSize:14,fontWeight:700,color:B.primary,
+            background:"none",border:"none",cursor:"pointer"}}>
+          {action}
+        </button>
+      )}
+    </div>
+  );
+
+  // ══════════════════════════════════════
+  // HOME SCREEN
+  // ══════════════════════════════════════
+  if(screen==="home") return (
+    <Page>
+      {/* Header */}
+      <div style={{background:`linear-gradient(135deg,#1A0C04,#3D1A06,#5A3418)`,
+        padding:"20px 16px 24px",color:"#fff",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,
+          borderRadius:"50%",background:"rgba(231,169,59,0.1)"}}/>
+        <div style={{position:"absolute",bottom:-20,left:-20,width:80,height:80,
+          borderRadius:"50%",background:"rgba(201,106,27,0.12)"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,
+          position:"relative",zIndex:1}}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
+            style={{width:40,height:40,borderRadius:10,objectFit:"cover",flexShrink:0}}/>
+          <div>
+            <div style={{fontSize:16,fontWeight:800,color:"#fff",lineHeight:1.2}}>
+              AfroCrave Kitchen
+            </div>
+            <div style={{fontSize:11,color:"#E7A93B",fontWeight:600,letterSpacing:0.5}}>
+              AUTHENTIC NIGERIAN HOME COOKING
+            </div>
           </div>
-          <div style={{fontSize:28,fontWeight:900,letterSpacing:-0.5,marginBottom:8,
-            lineHeight:1.15,textShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
-            Authentic Nigerian<br/>
-            <span style={{color:"#F5C842"}}>Home Cooking</span>
+        </div>
+        {/* Trust badges */}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",
+          position:"relative",zIndex:1}}>
+          {[
+            {icon:<Clock size={12}/>, text:"45–75 min"},
+            {icon:<MapPin size={12}/>, text:"Sunderland & NE"},
+            {icon:<Star size={12}/>,  text:"Home Cooked"},
+          ].map((b,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:4,
+              background:"rgba(255,255,255,0.12)",
+              border:"0.5px solid rgba(255,255,255,0.2)",
+              borderRadius:20,padding:"4px 10px",
+              fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.9)"}}>
+              {b.icon}{b.text}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{padding:"16px 16px 0"}}>
+        {/* Quick info cards */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+          <div style={{background:B.surface,border:`1px solid ${B.border}`,
+            borderRadius:16,padding:"14px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,
+              color:B.primary,marginBottom:6}}>
+              <Clock size={14}/><span style={{fontSize:11,fontWeight:700}}>Delivery time</span>
+            </div>
+            <div style={{fontSize:20,fontWeight:800,color:B.text}}>45–75 min</div>
+            <div style={{fontSize:11,color:B.textMid,marginTop:2}}>Fresh to your door</div>
           </div>
-          <div style={{fontSize:14,color:"rgba(255,255,255,0.75)",lineHeight:1.8,
-            marginBottom:14,maxWidth:320,fontWeight:400}}>
-            Made fresh to order, delivered hot to your door across Sunderland & the Northeast.
+          <div style={{background:B.surface,border:`1px solid ${B.border}`,
+            borderRadius:16,padding:"14px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,
+              color:B.primary,marginBottom:6}}>
+              <MapPin size={14}/><span style={{fontSize:11,fontWeight:700}}>We deliver to</span>
+            </div>
+            <div style={{fontSize:20,fontWeight:800,color:B.text}}>Sunderland</div>
+            <div style={{fontSize:11,color:B.textMid,marginTop:2}}>& the Northeast</div>
           </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
-            {["⏱ 45–75 min","🍲 Home Cooked. Naija Standard","💳 Card / Bank","📍 Sunderland & NE"].map((tx)=>(
-              <div key={tx} style={{
-                background:"rgba(245,200,66,0.15)",
-                border:"1px solid rgba(245,200,66,0.3)",
-                borderRadius:20,padding:"7px 14px",fontSize:16,fontWeight:700,
-                color:"rgba(255,255,255,0.95)",letterSpacing:0.3}}>
-                {tx}
+        </div>
+
+        {/* CTA banner */}
+        <div style={{background:`linear-gradient(135deg,${B.primary},${B.primaryDark})`,
+          borderRadius:20,padding:"20px",marginBottom:20,
+          position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,
+            borderRadius:"50%",background:"rgba(255,255,255,0.08)"}}/>
+          <div style={{fontSize:22,fontWeight:800,color:"#fff",
+            lineHeight:1.3,marginBottom:8,position:"relative",zIndex:1}}>
+            Hungry? Order<br/>fresh Naija food 🍛
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",
+            marginBottom:16,position:"relative",zIndex:1}}>
+            Minimum order £15 · Card & bank transfer
+          </div>
+          <button onClick={()=>setScreen("menu")}
+            style={{background:"#fff",border:"none",borderRadius:12,
+              padding:"12px 24px",fontSize:14,fontWeight:800,
+              color:B.primary,cursor:"pointer",fontFamily:"inherit",
+              position:"relative",zIndex:1}}>
+            Start ordering →
+          </button>
+        </div>
+
+        {/* Popular items */}
+        {popular.length>0&&(
+          <div style={{marginBottom:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",
+              alignItems:"center",marginBottom:12}}>
+              <div style={{fontSize:17,fontWeight:800,color:B.text}}>
+                Chef's Picks ⭐
+              </div>
+              <button onClick={()=>setScreen("menu")}
+                style={{fontSize:13,fontWeight:700,color:B.primary,
+                  background:"none",border:"none",cursor:"pointer"}}>
+                See all →
+              </button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {popular.map(m=>(
+                <div key={m.id} style={{background:B.surface,
+                  border:`1px solid ${B.border}`,borderRadius:16,
+                  padding:12,display:"flex",gap:12,alignItems:"center"}}>
+                  <div style={{width:64,height:64,borderRadius:12,
+                    background:"#F6E8D8",flexShrink:0,overflow:"hidden",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:28}}>
+                    {m.image_url
+                      ? <img src={m.image_url} alt={m.name}
+                          loading="lazy"
+                          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                      : m.emoji}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:15,fontWeight:700,color:B.text,
+                      marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",
+                      whiteSpace:"nowrap"}}>
+                      {m.name}
+                    </div>
+                    <div style={{fontSize:13,color:B.textMid,marginBottom:4,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {m.description}
+                    </div>
+                    <div style={{fontSize:16,fontWeight:800,color:B.primaryDark}}>
+                      {fmt(m.price)}
+                    </div>
+                  </div>
+                  <button onClick={()=>addItem(m)}
+                    style={{width:36,height:36,borderRadius:10,
+                      background:B.primary,border:"none",cursor:"pointer",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      flexShrink:0}}>
+                    <Plus size={20} color="#fff"/>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Why choose us */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:17,fontWeight:800,color:B.text,marginBottom:12}}>
+            Why AfroCrave?
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[
+              {icon:"🍲",title:"Home cooked",desc:"Every dish made fresh by hand"},
+              {icon:"⏱",title:"Fast delivery",desc:"45–75 min to your door"},
+              {icon:"🇳🇬",title:"Authentic taste",desc:"Real Nigerian recipes"},
+              {icon:"💳",title:"Easy payment",desc:"Card or bank transfer"},
+            ].map((w,i)=>(
+              <div key={i} style={{background:B.surface,border:`1px solid ${B.border}`,
+                borderRadius:14,padding:"14px 12px"}}>
+                <div style={{fontSize:24,marginBottom:6}}>{w.icon}</div>
+                <div style={{fontSize:13,fontWeight:800,color:B.text,marginBottom:3}}>
+                  {w.title}
+                </div>
+                <div style={{fontSize:12,color:B.textMid,lineHeight:1.5}}>
+                  {w.desc}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+    </Page>
+  );
 
-      {/* Allergen notice */}
-      {/* Kitchen status from Supabase would go here - for now managed in cook dashboard */}
-      <div style={{margin:"0",padding:"12px 16px",background:B.goldLight,
-        border:`1px solid ${B.gold}30`,borderRadius:12,
-        fontSize:16,color:B.gold,lineHeight:1.6,fontWeight:500}}>
-        ⚠️ <strong>Allergen info:</strong> Tap any item to see allergen details.
-        Severe allergy? Please WhatsApp us before ordering.
+  // ══════════════════════════════════════
+  // MENU SCREEN
+  // ══════════════════════════════════════
+  if(screen==="menu") return (
+    <Page>
+      {/* Hero */}
+      <div style={{background:`linear-gradient(160deg,#1A0C04,#3D1A06,#5A3418)`,
+        padding:"16px 16px 18px",color:"#fff"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
+            style={{width:36,height:36,borderRadius:9,objectFit:"cover",flexShrink:0}}/>
+          <div>
+            <div style={{fontSize:17,fontWeight:800,color:"#fff"}}>AfroCrave Kitchen</div>
+            <div style={{fontSize:10,color:"#E7A93B",fontWeight:600,letterSpacing:0.5}}>
+              AUTHENTIC NIGERIAN CUISINE
+            </div>
+          </div>
+          {count>0&&(
+            <div style={{marginLeft:"auto",background:B.primary,
+              borderRadius:20,padding:"4px 12px",
+              display:"flex",alignItems:"center",gap:5}}>
+              <ShoppingCart size={13} color="#fff"/>
+              <span style={{fontSize:12,fontWeight:800,color:"#fff"}}>{count}</span>
+            </div>
+          )}
+        </div>
+        {/* Search bar */}
+        <div style={{background:"rgba(255,255,255,0.1)",
+          border:"1px solid rgba(255,255,255,0.2)",
+          borderRadius:12,padding:"10px 14px",
+          display:"flex",alignItems:"center",gap:8}}>
+          <Search size={16} color="rgba(255,255,255,0.6)"/>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="Search dishes..."
+            style={{background:"none",border:"none",outline:"none",
+              fontSize:14,color:"#fff",flex:1,fontFamily:"inherit"}}/>
+          {search&&(
+            <button onClick={()=>setSearch("")}
+              style={{background:"none",border:"none",cursor:"pointer",
+                color:"rgba(255,255,255,0.6)",padding:0}}>
+              <X size={14} color="rgba(255,255,255,0.6)"/>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Category filters */}
-      <div style={{padding:"12px 12px 8px",display:"flex",gap:8,overflowX:"auto",
-        WebkitOverflowScrolling:"touch",background:"#FFF8F1"}}>
-        {["All",...cats].map(f=>(
-          <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 18px",borderRadius:20,
-            fontSize:16,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
-            border:`1.5px solid ${filter===f?B.primary:B.border}`,
-            background:filter===f?B.primaryLight:"transparent",
-            color:filter===f?B.primary:B.textMid}}>
-            {f}
+      {/* Category filter */}
+      <div style={{background:"#fff",borderBottom:`1px solid ${B.border}`,
+        padding:"10px 16px",display:"flex",gap:6,overflowX:"auto",
+        WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}}>
+        {categories.map(cat=>(
+          <button key={cat} onClick={()=>setCatFilter(cat)}
+            style={{padding:"7px 16px",borderRadius:20,
+              fontSize:13,fontWeight:700,cursor:"pointer",
+              border:`1.5px solid ${catFilter===cat?B.primary:B.border}`,
+              background:catFilter===cat?B.primary:"#fff",
+              color:catFilter===cat?"#fff":B.textMid,
+              whiteSpace:"nowrap",flexShrink:0,
+              transition:"all 0.15s",fontFamily:"inherit"}}>
+            {cat}
           </button>
         ))}
       </div>
 
       {/* Menu items */}
-      <div style={{padding:"8px 12px 20px"}}>
+      <div style={{padding:"12px 16px 0"}}>
         {shown.length===0&&(
-          <div style={{textAlign:"center",padding:"40px 20px",color:B.textMid}}>
-            <div style={{fontSize:40,marginBottom:12}}>🍳</div>
-            <div style={{fontSize:16,fontWeight:600}}>Menu loading…</div>
+          <div style={{textAlign:"center",padding:"48px 20px",color:B.textMid}}>
+            <div style={{fontSize:48,marginBottom:12}}>🍳</div>
+            <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+              {search?"No dishes found":"Menu loading…"}
+            </div>
+            {search&&<div style={{fontSize:14,color:B.textMid,marginTop:4}}>
+              Try a different search
+            </div>}
           </div>
         )}
-        {/* Group menu items by category */}
+
         {[...new Set(shown.map(m=>m.category))].map(cat=>(
-          <div key={cat}>
-            {/* Category header */}
-            <div style={{
-              display:"flex",alignItems:"center",gap:10,
-              padding:"14px 4px 8px"}}>
-              <div style={{flex:1,height:"1px",background:B.border}}/>
+          <div key={cat} style={{marginBottom:8}}>
+            {/* Category label */}
+            <div style={{display:"flex",alignItems:"center",gap:8,
+              padding:"12px 0 8px"}}>
+              <div style={{flex:1,height:1,background:B.border}}/>
               <div style={{fontSize:11,fontWeight:800,color:B.primary,
                 textTransform:"uppercase",letterSpacing:2,
-                padding:"4px 14px",background:B.primaryLight,
+                background:B.primaryLight,padding:"4px 14px",
                 borderRadius:20,border:`1px solid ${B.primary}20`,
                 whiteSpace:"nowrap"}}>
                 {cat}
               </div>
-              <div style={{flex:1,height:"1px",background:B.border}}/>
+              <div style={{flex:1,height:1,background:B.border}}/>
             </div>
-            {/* Items grid */}
-            <div style={{
-              display:"grid",
-              gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,320px),1fr))",
-              gap:"0",
-            }}>
-            {shown.filter(m=>m.category===cat).map((m,idx)=>(
+
+            {/* Food cards */}
+            {shown.filter(m=>m.category===cat).map((m,i,arr)=>(
               <div key={m.id} style={{
-                background: idx%2===0 ? "#FFFDF9" : "#FFF1E2",
-                borderBottom:`1px solid ${B.border}`,
-                padding:"16px",
-                transition:"background 0.15s"}}>
-            <div style={{display:"flex",justifyContent:"space-between",
-              alignItems:"flex-start",gap:12}}>
-              <div style={{display:"flex",alignItems:"flex-start",gap:14,flex:1}}>
-                <div style={{width:62,height:62,borderRadius:16,background:B.surface,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:32,flexShrink:0,overflow:"hidden"}}>
-                  {m.image_url
-                    ? <img src={m.image_url} alt={m.name}
-                        loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                    : m.emoji
-                  }
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",alignItems:"flex-start",
-                    gap:6,marginBottom:4,flexWrap:"wrap"}}>
-                  <div style={{fontSize:17,fontWeight:700,color:B.text,
-                    lineHeight:1.3}}>{m.name}</div>
-                  {m.chef_pick&&(
-                    <span style={{
-                      fontSize:10,fontWeight:800,
-                      background:"linear-gradient(135deg,#C96A1B,#E7A93B)",
-                      color:"#fff",borderRadius:20,
-                      padding:"2px 8px",whiteSpace:"nowrap",
-                      letterSpacing:0.3,flexShrink:0,
-                      marginTop:2,
-                    }}>⭐ Chef's Pick</span>
-                  )}
-                </div>
-                  <div style={{fontSize:15,color:B.textMid,lineHeight:1.6,
-                    marginBottom:8}}>{m.description}</div>
-                  <div style={{display:"flex",gap:10,alignItems:"center",
-                    flexWrap:"wrap",marginBottom:8}}>
-                    <span style={{fontSize:17,fontWeight:800,color:B.primary}}>
-                      {fmt(m.price)}
-                    </span>
-                    {m.portion&&<span style={{fontSize:14,color:B.textDim}}>{m.portion}</span>}
-                    {m.calories&&<span style={{fontSize:14,color:B.textDim}}>{m.calories} kcal</span>}
+                background: i%2===0?B.surface:B.card,
+                border:`1px solid ${B.border}`,
+                borderRadius:16,padding:14,marginBottom:10,
+              }}>
+                <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                  {/* Food image */}
+                  <div style={{width:80,height:80,borderRadius:14,
+                    background:"#F6E8D8",flexShrink:0,overflow:"hidden",
+                    display:"flex",alignItems:"center",
+                    justifyContent:"center",fontSize:34}}>
+                    {m.image_url
+                      ? <img src={m.image_url} alt={m.name}
+                          loading="lazy"
+                          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                      : m.emoji}
                   </div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-                    {m.is_halal&&(
-                      <span style={{fontSize:16,background:B.goldLight,color:B.gold,
-                        borderRadius:6,padding:"3px 10px",fontWeight:700,fontStyle:"italic",
-                        border:`1px solid ${B.gold}30`,letterSpacing:0.2}}>
-                        🍲 Home Cooked. Naija Standard
-                      </span>
-                    )}
-                    {m.is_vegan&&(
-                      <span style={{fontSize:16,background:B.purpleSoft,color:B.purple,
-                        borderRadius:6,padding:"2px 8px",fontWeight:700}}>🌱 Vegan</span>
-                    )}
-                    <button onClick={()=>setShowAllergens(showAllergens===m.id?null:m.id)}
-                      style={{fontSize:16,padding:"2px 8px",borderRadius:6,cursor:"pointer",
-                        background:B.goldLight,color:B.gold,border:`1px solid ${B.gold}30`,
-                        fontWeight:600}}>
-                      Allergens ⓘ
-                    </button>
-                  </div>
-                  {showAllergens===m.id&&(
-                    <div style={{marginTop:10,padding:"10px 12px",background:B.goldLight,
-                      borderRadius:10,border:`1px solid ${B.gold}20`}}>
-                      <AllergenBadges allergens={m.allergens}/>
+                  {/* Info */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"flex-start",
+                      gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                      <div style={{fontSize:15,fontWeight:700,color:B.text,
+                        lineHeight:1.3,flex:1}}>
+                        {m.name}
+                      </div>
+                      {m.chef_pick&&(
+                        <span style={{fontSize:10,fontWeight:800,
+                          background:`linear-gradient(135deg,${B.primary},${B.gold})`,
+                          color:"#fff",borderRadius:20,
+                          padding:"2px 8px",whiteSpace:"nowrap",
+                          flexShrink:0}}>
+                          ⭐ Chef's Pick
+                        </span>
+                      )}
                     </div>
-                  )}
+                    <div style={{fontSize:13,color:B.textMid,
+                      marginBottom:8,lineHeight:1.5,
+                      display:"-webkit-box",WebkitLineClamp:2,
+                      WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+                      {m.description}
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",
+                      justifyContent:"space-between"}}>
+                      <div>
+                        <div style={{fontSize:17,fontWeight:800,color:B.primaryDark}}>
+                          {fmt(m.price)}
+                        </div>
+                        {m.portion&&<div style={{fontSize:11,color:B.textDim}}>
+                          {m.portion}
+                        </div>}
+                      </div>
+                      {/* Qty controls */}
+                      {cart[m.id]?.qty>0 ? (
+                        <div style={{display:"flex",alignItems:"center",gap:8,
+                          background:B.primaryLight,borderRadius:12,padding:"4px 6px",
+                          border:`1.5px solid ${B.primary}30`}}>
+                          <button onClick={()=>removeItem(m)}
+                            style={{width:28,height:28,borderRadius:8,
+                              background:B.primary,border:"none",cursor:"pointer",
+                              display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <Minus size={14} color="#fff"/>
+                          </button>
+                          <span style={{fontSize:15,fontWeight:800,color:B.primary,
+                            minWidth:16,textAlign:"center"}}>
+                            {cart[m.id].qty}
+                          </span>
+                          <button onClick={()=>addItem(m)}
+                            style={{width:28,height:28,borderRadius:8,
+                              background:B.primary,border:"none",cursor:"pointer",
+                              display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <Plus size={14} color="#fff"/>
+                          </button>
+                        </div>
+                      ) : (
+                        <button onClick={()=>addItem(m)}
+                          style={{width:36,height:36,borderRadius:10,
+                            background:B.primary,border:"none",cursor:"pointer",
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            boxShadow:`0 4px 12px ${B.primary}40`}}>
+                          <Plus size={20} color="#fff"/>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-              {/* Add/remove controls */}
-              <div style={{flexShrink:0}}>
-                {cart[m.id]?(
-                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                    <button onClick={()=>add(m.id)} style={{width:36,height:36,borderRadius:10,
-                      background:B.primary,border:"none",color:"#fff",cursor:"pointer",
-                      fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
-                    <span style={{fontSize:17,fontWeight:800,color:B.primary}}>{cart[m.id]}</span>
-                    <button onClick={()=>rem(m.id)} style={{width:36,height:36,borderRadius:10,
-                      background:B.surface,border:`1px solid ${B.border}`,color:B.text,
-                      cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",
-                      justifyContent:"center"}}>−</button>
-                  </div>
-                ):(
-                  <button onClick={()=>add(m.id)} style={{width:44,height:44,borderRadius:14,
-                    background:B.primary,border:"none",color:"#fff",cursor:"pointer",
-                    fontSize:24,display:"flex",alignItems:"center",justifyContent:"center",
-                    boxShadow:`0 4px 12px ${B.primary}40`}}>+</button>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
         ))}
-            </div>
-          </div>
-        ))}
-        <div style={{height:120}}/>
+        <div style={{height:count>0?100:20}}/>
       </div>
 
-      {/* Sticky cart button */}
+      {/* Sticky cart bar */}
       {count>0&&(
-        <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
-          width:"100%",padding:"12px 12px 20px",
-          background:`linear-gradient(transparent, ${B.bg} 30%)`,pointerEvents:"none"}}>
-          <button onClick={()=>setStep("checkout")}
-            style={{width:"100%",padding:"16px 20px",borderRadius:18,
-              background:`linear-gradient(135deg, ${B.primary}, ${B.gold})`,
-              color:"#fff",border:"none",cursor:"pointer",
-              fontWeight:800,fontSize:16,display:"flex",alignItems:"center",
-              justifyContent:"space-between",pointerEvents:"all",
-              boxShadow:`0 8px 32px ${B.primary}50`,letterSpacing:0.2}}>
-            <span style={{background:"rgba(255,255,255,0.2)",borderRadius:10,
-              padding:"4px 12px",fontSize:14}}>
+        <div style={{position:"fixed",bottom:64,left:"50%",
+          transform:"translateX(-50%)",
+          width:"calc(100% - 32px)",maxWidth:528,zIndex:150}}>
+          <button onClick={()=>setScreen("cart")}
+            style={{width:"100%",background:B.primary,border:"none",
+              borderRadius:16,padding:"14px 20px",
+              display:"flex",alignItems:"center",justifyContent:"space-between",
+              cursor:"pointer",boxShadow:`0 8px 24px ${B.primary}50`,
+              fontFamily:"inherit"}}>
+            <span style={{background:"rgba(255,255,255,0.2)",borderRadius:8,
+              padding:"3px 10px",fontSize:13,fontWeight:800,color:"#fff"}}>
               {count} item{count!==1?"s":""}
             </span>
-            <span>{subtotal<15?`Add £${(15-subtotal).toFixed(2)} more`:"View order"}</span>
-            <span style={{fontSize:16,fontWeight:800}}>{fmt(subtotal)}</span>
+            <span style={{fontSize:14,fontWeight:800,color:"#fff"}}>
+              View order
+            </span>
+            <span style={{fontSize:16,fontWeight:800,color:"#fff"}}>
+              {fmt(subtotal)}
+            </span>
           </button>
         </div>
       )}
-    </div>
+    </Page>
+  );
+
+  // ══════════════════════════════════════
+  // CART SCREEN
+  // ══════════════════════════════════════
+  if(screen==="cart") return (
+    <Page>
+      <TopBar title="Your order" back backFn={()=>setScreen("menu")}
+        action="Edit menu" actionFn={()=>setScreen("menu")}/>
+      <div style={{padding:"16px 16px 0",maxWidth:560,margin:"0 auto"}}>
+        {/* Items */}
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:18,padding:16,marginBottom:14}}>
+          {items.length===0 ? (
+            <div style={{textAlign:"center",padding:"32px 20px"}}>
+              <div style={{fontSize:48,marginBottom:8}}>🛒</div>
+              <div style={{fontSize:16,fontWeight:700,color:B.text}}>Cart is empty</div>
+              <button onClick={()=>setScreen("menu")}
+                style={{marginTop:12,background:B.primary,border:"none",
+                  borderRadius:12,padding:"10px 20px",fontSize:14,
+                  fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
+                Browse menu
+              </button>
+            </div>
+          ) : items.map(item=>(
+            <div key={item.id} style={{display:"flex",alignItems:"center",
+              gap:12,paddingBottom:12,marginBottom:12,
+              borderBottom:`1px solid ${B.divider}`}}>
+              <div style={{width:52,height:52,borderRadius:10,
+                background:"#F6E8D8",flexShrink:0,overflow:"hidden",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:22}}>
+                {item.image_url
+                  ? <img src={item.image_url} alt={item.name}
+                      style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  : item.emoji}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:700,color:B.text,
+                  marginBottom:2,whiteSpace:"nowrap",overflow:"hidden",
+                  textOverflow:"ellipsis"}}>{item.name}</div>
+                <div style={{fontSize:14,fontWeight:800,color:B.primaryDark}}>
+                  {fmt(item.price * item.qty)}
+                </div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:6,
+                background:B.primaryLight,borderRadius:10,padding:"4px 6px"}}>
+                <button onClick={()=>removeItem(item)}
+                  style={{width:26,height:26,borderRadius:7,
+                    background:B.primary,border:"none",cursor:"pointer",
+                    display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <Minus size={12} color="#fff"/>
+                </button>
+                <span style={{fontSize:14,fontWeight:800,color:B.primary,
+                  minWidth:14,textAlign:"center"}}>{item.qty}</span>
+                <button onClick={()=>addItem(item)}
+                  style={{width:26,height:26,borderRadius:7,
+                    background:B.primary,border:"none",cursor:"pointer",
+                    display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <Plus size={12} color="#fff"/>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Summary */}
+        {items.length>0&&(
+          <>
+            <div style={{background:B.surface,border:`1px solid ${B.border}`,
+              borderRadius:18,padding:16,marginBottom:14}}>
+              <div style={{fontSize:14,fontWeight:800,color:B.text,marginBottom:12}}>
+                Order summary
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",
+                padding:"6px 0",borderBottom:`1px solid ${B.divider}`}}>
+                <span style={{fontSize:14,color:B.textMid}}>Subtotal</span>
+                <span style={{fontSize:14,fontWeight:700,color:B.text}}>{fmt(subtotal)}</span>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",
+                padding:"6px 0",borderBottom:`1px solid ${B.divider}`}}>
+                <span style={{fontSize:14,color:B.textMid}}>Delivery</span>
+                <span style={{fontSize:14,fontWeight:700,color:B.text}}>
+                  {subtotal>0?"From £5.00":"—"}
+                </span>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",
+                padding:"8px 0 0",fontWeight:800,fontSize:17}}>
+                <span style={{color:B.text}}>Estimated total</span>
+                <span style={{color:B.primary}}>~{fmt(subtotal+5)}</span>
+              </div>
+              <div style={{fontSize:12,color:B.textDim,marginTop:4}}>
+                Final delivery fee calculated at checkout based on your postcode
+              </div>
+            </div>
+
+            {subtotal<15&&(
+              <div style={{background:"#FCECEA",border:`1px solid ${B.red}20`,
+                borderRadius:14,padding:"12px 14px",marginBottom:14,
+                display:"flex",alignItems:"center",gap:10}}>
+                <AlertTriangle size={18} color={B.red}/>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:B.red}}>
+                    Minimum order £15
+                  </div>
+                  <div style={{fontSize:12,color:B.red,opacity:0.8}}>
+                    Add {fmt(15-subtotal)} more to continue
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button onClick={()=>setScreen("checkout")}
+              disabled={subtotal<15}
+              style={{width:"100%",background:subtotal>=15?B.primary:"#D8CBBE",
+                border:"none",borderRadius:16,padding:"16px",
+                fontSize:15,fontWeight:800,color:"#fff",
+                cursor:subtotal>=15?"pointer":"not-allowed",
+                fontFamily:"inherit",marginBottom:8}}>
+              Continue to checkout →
+            </button>
+            <button onClick={()=>setScreen("menu")}
+              style={{width:"100%",background:"transparent",
+                border:`1.5px solid ${B.border}`,borderRadius:16,padding:"14px",
+                fontSize:14,fontWeight:700,color:B.textMid,
+                cursor:"pointer",fontFamily:"inherit"}}>
+              Add more items
+            </button>
+          </>
+        )}
+        <div style={{height:20}}/>
+      </div>
+    </Page>
+  );
+
+  // ══════════════════════════════════════
+  // CHECKOUT SCREEN
+  // ══════════════════════════════════════
+  if(screen==="checkout") return (
+    <Page>
+      <TopBar title="Your details" back backFn={()=>setScreen("cart")}/>
+      <StepIndicator current="checkout"/>
+      <div style={{padding:"16px",maxWidth:560,margin:"0 auto"}}>
+        {/* Order recap */}
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:16,padding:14,marginBottom:14}}>
+          <div style={{fontSize:13,fontWeight:800,color:B.textMid,
+            textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+            Order summary
+          </div>
+          {items.map(item=>(
+            <div key={item.id} style={{display:"flex",justifyContent:"space-between",
+              padding:"5px 0",borderBottom:`1px solid ${B.divider}`}}>
+              <span style={{fontSize:14,color:B.textMid}}>
+                {item.name} ×{item.qty}
+              </span>
+              <span style={{fontSize:14,fontWeight:700,color:B.text}}>
+                {fmt(item.price*item.qty)}
+              </span>
+            </div>
+          ))}
+          <div style={{display:"flex",justifyContent:"space-between",
+            padding:"8px 0 0",fontSize:16,fontWeight:800}}>
+            <span style={{color:B.text}}>Subtotal</span>
+            <span style={{color:B.primary}}>{fmt(subtotal)}</span>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:16,padding:14,marginBottom:14}}>
+          <div style={{fontSize:13,fontWeight:800,color:B.textMid,
+            textTransform:"uppercase",letterSpacing:0.5,marginBottom:12}}>
+            Delivery details
+          </div>
+          <Input label="Full name" value={info.name}
+            onChange={v=>setInfo(i=>({...i,name:v}))} placeholder="Your full name"/>
+          <Input label="Email address" value={info.email}
+            onChange={v=>setInfo(i=>({...i,email:v}))}
+            placeholder="your@email.com" type="email"
+            hint="Order confirmation sent here"/>
+          <Input label="Phone / WhatsApp (optional)" value={info.phone}
+            onChange={v=>setInfo(i=>({...i,phone:v.replace(/[^0-9+]/g,"")}))}
+            placeholder="+44 7xxx xxxxxx" type="tel"
+            hint="Add for live WhatsApp updates"/>
+          <Input label="Postcode" value={info.postcode}
+            onChange={v=>setInfo(i=>({...i,postcode:v.toUpperCase()}))}
+            placeholder="SR1 1AA"
+            hint={delivery?`✓ ${delivery.label}`:"Enter postcode to see delivery fee"}/>
+          <Input label="Delivery address" value={info.address}
+            onChange={v=>setInfo(i=>({...i,address:v}))}
+            placeholder="Full delivery address"/>
+          <Input label="Order notes (optional)" value={info.note}
+            onChange={v=>setInfo(i=>({...i,note:v}))}
+            placeholder="Any special requests or instructions"/>
+        </div>
+
+        {/* Delivery fee */}
+        {delivery&&(
+          <div style={{background:B.primaryLight,border:`1px solid ${B.primary}20`,
+            borderRadius:14,padding:"12px 14px",marginBottom:14,
+            display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <MapPin size={16} color={B.primary}/>
+              <span style={{fontSize:14,fontWeight:600,color:B.primaryDark}}>
+                Delivery fee
+              </span>
+            </div>
+            <span style={{fontSize:15,fontWeight:800,color:B.primary}}>
+              {fmt(deliveryFee)}
+            </span>
+          </div>
+        )}
+
+        {/* No phone notice */}
+        {!info.phone&&(
+          <div style={{padding:"10px 14px",background:B.blueSoft,
+            border:`1px solid ${B.blue}20`,borderRadius:12,marginBottom:14,
+            fontSize:13,color:B.blue,lineHeight:1.6,
+            display:"flex",gap:8,alignItems:"flex-start"}}>
+            <Bell size={14} color={B.blue} style={{marginTop:2,flexShrink:0}}/>
+            No phone? No problem — track your order using your order number after payment.
+          </div>
+        )}
+
+        {/* GDPR */}
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:14,padding:"14px",marginBottom:14}}>
+          <button onClick={()=>setGdpr(g=>!g)}
+            style={{display:"flex",alignItems:"flex-start",gap:10,
+              background:"none",border:"none",cursor:"pointer",
+              textAlign:"left",width:"100%",fontFamily:"inherit",padding:0}}>
+            <div style={{width:20,height:20,borderRadius:5,flexShrink:0,
+              marginTop:2,
+              background:gdpr?B.primary:B.surface,
+              border:`2px solid ${gdpr?B.primary:B.border}`,
+              display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {gdpr&&<Check size={12} color="#fff"/>}
+            </div>
+            <span style={{fontSize:13,color:B.textMid,lineHeight:1.6}}>
+              I agree to AfroCrave Kitchen Ltd's{" "}
+              <span style={{color:B.primary,textDecoration:"underline",cursor:"pointer"}}
+                onClick={e=>{e.stopPropagation();setShowPrivacy(true);}}>
+                Privacy Policy
+              </span>
+              {" "}· UK GDPR compliant · Co. No. 17119134
+            </span>
+          </button>
+        </div>
+
+        {/* Total */}
+        <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF9EC)`,
+          border:`1px solid ${B.primary}20`,borderRadius:16,
+          padding:"14px 16px",marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",
+            fontSize:20,fontWeight:800}}>
+            <span style={{color:B.text}}>Total</span>
+            <span style={{color:B.primary}}>
+              {delivery?fmt(total):"+ delivery"}
+            </span>
+          </div>
+        </div>
+
+        <button onClick={()=>setScreen("payment")}
+          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr}
+          style={{width:"100%",
+            background:info.name&&info.postcode&&delivery?.available&&gdpr
+              ?B.primary:"#D8CBBE",
+            border:"none",borderRadius:16,padding:"16px",
+            fontSize:15,fontWeight:800,color:"#fff",
+            cursor:info.name&&info.postcode&&delivery?.available&&gdpr
+              ?"pointer":"not-allowed",
+            fontFamily:"inherit",marginBottom:20}}>
+          Continue to payment →
+        </button>
+      </div>
+    </Page>
+  );
+
+  // Payment screen (keep existing logic)
+
+
+  // ══════════════════════════════════════
+  // PAYMENT SCREEN
+  // ══════════════════════════════════════
+  if(screen==="payment") {
+    const handleStripe = async () => {
+      setPayStep("loading"); setPayError("");
+      const orderId = "ACK"+(Math.random()*9000+1000|0).toString().padStart(4,"0");
+      const {error} = await supabase.from("orders").insert([{
+        id: orderId,
+        customer_name: info.name, customer_phone: info.phone,
+        customer_email: info.email, delivery_address: info.address,
+        postcode: info.postcode, note: info.note,
+        delivery_zone: delivery?.zone, delivery_fee: deliveryFee,
+        subtotal, total,
+        items: JSON.stringify(items.map(i=>({name:i.name,qty:i.qty,price:i.price}))),
+        status:"New", payment_method:"card", paid:false,
+      }]);
+      if(error){ setPayStep("form"); setPayError("Could not save order — please try again."); return; }
+      if(onOrderPlaced) onOrderPlaced();
+      const res = await fetch("/api/create-checkout",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({orderId,amount:Math.round(total*100),
+          customerName:info.name,customerEmail:info.email,
+          description:`AfroCrave Kitchen — ${items.map(i=>i.name).join(", ")}`,
+        }),
+      });
+      const json = await res.json();
+      if(json.url){ window.location.href = json.url; }
+      else { setPayStep("form"); setPayError("Payment setup failed — please try again."); }
+    };
+
+    const handleBank = async () => {
+      setPayStep("loading");
+      const orderId = "ACK"+(Math.random()*9000+1000|0).toString().padStart(4,"0");
+      await supabase.from("orders").insert([{
+        id: orderId,
+        customer_name: info.name, customer_phone: info.phone,
+        customer_email: info.email, delivery_address: info.address,
+        postcode: info.postcode, note: info.note,
+        delivery_zone: delivery?.zone, delivery_fee: deliveryFee,
+        subtotal, total,
+        items: JSON.stringify(items.map(i=>({name:i.name,qty:i.qty,price:i.price}))),
+        status:"New", payment_method:"bank", paid:false,
+      }]);
+      if(onOrderPlaced) onOrderPlaced();
+      setPayStep("bank_pending");
+    };
+
+    if(payStep==="loading") return (
+      <Page>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",
+          justifyContent:"center",minHeight:"60vh",gap:16}}>
+          <div style={{width:48,height:48,border:`4px solid ${B.primaryLight}`,
+            borderTopColor:B.primary,borderRadius:"50%",
+            animation:"spin 0.8s linear infinite"}}/>
+          <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+            Setting up your payment…
+          </div>
+        </div>
+      </Page>
+    );
+
+    if(payStep==="bank_pending") return (
+      <Page>
+        <div style={{padding:20,maxWidth:560,margin:"0 auto"}}>
+          <div style={{background:B.greenSoft,border:`1px solid ${B.green}30`,
+            borderRadius:20,padding:20,marginBottom:16,textAlign:"center"}}>
+            <CheckCircle size={48} color={B.green} style={{marginBottom:12}}/>
+            <div style={{fontSize:22,fontWeight:800,color:B.text,marginBottom:6}}>
+              Order placed!
+            </div>
+            <div style={{fontSize:14,color:B.textMid}}>
+              Complete payment by bank transfer to confirm
+            </div>
+          </div>
+          <div style={{background:B.surface,border:`1px solid ${B.border}`,
+            borderRadius:16,padding:16,marginBottom:16}}>
+            <div style={{fontSize:14,fontWeight:800,color:B.text,marginBottom:12}}>
+              Bank transfer details
+            </div>
+            {[
+              ["Account name","AfroCrave Kitchen Ltd"],
+              ["Sort code","XX-XX-XX"],
+              ["Account number","XXXXXXXX"],
+              ["Amount",fmt(total)],
+              ["Reference","Your order ID"],
+            ].map(([l,v])=>(
+              <div key={l} style={{display:"flex",justifyContent:"space-between",
+                padding:"8px 0",borderBottom:`1px solid ${B.divider}`}}>
+                <span style={{fontSize:13,color:B.textMid}}>{l}</span>
+                <span style={{fontSize:13,fontWeight:700,color:B.text}}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={()=>openWA(B.kitchenWA,
+            "Hi AfroCrave Kitchen, I have just placed an order and completed bank transfer.")}
+            style={{width:"100%",background:"#25D366",border:"none",borderRadius:16,
+              padding:16,fontSize:15,fontWeight:800,color:"#fff",
+              cursor:"pointer",fontFamily:"inherit"}}>
+            💬 Confirm via WhatsApp
+          </button>
+        </div>
+      </Page>
+    );
+
+    return (
+      <Page>
+        <TopBar title="Payment" back backFn={()=>setScreen("checkout")}/>
+        <StepIndicator current="payment"/>
+        <div style={{padding:16,maxWidth:560,margin:"0 auto"}}>
+          {/* Order total */}
+          <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF9EC)`,
+            border:`1px solid ${B.primary}20`,borderRadius:16,
+            padding:"16px",marginBottom:16,
+            display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div style={{fontSize:13,color:B.textMid,fontWeight:600}}>Total to pay</div>
+              <div style={{fontSize:26,fontWeight:800,color:B.primary}}>{fmt(total)}</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:12,color:B.textMid}}>{count} item{count!==1?"s":""}</div>
+              <div style={{fontSize:12,color:B.textMid}}>+ £{deliveryFee.toFixed(2)} delivery</div>
+            </div>
+          </div>
+
+          {payError&&(
+            <div style={{background:"#FCECEA",border:`1px solid ${B.red}20`,
+              borderRadius:12,padding:"10px 14px",marginBottom:14,
+              fontSize:13,color:B.red,fontWeight:600}}>
+              ⚠️ {payError}
+            </div>
+          )}
+
+          {/* Payment options */}
+          <div style={{fontSize:13,fontWeight:800,color:B.textMid,
+            textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+            Choose payment method
+          </div>
+
+          {/* Card payment */}
+          <button onClick={handleStripe}
+            style={{width:"100%",background:B.primary,border:"none",
+              borderRadius:16,padding:"18px 20px",
+              display:"flex",alignItems:"center",gap:14,
+              cursor:"pointer",marginBottom:10,fontFamily:"inherit",
+              boxShadow:`0 6px 20px ${B.primary}40`}}>
+            <div style={{width:44,height:44,borderRadius:12,
+              background:"rgba(255,255,255,0.2)",
+              display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <CreditCard size={22} color="#fff"/>
+            </div>
+            <div style={{textAlign:"left",flex:1}}>
+              <div style={{fontSize:16,fontWeight:800,color:"#fff"}}>
+                Pay by card
+              </div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.8)"}}>
+                Visa, Mastercard — powered by Stripe
+              </div>
+            </div>
+            <ChevronRight size={20} color="rgba(255,255,255,0.8)"/>
+          </button>
+
+          {/* Bank transfer */}
+          <button onClick={handleBank}
+            style={{width:"100%",background:B.surface,
+              border:`1.5px solid ${B.border}`,borderRadius:16,padding:"18px 20px",
+              display:"flex",alignItems:"center",gap:14,
+              cursor:"pointer",fontFamily:"inherit"}}>
+            <div style={{width:44,height:44,borderRadius:12,
+              background:B.primaryLight,
+              display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <Wallet size={22} color={B.primary}/>
+            </div>
+            <div style={{textAlign:"left",flex:1}}>
+              <div style={{fontSize:16,fontWeight:800,color:B.text}}>
+                Bank transfer
+              </div>
+              <div style={{fontSize:12,color:B.textMid}}>
+                Pay directly to our account
+              </div>
+            </div>
+            <ChevronRight size={20} color={B.textDim}/>
+          </button>
+
+          {/* Security note */}
+          <div style={{display:"flex",alignItems:"center",gap:8,
+            marginTop:16,justifyContent:"center"}}>
+            <ShieldCheck size={14} color={B.textDim}/>
+            <span style={{fontSize:12,color:B.textDim}}>
+              Secure payment · Your data is protected
+            </span>
+          </div>
+        </div>
+      </Page>
+    );
+  }
+
+  // ══════════════════════════════════════
+  // TRACKING SCREEN (from home)
+  // ══════════════════════════════════════
+  if(screen==="track") return (
+    <Page>
+      <TopBar title="Track order"/>
+      <TrackingPage/>
+    </Page>
+  );
+
+  // Default — show menu
+  return (
+    <Page>
+      <TopBar title="AfroCrave Kitchen"/>
+    </Page>
   );
 }
 
 
-// ════════════════════════════════════════════════════════════════
-// NOTIFICATION BANNER
-// ════════════════════════════════════════════════════════════════
 function NotificationBanner({ notifications, onDismiss }) {
   if (!notifications.length) return null;
   return (

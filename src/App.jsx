@@ -367,7 +367,8 @@ function OrderSuccessPage({ orderId, onDone }) {
 
         <div style={{marginTop:20,textAlign:"center",fontSize:13,color:B.textDim,lineHeight:1.7}}>
           Questions? WhatsApp us on +44 7823 644323<br/>
-          AfroCrave Kitchen · Authentic Nigerian Home Cooking
+          AfroCrave Kitchen Ltd · Co. No. 17119134
+          Registered in England & Wales
         </div>
       </div>
     </div>
@@ -1177,6 +1178,7 @@ function CustomerPage({ onOrderPlaced }) {
   const [payStep,       setPayStep]       = useState("form");
   const [payError,      setPayError]      = useState("");
   const [gdpr,          setGdpr]          = useState(false);
+  const [showPrivacy,   setShowPrivacy]   = useState(false);
 
   useEffect(()=>{
     supabase.from("menu_items").select("*").eq("available",true).order("category")
@@ -1227,6 +1229,11 @@ function CustomerPage({ onOrderPlaced }) {
     }]);
     return o;
   };
+
+  // ── Privacy Policy ──
+  if(showPrivacy) return (
+    <PrivacyPolicy onBack={()=>setShowPrivacy(false)}/>
+  );
 
   // ── Payment ──
   if(step==="payment") return (
@@ -1334,7 +1341,7 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{fontSize:15,fontWeight:700,color:B.green,marginBottom:12}}>
                 Bank transfer details
               </div>
-              {[["Account name","AfroCrave Kitchen"],["Sort code","XX-XX-XX"],
+              {[["Account name","AfroCrave Kitchen Ltd"],["Sort code","XX-XX-XX"],
                 ["Account number","XXXXXXXX"],["Reference","Your order ID"]].map(([l,v])=>(
                 <div key={l} style={{display:"flex",justifyContent:"space-between",
                   padding:"8px 0",borderBottom:`1px solid ${B.green}20`,fontSize:14}}>
@@ -1415,6 +1422,14 @@ function CustomerPage({ onOrderPlaced }) {
                 {delivery?.available ? fmt(total) : "—"}
               </span>
             </div>
+            {subtotal>0&&subtotal<15&&(
+              <div style={{marginTop:10,padding:"10px 12px",
+                background:"#FDECEA",border:"1px solid rgba(200,50,30,0.15)",
+                borderRadius:10,fontSize:13,color:"#C0392B",fontWeight:600,
+                textAlign:"center"}}>
+                Minimum order £15 · Add {fmt(15-subtotal)} more to continue
+              </div>
+            )}
           </div>
         </Card>
 
@@ -1480,8 +1495,9 @@ function CustomerPage({ onOrderPlaced }) {
             <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)}
               style={{marginTop:3,flexShrink:0,width:18,height:18}}/>
             <div style={{fontSize:14,color:B.textMid,lineHeight:1.7}}>
-              I agree to AfroCrave Kitchen's{" "}
-              <span style={{color:B.primary,textDecoration:"underline",cursor:"pointer"}}>
+              I agree to AfroCrave Kitchen Ltd's{" "}
+              <span style={{color:B.primary,textDecoration:"underline",cursor:"pointer"}}
+                onClick={()=>setShowPrivacy(true)}>
                 Privacy Policy
               </span>
               {" "}and consent to my data being processed to fulfil this order.
@@ -1494,7 +1510,7 @@ function CustomerPage({ onOrderPlaced }) {
 
         <Btn full style={{fontSize:16,padding:"16px"}}
           onClick={()=>setStep("payment")}
-          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr}>
+          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr||subtotal<15}>
           Continue to payment →
         </Btn>
         {!gdpr&&info.name&&(
@@ -1687,7 +1703,7 @@ function CustomerPage({ onOrderPlaced }) {
               padding:"4px 12px",fontSize:14}}>
               {count} item{count!==1?"s":""}
             </span>
-            <span>View order</span>
+            <span>{subtotal<15?`Add £${(15-subtotal).toFixed(2)} more`:"View order"}</span>
             <span style={{fontSize:18,fontWeight:800}}>{fmt(subtotal)}</span>
           </button>
         </div>
@@ -3074,6 +3090,109 @@ function AdminPanel() {
           </div>
         )}
 
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// PRIVACY POLICY PAGE
+// ════════════════════════════════════════════════════════════════
+function PrivacyPolicy({ onBack }) {
+  return (
+    <div style={{minHeight:"100vh",background:"#FFF8F0",
+      fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}}>
+      {/* Header */}
+      <div style={{background:"#2A1208",padding:"14px 20px",
+        display:"flex",alignItems:"center",gap:12,
+        position:"sticky",top:0,zIndex:100}}>
+        <button onClick={onBack}
+          style={{background:"rgba(255,255,255,0.1)",border:"none",
+            borderRadius:8,width:36,height:36,cursor:"pointer",
+            display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <ChevronLeft size={20} color="#fff"/>
+        </button>
+        <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>Privacy Policy</div>
+      </div>
+
+      <div style={{maxWidth:680,margin:"0 auto",padding:"28px 20px 60px"}}>
+        {/* Company header */}
+        <div style={{marginBottom:28,paddingBottom:20,
+          borderBottom:"1px solid #EDE8E0"}}>
+          <div style={{fontSize:22,fontWeight:800,color:"#1A1208",
+            marginBottom:6}}>Privacy Policy</div>
+          <div style={{fontSize:14,color:"#6B5D4A",lineHeight:1.7}}>
+            <strong>AfroCrave Kitchen Ltd</strong><br/>
+            Company No. 17119134<br/>
+            Registered in England & Wales<br/>
+            Last updated: 26 March 2026
+          </div>
+        </div>
+
+        {[
+          {
+            title:"1. Who we are",
+            body:`AfroCrave Kitchen Ltd ("we", "us", "our") is a private limited company registered in England and Wales (Company No. 17119134). We operate a home kitchen food ordering service at afrocravekitchen.choma.app. We are the data controller for personal information collected through this service. Contact us at: +44 7823 644323`
+          },
+          {
+            title:"2. What data we collect",
+            body:`When you place an order we collect: your full name, email address, delivery address and postcode, phone number (optional), your order details and payment status, and your delivery notes. We do not store your card details — payments are processed securely by Stripe.`
+          },
+          {
+            title:"3. Why we collect it",
+            body:`We collect your data solely to fulfil your food order. Specifically: to prepare and deliver your order, to send you an order confirmation, to contact you about your delivery (if you provide a phone number), and to comply with legal obligations. We do not use your data for marketing without your explicit consent.`
+          },
+          {
+            title:"4. Legal basis (UK GDPR)",
+            body:`We process your data under Article 6(1)(b) of UK GDPR — processing necessary for the performance of a contract. By placing an order you enter into a contract with AfroCrave Kitchen Ltd for the supply of food.`
+          },
+          {
+            title:"5. How long we keep your data",
+            body:`We retain order records for 7 years as required by UK tax law (HMRC). After this period your data is securely deleted. You may request earlier deletion subject to our legal obligations.`
+          },
+          {
+            title:"6. Who we share your data with",
+            body:`We share your data only where necessary: with Stripe to process your payment, with our delivery riders to fulfil your order (name, address, phone number only), and with Supabase (our database provider) who process data on our behalf under a data processing agreement. We never sell your data to third parties.`
+          },
+          {
+            title:"7. Your rights",
+            body:`Under UK GDPR you have the right to: access your personal data, correct inaccurate data, request deletion of your data, object to processing, and data portability. To exercise any of these rights contact us via WhatsApp at +44 7823 644323 or by post at our registered address. We will respond within 30 days.`
+          },
+          {
+            title:"8. Cookies",
+            body:`Our ordering app does not use tracking cookies. We use only essential technical storage required for the app to function (such as your cart contents during an active session).`
+          },
+          {
+            title:"9. Security",
+            body:`We take reasonable technical and organisational measures to protect your data. All data is transmitted over HTTPS. Payment data is handled entirely by Stripe and never touches our servers. Our database is hosted on Supabase with row-level security enabled.`
+          },
+          {
+            title:"10. Complaints",
+            body:`If you have a concern about how we handle your data you may contact the Information Commissioner's Office (ICO) at ico.org.uk or by calling 0303 123 1113.`
+          },
+        ].map(section=>(
+          <div key={section.title} style={{marginBottom:24}}>
+            <div style={{fontSize:16,fontWeight:700,color:"#1A1208",
+              marginBottom:8}}>{section.title}</div>
+            <div style={{fontSize:14,color:"#6B5D4A",lineHeight:1.8}}>
+              {section.body}
+            </div>
+          </div>
+        ))}
+
+        {/* Footer */}
+        <div style={{marginTop:32,padding:"16px 20px",
+          background:"#2A1208",borderRadius:16,
+          textAlign:"center"}}>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",
+            lineHeight:1.8}}>
+            AfroCrave Kitchen Ltd · Co. No. 17119134<br/>
+            Registered in England & Wales<br/>
+            <span style={{color:"#F5C842",fontWeight:600}}>
+              +44 7823 644323
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

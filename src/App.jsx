@@ -170,7 +170,7 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
   };
   return <button onClick={onClick} disabled={disabled}
     style={{padding:"clamp(12px,3.5vw,16px) clamp(16px,4vw,22px)",borderRadius:14,
-      fontSize:"clamp(14px,3.8vw,16px)",fontWeight:700,border:"none",
+      fontSize:"clamp(16px,4vw,18px)",fontWeight:700,border:"none",
       cursor:disabled?"not-allowed":"pointer",width:full?"100%":"auto",opacity:disabled?0.45:1,
       display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,
       boxSizing:"border-box",transition:"transform 0.1s,box-shadow 0.1s",letterSpacing:0.2,
@@ -181,18 +181,18 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
 
 function Input({ label, value, onChange, placeholder, type="text", hint }) {
   return <div style={{marginBottom:16}}>
-    {label&&<div style={{fontSize:"clamp(12px,3vw,14px)",fontWeight:700,
+    {label&&<div style={{fontSize:"clamp(14px,3.5vw,16px)",fontWeight:700,
       color:B.textMid,marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>
       {label}</div>}
     <input type={type} value={value} onChange={e=>onChange(e.target.value)}
       placeholder={placeholder}
       style={{width:"100%",padding:"14px 16px",background:B.surface,
         border:`1.5px solid ${B.border}`,borderRadius:12,color:B.text,
-        fontSize:"clamp(15px,4vw,17px)",outline:"none",boxSizing:"border-box",
+        fontSize:"clamp(17px,4.2vw,19px)",outline:"none",boxSizing:"border-box",
         fontFamily:"inherit"}}
       onFocus={e=>e.target.style.borderColor=B.primary}
       onBlur={e=>e.target.style.borderColor=B.border}/>
-    {hint&&<div style={{fontSize:13,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
+    {hint&&<div style={{fontSize:14,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
   </div>;
 }
 
@@ -209,7 +209,7 @@ function AllergenBadges({ allergens }) {
   if(!allergens?.length) return <span style={{fontSize:13,color:B.green,fontWeight:600}}>✓ No major allergens</span>;
   return <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:6}}>
     {allergens.map(a=>(
-      <span key={a} style={{fontSize:12,background:B.goldLight,color:B.gold,
+      <span key={a} style={{fontSize:13,background:B.goldLight,color:B.gold,
         borderRadius:6,padding:"2px 8px",fontWeight:600,border:`1px solid ${B.gold}30`}}>
         {icons[a]||"⚠️"} {a}
       </span>
@@ -263,13 +263,13 @@ function OrderSuccessPage({ orderId, onDone }) {
         <div style={{fontSize:28,fontWeight:800,marginBottom:6,letterSpacing:-0.5}}>
           Order confirmed!
         </div>
-        <div style={{fontSize:16,opacity:0.9,lineHeight:1.6}}>
+        <div style={{fontSize:18,opacity:0.9,lineHeight:1.6}}>
           Thank you {o.customer.split(" ")[0]}!<br/>
           AfroCrave Kitchen is preparing your food.
         </div>
         <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:14,
           background:"rgba(255,255,255,0.2)",borderRadius:20,padding:"8px 16px"}}>
-          <span style={{fontSize:14,fontWeight:700}}>💳 Payment confirmed · {o.paymentMethod}</span>
+          <span style={{fontSize:18,fontWeight:700}}>💳 Payment confirmed · {o.paymentMethod}</span>
         </div>
       </div>
 
@@ -278,7 +278,7 @@ function OrderSuccessPage({ orderId, onDone }) {
         <Card style={{marginBottom:14,background:B.cardWarm}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
-              <div style={{fontSize:13,color:B.textMid,fontWeight:700,textTransform:"uppercase",
+              <div style={{fontSize:18,color:B.textMid,fontWeight:700,textTransform:"uppercase",
                 letterSpacing:0.5,marginBottom:4}}>Order number</div>
               <div style={{fontSize:22,fontWeight:800,color:B.text}}>{o.id}</div>
             </div>
@@ -288,7 +288,7 @@ function OrderSuccessPage({ orderId, onDone }) {
 
         {/* Items */}
         <Card style={{marginBottom:14}}>
-          <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:12}}>
+          <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:12}}>
             🍛 Items ordered
           </div>
           {o.items.map((it,i)=>(
@@ -312,13 +312,13 @@ function OrderSuccessPage({ orderId, onDone }) {
 
         {/* Delivery */}
         <Card style={{marginBottom:20}}>
-          <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:10}}>
+          <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:10}}>
             📍 Delivery details
           </div>
           <div style={{fontSize:15,color:B.textMid,marginBottom:6}}>{o.address}</div>
-          <div style={{fontSize:14,color:B.textMid,marginBottom:8}}>📮 {o.postcode}</div>
+          <div style={{fontSize:15,color:B.textMid,marginBottom:8}}>📮 {o.postcode}</div>
           {o.note&&(
-            <div style={{fontSize:14,color:B.primary,fontStyle:"italic",marginBottom:8}}>
+            <div style={{fontSize:18,color:B.primary,fontStyle:"italic",marginBottom:8}}>
               💬 "{o.note}"
             </div>
           )}
@@ -334,7 +334,7 @@ function OrderSuccessPage({ orderId, onDone }) {
           <button onClick={()=>window.print()}
             style={{width:"100%",padding:"14px",borderRadius:14,
               background:"#fff",border:`1.5px solid ${B.border}`,
-              fontSize:14,fontWeight:700,color:B.text,cursor:"pointer",
+              fontSize:18,fontWeight:700,color:B.text,cursor:"pointer",
               display:"flex",alignItems:"center",justifyContent:"center",gap:8,
               fontFamily:"inherit"}}>
             🖨️ Print / Save receipt
@@ -348,7 +348,7 @@ function OrderSuccessPage({ orderId, onDone }) {
           {!o.phone && (
             <div style={{padding:"12px 16px",background:B.goldLight,
               border:`1px solid ${B.gold}30`,borderRadius:12,
-              fontSize:13,color:B.gold,textAlign:"center",fontWeight:600}}>
+              fontSize:18,color:B.gold,textAlign:"center",fontWeight:600}}>
               💡 Track your order using number <strong>{o.id}</strong>
             </div>
           )}
@@ -359,17 +359,17 @@ function OrderSuccessPage({ orderId, onDone }) {
         <div style={{background:B.goldLight,border:`1px solid ${B.gold}30`,
           borderRadius:12,padding:"10px 14px",textAlign:"center",
           marginBottom:16}}>
-          <div style={{fontSize:13,color:B.gold,fontWeight:600,marginBottom:3}}>
+          <div style={{fontSize:18,color:B.gold,fontWeight:600,marginBottom:3}}>
             📸 Screenshot tip
           </div>
-          <div style={{fontSize:12,color:B.textMid,lineHeight:1.6}}>
+          <div style={{fontSize:15,color:B.textMid,lineHeight:1.6}}>
             Take a screenshot of this page to save your order number{" "}
             <strong style={{color:B.text}}>{o.id}</strong>.
             You'll need it to track your order.
           </div>
         </div>
 
-        <div style={{marginTop:20,textAlign:"center",fontSize:13,color:B.textDim,lineHeight:1.7}}>
+        <div style={{marginTop:20,textAlign:"center",fontSize:14,color:B.textDim,lineHeight:1.7}}>
           Questions? WhatsApp us on +44 7823 644323<br/>
           AfroCrave Kitchen Ltd · Co. No. 17119134
           Registered in England & Wales
@@ -387,8 +387,8 @@ function SplashScreen({ onDone }) {
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setFade(true), 1800);
-    const t2 = setTimeout(() => onDone(), 2400);
+    const t1 = setTimeout(() => setFade(true), 1000);
+    const t2 = setTimeout(() => onDone(), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
@@ -418,10 +418,10 @@ function SplashScreen({ onDone }) {
         }}>
           <img src="/Logo_AfrocraveKitchen.webp"
             alt="AfroCrave Kitchen"
-            style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
         </div>
 
-        <div style={{fontSize:13,color:"rgba(245,200,66,0.8)",fontWeight:700,
+        <div style={{fontSize:18,color:"rgba(245,200,66,0.8)",fontWeight:700,
           letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>
           ✦ Powered by Choma ✦
         </div>
@@ -431,7 +431,7 @@ function SplashScreen({ onDone }) {
           AfroCrave Kitchen
         </div>
 
-        <div style={{fontSize:15,color:"rgba(255,255,255,0.65)",fontWeight:400,
+        <div style={{fontSize:18,color:"rgba(255,255,255,0.65)",fontWeight:400,
           letterSpacing:0.3}}>
           Authentic Nigerian Home Cooking
         </div>
@@ -525,12 +525,12 @@ function StaffApp() {
             display:"flex",alignItems:"center",justifyContent:"center",
             margin:"0 auto 14px",overflow:"hidden"}}>
             <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
-              style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           </div>
           <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:4}}>
             Staff Portal
           </div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>
+          <div style={{fontSize:18,color:"rgba(255,255,255,0.5)"}}>
             AfroCrave Kitchen · Select your role
           </div>
         </div>
@@ -567,10 +567,10 @@ function StaffApp() {
                 {r.icon}
               </div>
               <div>
-                <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:2}}>
+                <div style={{fontSize:18,fontWeight:700,color:"#fff",marginBottom:2}}>
                   {r.label}
                 </div>
-                <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>
+                <div style={{fontSize:18,color:"rgba(255,255,255,0.45)"}}>
                   {r.desc}
                 </div>
               </div>
@@ -581,7 +581,7 @@ function StaffApp() {
         </div>
 
         <div style={{textAlign:"center"}}>
-          <a href="/" style={{fontSize:12,color:"rgba(255,255,255,0.3)",
+          <a href="/" style={{fontSize:18,color:"rgba(255,255,255,0.3)",
             textDecoration:"none",display:"flex",alignItems:"center",
             justifyContent:"center",gap:4}}>
             <ChevronLeft size={14} color="rgba(255,255,255,0.3)"/>
@@ -618,8 +618,8 @@ function StaffApp() {
               {role.icon}
             </div>
             <div>
-              <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>{role.label}</div>
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>Enter your password</div>
+              <div style={{fontSize:18,fontWeight:700,color:"#fff"}}>{role.label}</div>
+              <div style={{fontSize:18,color:"rgba(255,255,255,0.4)"}}>Enter your password</div>
             </div>
           </div>
         </div>
@@ -629,7 +629,7 @@ function StaffApp() {
           border:"0.5px solid rgba(255,255,255,0.15)",
           borderRadius:20,padding:"24px 20px"}}>
           <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",
+            <div style={{fontSize:18,fontWeight:600,color:"rgba(255,255,255,0.6)",
               marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>
               Password
             </div>
@@ -645,7 +645,7 @@ function StaffApp() {
                   width:"100%",padding:"13px 44px 13px 14px",
                   background:"rgba(255,255,255,0.08)",
                   border:`1.5px solid ${error?"rgba(220,80,50,0.6)":"rgba(255,255,255,0.15)"}`,
-                  borderRadius:12,color:"#fff",fontSize:15,
+                  borderRadius:12,color:"#fff",fontSize:18,
                   outline:"none",boxSizing:"border-box",fontFamily:"inherit",
                 }}
                 onFocus={e=>e.target.style.borderColor="rgba(200,150,10,0.6)"}
@@ -664,7 +664,7 @@ function StaffApp() {
           </div>
 
           {error&&(
-            <div style={{fontSize:13,color:"#FF8A7A",marginBottom:14,
+            <div style={{fontSize:18,color:"#FF8A7A",marginBottom:14,
               background:"rgba(220,80,50,0.15)",padding:"10px 12px",
               borderRadius:10,border:"0.5px solid rgba(220,80,50,0.3)"}}>
               ⚠️ {error}
@@ -676,7 +676,7 @@ function StaffApp() {
               width:"100%",
               background:password?"linear-gradient(135deg,#E05A0A,#C8960A)":"rgba(255,255,255,0.1)",
               border:"none",borderRadius:14,padding:"14px",
-              fontSize:15,fontWeight:700,
+              fontSize:18,fontWeight:700,
               color:password?"#fff":"rgba(255,255,255,0.3)",
               cursor:password?"pointer":"not-allowed",
               fontFamily:"inherit",
@@ -687,7 +687,7 @@ function StaffApp() {
           </button>
         </div>
 
-        <div style={{textAlign:"center",marginTop:16,fontSize:12,
+        <div style={{textAlign:"center",marginTop:16,fontSize:18,
           color:"rgba(255,255,255,0.25)"}}>
           Authorised staff only · AfroCrave Kitchen
         </div>
@@ -735,10 +735,10 @@ function StaffApp() {
             <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
               style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>
+              <div style={{fontSize:18,fontWeight:700,color:"#fff"}}>
                 AfroCrave Kitchen
               </div>
-              <div style={{fontSize:10,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
+              <div style={{fontSize:18,color:"rgba(200,150,10,0.8)",fontWeight:600}}>
                 {role.icon} {role.label}
               </div>
             </div>
@@ -747,7 +747,7 @@ function StaffApp() {
             style={{background:"rgba(255,255,255,0.08)",
               border:"0.5px solid rgba(255,255,255,0.15)",
               borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
-              fontSize:11,fontWeight:600,cursor:"pointer",
+              fontSize:18,fontWeight:600,cursor:"pointer",
               display:"flex",alignItems:"center",gap:4}}>
             <LogOut size={12}/>
             Sign out
@@ -762,7 +762,7 @@ function StaffApp() {
               if(t.id==="rider") setRiderBadge(0);
             }}
               style={{flex:1,padding:"8px 4px",borderRadius:12,
-                fontSize:12,fontWeight:700,cursor:"pointer",border:"none",
+                fontSize:18,fontWeight:700,cursor:"pointer",border:"none",
                 position:"relative",letterSpacing:0.2,
                 display:"flex",alignItems:"center",justifyContent:"center",gap:5,
                 background:view===t.id?"rgba(255,255,255,0.15)":"transparent",
@@ -772,7 +772,7 @@ function StaffApp() {
               {t.label}
               {(t.badge||0)>0&&(
                 <span style={{position:"absolute",top:-4,right:-2,width:18,height:18,
-                  borderRadius:9,background:"#C8960A",color:"#fff",fontSize:10,
+                  borderRadius:9,background:"#C8960A",color:"#fff",fontSize:18,
                   fontWeight:800,display:"flex",alignItems:"center",
                   justifyContent:"center"}}>
                   {t.badge}
@@ -855,12 +855,12 @@ export default function AfroCraveApp() {
         <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
           style={{width:32,height:32,borderRadius:8,objectFit:"cover"}}/>
         <div>
-          <div style={{fontSize:14,fontWeight:700,color:"#1A1208"}}>AfroCrave Kitchen</div>
-          <div style={{fontSize:11,color:"#D4580A",fontWeight:600}}>AUTHENTIC NIGERIAN CUISINE</div>
+          <div style={{fontSize:18,fontWeight:700,color:"#1A1208"}}>AfroCrave Kitchen</div>
+          <div style={{fontSize:18,color:"#D4580A",fontWeight:600}}>AUTHENTIC NIGERIAN CUISINE</div>
         </div>
         <button onClick={()=>setPage("tracking")}
           style={{marginLeft:"auto",background:"none",border:"0.5px solid #EDE8E0",
-            borderRadius:8,padding:"5px 10px",fontSize:12,color:"#6B5D4A",
+            borderRadius:8,padding:"5px 10px",fontSize:18,color:"#6B5D4A",
             cursor:"pointer",fontWeight:600}}>Track order</button>
       </div>
       <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>
@@ -877,7 +877,7 @@ export default function AfroCraveApp() {
         <button onClick={()=>setPage("landing")}
           style={{background:"none",border:"none",cursor:"pointer",
             fontSize:22,color:"#D4580A",padding:"0 4px",lineHeight:1}}>‹</button>
-        <div style={{fontSize:15,fontWeight:700,color:"#1A1208"}}>Track your order</div>
+        <div style={{fontSize:18,fontWeight:700,color:"#1A1208"}}>Track your order</div>
       </div>
       <TrackingPage/>
     </div>
@@ -908,15 +908,15 @@ export default function AfroCraveApp() {
             <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
               style={{width:44,height:44,borderRadius:10,objectFit:"cover",flexShrink:0}}/>
             <div>
-              <div style={{fontSize:16,fontWeight:800,color:B.text,letterSpacing:-0.3}}>
+              <div style={{fontSize:18,fontWeight:800,color:B.text,letterSpacing:-0.3}}>
                 AfroCrave Kitchen
               </div>
-              <div style={{fontSize:13,color:B.primary,fontWeight:600,letterSpacing:0.5}}>
+              <div style={{fontSize:15,color:B.primary,fontWeight:600,letterSpacing:0.5}}>
                 AUTHENTIC NIGERIAN CUISINE
               </div>
             </div>
           </div>
-          <div style={{fontSize:13,color:B.textDim,fontWeight:600,letterSpacing:1,
+          <div style={{fontSize:14,color:B.textDim,fontWeight:600,letterSpacing:1,
             textTransform:"uppercase",textAlign:"right",lineHeight:1.4}}>
             Powered by<br/>
             <span style={{color:B.primary,fontWeight:800}}>Choma</span>
@@ -927,7 +927,7 @@ export default function AfroCraveApp() {
             <button key={t.id} onClick={()=>{setView(t.id);
               if(t.id==="cook") setCookBadge(0);
               if(t.id==="rider") setRiderBadge(0);}}
-              style={{flex:1,padding:"8px 4px",borderRadius:12,fontSize:13,fontWeight:700,
+              style={{flex:1,padding:"8px 4px",borderRadius:12,fontSize:18,fontWeight:700,
                 cursor:"pointer",border:"none",position:"relative",letterSpacing:0.2,
                 background:view===t.id?B.primary:B.surface,
                 color:view===t.id?"#fff":B.textMid,transition:"all 0.15s"}}>
@@ -937,7 +937,7 @@ export default function AfroCraveApp() {
               </span>
               {(t.badge||0)>0&&(
                 <span style={{position:"absolute",top:-4,right:-2,width:18,height:18,
-                  borderRadius:9,background:B.gold,color:"#fff",fontSize:10,fontWeight:800,
+                  borderRadius:9,background:B.gold,color:"#fff",fontSize:18,fontWeight:800,
                   display:"flex",alignItems:"center",justifyContent:"center"}}>
                   {t.badge}
                 </span>
@@ -997,11 +997,11 @@ function LandingPage({ onOrder, onTrack }) {
           flexShrink:0,
         }}>
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
-            style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
         </div>
         {/* Location tag */}
         <div style={{
-          fontSize:"clamp(8px,2vw,10px)",
+          fontSize:"clamp(11px,2.5vw,13px)",
           color:"rgba(245,200,66,0.8)",
           fontWeight:600,
           letterSpacing:"2px",
@@ -1030,7 +1030,7 @@ function LandingPage({ onOrder, onTrack }) {
         textAlign:"center"}}>
         {/* Tagline */}
         <div style={{
-          fontSize:"clamp(11px,2.8vw,13px)",
+          fontSize:"clamp(13px,3.2vw,15px)",
           color:"rgba(255,255,255,0.65)",
           lineHeight:1.7,
           maxWidth:"300px",
@@ -1048,7 +1048,7 @@ function LandingPage({ onOrder, onTrack }) {
               border:"0.5px solid rgba(245,200,66,0.25)",
               borderRadius:"20px",
               padding:"4px 11px",
-              fontSize:"clamp(9px,2.2vw,11px)",
+              fontSize:"clamp(12px,2.8vw,14px)",
               color:"rgba(255,255,255,0.85)",
               fontWeight:600,
               whiteSpace:"nowrap",
@@ -1126,7 +1126,7 @@ function LandingPage({ onOrder, onTrack }) {
           border:"none",
           borderRadius:"16px",
           padding:"clamp(13px,3.5vw,16px)",
-          fontSize:"clamp(13px,3.5vw,15px)",
+          fontSize:"clamp(15px,3.8vw,17px)",
           fontWeight:700,
           color:"#fff",
           cursor:"pointer",
@@ -1143,7 +1143,7 @@ function LandingPage({ onOrder, onTrack }) {
           border:"0.5px solid rgba(255,255,255,0.18)",
           borderRadius:"14px",
           padding:"clamp(11px,3vw,13px)",
-          fontSize:"clamp(12px,3vw,14px)",
+          fontSize:"clamp(14px,3.5vw,16px)",
           fontWeight:600,
           color:"rgba(255,255,255,0.75)",
           cursor:"pointer",
@@ -1185,7 +1185,10 @@ function CustomerPage({ onOrderPlaced }) {
   const [showPrivacy,   setShowPrivacy]   = useState(false);
 
   useEffect(()=>{
-    supabase.from("menu_items").select("*").eq("available",true).order("category")
+    supabase.from("menu_items")
+      .select("id,name,description,price,category,emoji,portion,calories,allergens,is_halal,is_vegan,available,image_url")
+      .eq("available",true)
+      .order("category")
       .then(({data,error})=>{if(!error&&data) setMenuItems(data);});
   },[]);
 
@@ -1245,7 +1248,7 @@ function CustomerPage({ onOrderPlaced }) {
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>{setStep("checkout");setPayStep("form");setPayError("");}}
           style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:10,
-            padding:"10px 16px",color:B.textMid,fontSize:14,cursor:"pointer",
+            padding:"10px 16px",color:B.textMid,fontSize:18,cursor:"pointer",
             marginBottom:24,display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
           ‹ Back
         </button>
@@ -1253,7 +1256,7 @@ function CustomerPage({ onOrderPlaced }) {
         <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:4,letterSpacing:-0.5}}>
           Secure payment
         </div>
-        <div style={{fontSize:14,color:B.textMid,marginBottom:24}}>
+        <div style={{fontSize:15,color:B.textMid,marginBottom:24}}>
           Powered by Stripe · 256-bit SSL encryption
         </div>
 
@@ -1261,13 +1264,13 @@ function CustomerPage({ onOrderPlaced }) {
           border:`1px solid ${B.primary}25`,borderRadius:16,
           padding:"16px 20px",marginBottom:24,
           display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:15,color:B.textMid,fontWeight:600}}>Total to pay</span>
+          <span style={{fontSize:14,color:B.textMid,fontWeight:600}}>Total to pay</span>
           <span style={{fontSize:22,fontWeight:800,color:B.primary}}>{fmt(total)}</span>
         </div>
 
         {payError&&(
           <div style={{padding:"14px 16px",background:B.redSoft,border:`1px solid ${B.red}30`,
-            borderRadius:12,marginBottom:16,fontSize:14,color:B.red,fontWeight:600}}>
+            borderRadius:12,marginBottom:16,fontSize:18,color:B.red,fontWeight:600}}>
             ⚠️ {payError}
           </div>
         )}
@@ -1278,15 +1281,15 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
                 <span style={{fontSize:24}}>🔒</span>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:B.text}}>Secure card payment</div>
-                  <div style={{fontSize:13,color:B.textMid}}>
+                  <div style={{fontSize:18,fontWeight:700,color:B.text}}>Secure card payment</div>
+                  <div style={{fontSize:18,color:B.textMid}}>
                     You'll be redirected to Stripe's secure checkout
                   </div>
                 </div>
               </div>
               <div style={{display:"flex",gap:8}}>
                 {["💳 Visa","💳 Mastercard","💳 Amex"].map(c=>(
-                  <span key={c} style={{fontSize:13,color:B.textMid,background:B.card,
+                  <span key={c} style={{fontSize:18,color:B.textMid,background:B.card,
                     border:`1px solid ${B.border}`,borderRadius:8,padding:"4px 10px",fontWeight:600}}>
                     {c}
                   </span>
@@ -1294,7 +1297,7 @@ function CustomerPage({ onOrderPlaced }) {
               </div>
             </Card>
 
-            <Btn full v="stripe" style={{fontSize:16,padding:"16px"}} onClick={async()=>{
+            <Btn full v="stripe" style={{fontSize:18,padding:"16px"}} onClick={async()=>{
               setPayStep("processing"); setPayError("");
               try {
                 const o = buildOrder("Card payment");
@@ -1316,7 +1319,7 @@ function CustomerPage({ onOrderPlaced }) {
             }}>🔒 Pay {fmt(total)} securely</Btn>
 
             <div style={{marginTop:16,textAlign:"center"}}>
-              <div style={{fontSize:13,color:B.textMid,marginBottom:12}}>— or —</div>
+              <div style={{fontSize:15,color:B.textMid,marginBottom:12}}>— or —</div>
               <Btn full v="ghost" style={{fontSize:15}} onClick={async()=>{
                 const o = buildOrder("Bank transfer");
                 await saveOrder(o);
@@ -1333,7 +1336,7 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:8}}>
               Connecting to Stripe…
             </div>
-            <div style={{fontSize:14,color:B.textMid}}>
+            <div style={{fontSize:18,color:B.textMid}}>
               Please wait, do not close this page
             </div>
           </div>
@@ -1342,7 +1345,7 @@ function CustomerPage({ onOrderPlaced }) {
         {payStep==="bank"&&(
           <div>
             <Card style={{marginBottom:14,background:B.greenSoft,borderColor:`${B.green}30`}}>
-              <div style={{fontSize:15,fontWeight:700,color:B.green,marginBottom:12}}>
+              <div style={{fontSize:18,fontWeight:700,color:B.green,marginBottom:12}}>
                 Bank transfer details
               </div>
               {[["Account name","AfroCrave Kitchen Ltd"],["Sort code","XX-XX-XX"],
@@ -1354,7 +1357,7 @@ function CustomerPage({ onOrderPlaced }) {
                 </div>
               ))}
             </Card>
-            <div style={{fontSize:14,color:B.textMid,lineHeight:1.7,marginBottom:20,
+            <div style={{fontSize:15,color:B.textMid,lineHeight:1.7,marginBottom:20,
               padding:"14px 16px",background:B.surface,borderRadius:12}}>
               💬 Please send payment and WhatsApp us to confirm.
               Your order will be prepared once payment is verified.
@@ -1375,7 +1378,7 @@ function CustomerPage({ onOrderPlaced }) {
       <div style={{maxWidth:560,margin:"0 auto",padding:"20px 16px 60px"}}>
         <button onClick={()=>setStep("menu")} style={{background:B.card,
           border:`1px solid ${B.border}`,borderRadius:10,padding:"10px 16px",
-          color:B.textMid,fontSize:14,cursor:"pointer",marginBottom:24,
+          color:B.textMid,fontSize:18,cursor:"pointer",marginBottom:24,
           display:"flex",alignItems:"center",gap:6,fontWeight:600}}>
           ‹ Back to menu
         </button>
@@ -1392,15 +1395,15 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <span style={{fontSize:26}}>{m.emoji}</span>
                 <div>
-                  <div style={{fontSize:15,fontWeight:600,color:B.text}}>{m.name}</div>
-                  <div style={{fontSize:13,color:B.textMid}}>{fmt(m.price)} each</div>
+                  <div style={{fontSize:18,fontWeight:600,color:B.text}}>{m.name}</div>
+                  <div style={{fontSize:18,color:B.textMid}}>{fmt(m.price)} each</div>
                 </div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <button onClick={()=>rem(m.id)} style={{width:32,height:32,borderRadius:10,
                   background:B.surface,border:`1px solid ${B.border}`,cursor:"pointer",fontSize:18,
                   display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
-                <span style={{fontSize:17,fontWeight:700,color:B.primary,minWidth:20,
+                <span style={{fontSize:18,fontWeight:700,color:B.primary,minWidth:20,
                   textAlign:"center"}}>{qty}</span>
                 <button onClick={()=>add(m.id)} style={{width:32,height:32,borderRadius:10,
                   background:B.primary,border:"none",color:"#fff",cursor:"pointer",fontSize:18,
@@ -1429,7 +1432,7 @@ function CustomerPage({ onOrderPlaced }) {
             {subtotal>0&&subtotal<15&&(
               <div style={{marginTop:10,padding:"10px 12px",
                 background:"#FDECEA",border:"1px solid rgba(200,50,30,0.15)",
-                borderRadius:10,fontSize:13,color:"#C0392B",fontWeight:600,
+                borderRadius:10,fontSize:18,color:"#C0392B",fontWeight:600,
                 textAlign:"center"}}>
                 Minimum order £15 · Add {fmt(15-subtotal)} more to continue
               </div>
@@ -1462,7 +1465,7 @@ function CustomerPage({ onOrderPlaced }) {
             }/>
           {delivery && !delivery.available && info.postcode.length > 3 && (
             <div style={{padding:"12px 16px",background:B.redSoft,border:`1px solid ${B.red}30`,
-              borderRadius:12,marginTop:-8,marginBottom:16,fontSize:14,color:B.red,fontWeight:600}}>
+              borderRadius:12,marginTop:-8,marginBottom:16,fontSize:18,color:B.red,fontWeight:600}}>
               ⚠️ We don't currently deliver to {info.postcode.toUpperCase()}.
               We deliver across Sunderland and the Northeast.
             </div>
@@ -1479,7 +1482,7 @@ function CustomerPage({ onOrderPlaced }) {
         <Card style={{marginBottom:20,background:B.surface,borderColor:"transparent"}}>
           <div style={{fontSize:13,fontWeight:700,color:B.textMid,textTransform:"uppercase",
             letterSpacing:0.5,marginBottom:12}}>Delivery pricing</div>
-          <div style={{fontSize:14,color:B.textMid,lineHeight:1.8}}>
+          <div style={{fontSize:15,color:B.textMid,lineHeight:1.8}}>
             📍 <strong style={{color:B.text}}>Sunderland (all SR postcodes)</strong> — flat £5.00<br/>
             🗺 <strong style={{color:B.text}}>Outside Sunderland</strong> — £5.00 + £0.75/mile<br/>
             📦 <strong style={{color:B.text}}>Newcastle, Durham, Seaham</strong> and more
@@ -1490,7 +1493,7 @@ function CustomerPage({ onOrderPlaced }) {
         {!info.phone && (
           <div style={{padding:"10px 14px",background:B.blueSoft,
             border:`1px solid ${B.blue}20`,borderRadius:10,marginBottom:12,
-            fontSize:13,color:B.blue,lineHeight:1.6}}>
+            fontSize:18,color:B.blue,lineHeight:1.6}}>
             ℹ️ No phone number? No problem — you can track your order using your order number after payment.
           </div>
         )}
@@ -1499,27 +1502,27 @@ function CustomerPage({ onOrderPlaced }) {
           <label style={{display:"flex",alignItems:"flex-start",gap:12,cursor:"pointer"}}>
             <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)}
               style={{marginTop:3,flexShrink:0,width:18,height:18}}/>
-            <div style={{fontSize:14,color:B.textMid,lineHeight:1.7}}>
+            <div style={{fontSize:15,color:B.textMid,lineHeight:1.7}}>
               I agree to AfroCrave Kitchen Ltd's{" "}
               <span style={{color:B.primary,textDecoration:"underline",cursor:"pointer"}}
                 onClick={()=>setShowPrivacy(true)}>
                 Privacy Policy
               </span>
               {" "}and consent to my data being processed to fulfil this order.
-              <span style={{display:"block",marginTop:4,fontSize:13,color:B.textDim}}>
+              <span style={{display:"block",marginTop:4,fontSize:14,color:B.textDim}}>
                 UK GDPR compliant · You can request deletion at any time
               </span>
             </div>
           </label>
         </div>
 
-        <Btn full style={{fontSize:16,padding:"16px"}}
+        <Btn full style={{fontSize:18,padding:"16px"}}
           onClick={()=>setStep("payment")}
           disabled={!info.name||!info.postcode||!delivery?.available||!gdpr||subtotal<15}>
           Continue to payment →
         </Btn>
         {!gdpr&&info.name&&(
-          <div style={{textAlign:"center",fontSize:13,color:B.textMid,marginTop:10}}>
+          <div style={{textAlign:"center",fontSize:18,color:B.textMid,marginTop:10}}>
             Please accept the privacy policy to continue
           </div>
         )}
@@ -1544,7 +1547,7 @@ function CustomerPage({ onOrderPlaced }) {
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave Kitchen"
             style={{width:80,height:80,borderRadius:16,objectFit:"cover",
               marginBottom:12,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}/>
-          <div style={{fontSize:11,color:"rgba(255,200,100,0.85)",fontWeight:700,
+          <div style={{fontSize:18,color:"rgba(255,200,100,0.85)",fontWeight:700,
             letterSpacing:2.5,textTransform:"uppercase",marginBottom:8}}>
             ✦ Home Kitchen · Sunderland ✦
           </div>
@@ -1562,7 +1565,7 @@ function CustomerPage({ onOrderPlaced }) {
               <div key={tx} style={{
                 background:"rgba(245,200,66,0.15)",
                 border:"1px solid rgba(245,200,66,0.3)",
-                borderRadius:20,padding:"7px 14px",fontSize:13,fontWeight:700,
+                borderRadius:20,padding:"7px 14px",fontSize:18,fontWeight:700,
                 color:"rgba(255,255,255,0.95)",letterSpacing:0.3}}>
                 {tx}
               </div>
@@ -1575,7 +1578,7 @@ function CustomerPage({ onOrderPlaced }) {
       {/* Kitchen status from Supabase would go here - for now managed in cook dashboard */}
       <div style={{margin:"0",padding:"12px 16px",background:B.goldLight,
         border:`1px solid ${B.gold}30`,borderRadius:12,
-        fontSize:13,color:B.gold,lineHeight:1.6,fontWeight:500}}>
+        fontSize:18,color:B.gold,lineHeight:1.6,fontWeight:500}}>
         ⚠️ <strong>Allergen info:</strong> Tap any item to see allergen details.
         Severe allergy? Please WhatsApp us before ordering.
       </div>
@@ -1585,7 +1588,7 @@ function CustomerPage({ onOrderPlaced }) {
         WebkitOverflowScrolling:"touch",background:"#FFF8F0"}}>
         {["All",...cats].map(f=>(
           <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 18px",borderRadius:20,
-            fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
+            fontSize:18,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
             border:`1.5px solid ${filter===f?B.primary:B.border}`,
             background:filter===f?B.primaryLight:"transparent",
             color:filter===f?B.primary:B.textMid}}>
@@ -1599,7 +1602,7 @@ function CustomerPage({ onOrderPlaced }) {
         {shown.length===0&&(
           <div style={{textAlign:"center",padding:"40px 20px",color:B.textMid}}>
             <div style={{fontSize:40,marginBottom:12}}>🍳</div>
-            <div style={{fontSize:16,fontWeight:600}}>Menu loading…</div>
+            <div style={{fontSize:18,fontWeight:600}}>Menu loading…</div>
           </div>
         )}
         <div style={{
@@ -1621,37 +1624,37 @@ function CustomerPage({ onOrderPlaced }) {
                   fontSize:32,flexShrink:0,overflow:"hidden"}}>
                   {m.image_url
                     ? <img src={m.image_url} alt={m.name}
-                        style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                        loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                     : m.emoji
                   }
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:16,fontWeight:700,color:B.text,lineHeight:1.3,
+                  <div style={{fontSize:18,fontWeight:700,color:B.text,lineHeight:1.3,
                     marginBottom:4}}>{m.name}</div>
-                  <div style={{fontSize:13,color:B.textMid,lineHeight:1.6,
+                  <div style={{fontSize:15,color:B.textMid,lineHeight:1.6,
                     marginBottom:8}}>{m.description}</div>
                   <div style={{display:"flex",gap:10,alignItems:"center",
                     flexWrap:"wrap",marginBottom:8}}>
                     <span style={{fontSize:18,fontWeight:800,color:B.primary}}>
                       {fmt(m.price)}
                     </span>
-                    {m.portion&&<span style={{fontSize:13,color:B.textDim}}>{m.portion}</span>}
-                    {m.calories&&<span style={{fontSize:13,color:B.textDim}}>{m.calories} kcal</span>}
+                    {m.portion&&<span style={{fontSize:14,color:B.textDim}}>{m.portion}</span>}
+                    {m.calories&&<span style={{fontSize:14,color:B.textDim}}>{m.calories} kcal</span>}
                   </div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
                     {m.is_halal&&(
-                      <span style={{fontSize:12,background:B.goldLight,color:B.gold,
+                      <span style={{fontSize:18,background:B.goldLight,color:B.gold,
                         borderRadius:6,padding:"3px 10px",fontWeight:700,fontStyle:"italic",
                         border:`1px solid ${B.gold}30`,letterSpacing:0.2}}>
                         🍲 Home Cooked. Naija Standard
                       </span>
                     )}
                     {m.is_vegan&&(
-                      <span style={{fontSize:12,background:B.purpleSoft,color:B.purple,
+                      <span style={{fontSize:18,background:B.purpleSoft,color:B.purple,
                         borderRadius:6,padding:"2px 8px",fontWeight:700}}>🌱 Vegan</span>
                     )}
                     <button onClick={()=>setShowAllergens(showAllergens===m.id?null:m.id)}
-                      style={{fontSize:11,padding:"2px 8px",borderRadius:6,cursor:"pointer",
+                      style={{fontSize:18,padding:"2px 8px",borderRadius:6,cursor:"pointer",
                         background:B.goldLight,color:B.gold,border:`1px solid ${B.gold}30`,
                         fontWeight:600}}>
                       Allergens ⓘ
@@ -1672,7 +1675,7 @@ function CustomerPage({ onOrderPlaced }) {
                     <button onClick={()=>add(m.id)} style={{width:36,height:36,borderRadius:10,
                       background:B.primary,border:"none",color:"#fff",cursor:"pointer",
                       fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
-                    <span style={{fontSize:17,fontWeight:800,color:B.primary}}>{cart[m.id]}</span>
+                    <span style={{fontSize:18,fontWeight:800,color:B.primary}}>{cart[m.id]}</span>
                     <button onClick={()=>rem(m.id)} style={{width:36,height:36,borderRadius:10,
                       background:B.surface,border:`1px solid ${B.border}`,color:B.text,
                       cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",
@@ -1701,7 +1704,7 @@ function CustomerPage({ onOrderPlaced }) {
             style={{width:"100%",padding:"16px 20px",borderRadius:18,
               background:`linear-gradient(135deg, ${B.primary}, ${B.gold})`,
               color:"#fff",border:"none",cursor:"pointer",
-              fontWeight:800,fontSize:16,display:"flex",alignItems:"center",
+              fontWeight:800,fontSize:18,display:"flex",alignItems:"center",
               justifyContent:"space-between",pointerEvents:"all",
               boxShadow:`0 8px 32px ${B.primary}50`,letterSpacing:0.2}}>
             <span style={{background:"rgba(255,255,255,0.2)",borderRadius:10,
@@ -1741,10 +1744,10 @@ function NotificationBanner({ notifications, onDismiss }) {
               {n.type==="order"?"🛒":n.type==="ready"?"✅":n.type==="delivered"?"🎉":"🔔"}
             </div>
             <div>
-              <div style={{fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.3}}>
+              <div style={{fontSize:15,fontWeight:700,color:"#fff",lineHeight:1.3}}>
                 {n.title}
               </div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",marginTop:2}}>
+              <div style={{fontSize:14,color:"rgba(255,255,255,0.75)",marginTop:2}}>
                 {n.message}
               </div>
             </div>
@@ -1825,10 +1828,10 @@ function CookDashboard() {
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div>
             <div style={{fontSize:20,fontWeight:800,color:B.text}}><span style={{display:"flex",alignItems:"center",gap:8}}><ChefHat size={20} color={B.primary}/> Kitchen live</span></div>
-            <div style={{fontSize:13,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
+            <div style={{fontSize:18,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
           </div>
           <div style={{textAlign:"right"}}>
-            <div style={{fontSize:13,color:B.textMid,fontWeight:700,textTransform:"uppercase"}}>
+            <div style={{fontSize:18,color:B.textMid,fontWeight:700,textTransform:"uppercase"}}>
               Today's revenue
             </div>
             <div style={{fontSize:20,fontWeight:800,color:B.green}}>{fmt(todayRev)}</div>
@@ -1844,7 +1847,7 @@ function CookDashboard() {
                   l==="Preparing"?"Preparing":l==="On way"?"Out for delivery":
                   l==="Done"?"Delivered":l)).length}
               </div>
-              <div style={{fontSize:11,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
+              <div style={{fontSize:18,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
             </div>
           ))}
         </div>
@@ -1856,7 +1859,7 @@ function CookDashboard() {
         {[["live",`Live (${live.length})`],["done",`Done (${done.length})`]].map(([id,lbl])=>(
           <button key={id} onClick={()=>setTab(id)}
             style={{flex:1,padding:"13px",background:"none",border:"none",cursor:"pointer",
-              fontSize:14,fontWeight:700,
+              fontSize:18,fontWeight:700,
               color:tab===id?B.primary:B.textMid,
               borderBottom:tab===id?`3px solid ${B.primary}`:"3px solid transparent"}}>
             {lbl}
@@ -1871,7 +1874,7 @@ function CookDashboard() {
           {list.length===0&&(
             <div style={{padding:"48px 20px",textAlign:"center",color:B.textMid}}>
               <div style={{fontSize:40,marginBottom:12}}>🎉</div>
-              <div style={{fontSize:16,fontWeight:700}}>
+              <div style={{fontSize:18,fontWeight:700}}>
                 {tab==="live"?"All caught up!":"No completed orders yet"}
               </div>
             </div>
@@ -1885,20 +1888,20 @@ function CookDashboard() {
               <div style={{display:"flex",justifyContent:"space-between",
                 alignItems:"flex-start",marginBottom:6}}>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:B.text}}>{o.customer}</div>
-                  <div style={{fontSize:13,color:B.textDim}}>{o.id} · {o.postcode}</div>
+                  <div style={{fontSize:18,fontWeight:700,color:B.text}}>{o.customer}</div>
+                  <div style={{fontSize:14,color:B.textDim}}>{o.id} · {o.postcode}</div>
                 </div>
                 <Pill s={o.status}/>
               </div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:13,color:B.textMid}}>
+                <span style={{fontSize:18,color:B.textMid}}>
                   {o.items.length} item{o.items.length!==1?"s":""}
                 </span>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   {o.paid
-                    ?<span style={{fontSize:13,color:B.green,fontWeight:700}}>💳 Paid</span>
-                    :<span style={{fontSize:13,color:B.gold,fontWeight:700}}>⏳ Awaiting</span>}
-                  <span style={{fontSize:14,fontWeight:800,color:B.primary}}>{fmt(o.total)}</span>
+                    ?<span style={{fontSize:14,color:B.green,fontWeight:700}}>💳 Paid</span>
+                    :<span style={{fontSize:14,color:B.gold,fontWeight:700}}>⏳ Awaiting</span>}
+                  <span style={{fontSize:18,fontWeight:800,color:B.primary}}>{fmt(o.total)}</span>
                 </div>
               </div>
             </div>
@@ -1911,7 +1914,7 @@ function CookDashboard() {
             boxSizing:"border-box"}}>
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"center",marginBottom:14}}>
-              <div style={{fontSize:16,fontWeight:800,color:B.text}}>{sel.customer}</div>
+              <div style={{fontSize:18,fontWeight:800,color:B.text}}>{sel.customer}</div>
               <button onClick={()=>setSel(null)} style={{background:B.surface,
                 border:`1px solid ${B.border}`,borderRadius:8,width:30,height:30,
                 cursor:"pointer",color:B.textMid,fontSize:16}}>✕</button>
@@ -1944,8 +1947,8 @@ function CookDashboard() {
               {sel.rider&&<div style={{color:B.green,fontWeight:600,marginTop:4}}>🛵 {sel.rider}</div>}
               <div style={{marginTop:8}}>
                 {sel.paid
-                  ?<span style={{fontSize:13,color:B.green,fontWeight:700}}>💳 {sel.paymentMethod} — paid</span>
-                  :<span style={{fontSize:13,color:B.gold,fontWeight:700}}>⏳ {sel.paymentMethod} — awaiting</span>}
+                  ?<span style={{fontSize:14,color:B.green,fontWeight:700}}>💳 {sel.paymentMethod} — paid</span>
+                  :<span style={{fontSize:14,color:B.gold,fontWeight:700}}>⏳ {sel.paymentMethod} — awaiting</span>}
               </div>
             </div>
             {NEXT[sel.status]&&(
@@ -2028,18 +2031,18 @@ function RiderApp() {
       <div style={{padding:"20px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
           <Card style={{background:B.greenSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
-            <div style={{fontSize:13,color:B.green,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Today</div>
+            <div style={{fontSize:14,color:B.green,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Today</div>
             <div style={{fontSize:30,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
           </Card>
           <Card style={{background:B.blueSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
-            <div style={{fontSize:12,color:B.blue,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Runs</div>
+            <div style={{fontSize:14,color:B.blue,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Runs</div>
             <div style={{fontSize:30,fontWeight:800,color:B.blue}}>{completed.length}</div>
           </Card>
         </div>
         <Card style={{marginBottom:20,background:B.goldLight,borderColor:"transparent"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
-              <div style={{fontSize:13,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
+              <div style={{fontSize:14,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
               <div style={{fontSize:26,fontWeight:800,color:B.gold}}>£4.50</div>
             </div>
             <div style={{fontSize:40}}><Bike size={22} color="#fff"/></div>
@@ -2049,10 +2052,10 @@ function RiderApp() {
           <Card key={o.id} style={{marginBottom:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
-                <div style={{fontSize:15,fontWeight:700,color:B.text}}>{o.customer}</div>
-                <div style={{fontSize:13,color:B.textMid}}>📮 {o.postcode}</div>
+                <div style={{fontSize:18,fontWeight:700,color:B.text}}>{o.customer}</div>
+                <div style={{fontSize:18,color:B.textMid}}>📮 {o.postcode}</div>
               </div>
-              <div style={{fontSize:15,fontWeight:800,color:B.green}}>+£4.50</div>
+              <div style={{fontSize:18,fontWeight:800,color:B.green}}>+£4.50</div>
             </div>
           </Card>
         ))}
@@ -2073,8 +2076,8 @@ function RiderApp() {
               cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",
               justifyContent:"center"}}>‹</button>
             <div>
-              <div style={{fontSize:17,fontWeight:800,color:B.text}}>{live.id}</div>
-              <div style={{fontSize:13,color:B.textMid}}>{live.customer}</div>
+              <div style={{fontSize:18,fontWeight:800,color:B.text}}>{live.id}</div>
+              <div style={{fontSize:18,color:B.textMid}}>{live.customer}</div>
             </div>
           </div>
           <Pill s={live.status}/>
@@ -2083,10 +2086,10 @@ function RiderApp() {
           {/* Address — prominent */}
           <div style={{background:`linear-gradient(135deg,#2A1208,#5C2A08)`,
             borderRadius:18,padding:"20px",marginBottom:16,textAlign:"center",color:"#fff"}}>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",fontWeight:700,
+            <div style={{fontSize:18,color:"rgba(255,255,255,0.6)",fontWeight:700,
               textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>Deliver to</div>
             <div style={{fontSize:18,fontWeight:800,lineHeight:1.4}}>📍 {live.address}</div>
-            <div style={{fontSize:14,color:"rgba(255,255,255,0.7)",marginTop:6}}>
+            <div style={{fontSize:18,color:"rgba(255,255,255,0.7)",marginTop:6}}>
               📮 {live.postcode}
             </div>
             <button onClick={()=>window.open(`https://maps.google.com/?q=${encodeURIComponent(live.address)}`,"_blank")}
@@ -2098,21 +2101,21 @@ function RiderApp() {
           </div>
 
           <Card style={{marginBottom:14}}>
-            <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:10}}>Customer</div>
-            <div style={{fontSize:16,fontWeight:700,color:B.text}}>{live.customer}</div>
-            <div style={{fontSize:14,color:B.textMid,marginTop:4}}>+{live.phone}</div>
-            {live.note&&<div style={{fontSize:14,color:B.primary,marginTop:8,fontStyle:"italic"}}>💬 "{live.note}"</div>}
+            <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:10}}>Customer</div>
+            <div style={{fontSize:18,fontWeight:700,color:B.text}}>{live.customer}</div>
+            <div style={{fontSize:15,color:B.textMid,marginTop:4}}>+{live.phone}</div>
+            {live.note&&<div style={{fontSize:18,color:B.primary,marginTop:8,fontStyle:"italic"}}>💬 "{live.note}"</div>}
           </Card>
 
           <Card style={{marginBottom:16}}>
-            <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:10}}>Items</div>
+            <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:10}}>Items</div>
             {live.items.map((it,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",
                 borderBottom:i<live.items.length-1?`1px solid ${B.divider}`:"none"}}>
                 <div style={{width:28,height:28,borderRadius:8,background:B.surface,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:14,fontWeight:800,color:B.primary,flexShrink:0}}>{it.qty}×</div>
-                <span style={{fontSize:15,color:B.text}}>{it.name}</span>
+                  fontSize:18,fontWeight:800,color:B.primary,flexShrink:0}}>{it.qty}×</div>
+                <span style={{fontSize:18,color:B.text}}>{it.name}</span>
               </div>
             ))}
             <div style={{marginTop:12,padding:"10px 14px",background:B.greenSoft,
@@ -2162,12 +2165,12 @@ function RiderApp() {
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
             <div style={{fontSize:22,fontWeight:800,color:B.text}}>Hey {RIDER} 🛵</div>
-            <div style={{fontSize:13,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
+            <div style={{fontSize:18,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
           </div>
           <button onClick={()=>setScreen("earnings")}
             style={{background:B.greenSoft,border:`1px solid ${B.green}30`,
               borderRadius:14,padding:"10px 16px",cursor:"pointer",textAlign:"center"}}>
-            <div style={{fontSize:13,color:B.green,fontWeight:700,textTransform:"uppercase"}}>Today</div>
+            <div style={{fontSize:14,color:B.green,fontWeight:700,textTransform:"uppercase"}}>Today</div>
             <div style={{fontSize:18,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
           </button>
         </div>
@@ -2175,7 +2178,7 @@ function RiderApp() {
           {[["Active",mine.length,B.primary],["Available",available.length,B.gold],["Done",completed.length,B.green]].map(([l,v,c])=>(
             <div key={l} style={{background:`${c}18`,borderRadius:12,padding:"10px 6px",textAlign:"center"}}>
               <div style={{fontSize:22,fontWeight:800,color:c}}>{v}</div>
-              <div style={{fontSize:11,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
+              <div style={{fontSize:18,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
             </div>
           ))}
         </div>
@@ -2186,7 +2189,7 @@ function RiderApp() {
         {/* Active */}
         {mine.length>0&&(
           <>
-            <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:12}}>🔴 Active delivery</div>
+            <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:12}}>🔴 Active delivery</div>
             {mine.map(o=>(
               <div key={o.id} style={{background:`linear-gradient(135deg,${B.primaryLight},#fff)`,
                 border:`2px solid ${B.primary}30`,borderRadius:18,padding:"18px",
@@ -2194,8 +2197,8 @@ function RiderApp() {
                 onClick={()=>{setActiveOrder(o);setScreen("detail");}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
                   <div>
-                    <div style={{fontSize:16,fontWeight:800,color:B.text}}>{o.customer}</div>
-                    <div style={{fontSize:13,color:B.textMid}}>📍 {o.address}</div>
+                    <div style={{fontSize:18,fontWeight:800,color:B.text}}>{o.customer}</div>
+                    <div style={{fontSize:18,color:B.textMid}}>📍 {o.address}</div>
                   </div>
                   <Pill s={o.status}/>
                 </div>
@@ -2209,7 +2212,7 @@ function RiderApp() {
         )}
 
         {/* Available */}
-        <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:12}}>
+        <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:12}}>
           🟢 Available to claim ({available.length})
         </div>
         {available.length===0&&(
@@ -2224,16 +2227,16 @@ function RiderApp() {
             <div style={{display:"flex",justifyContent:"space-between",
               alignItems:"flex-start",marginBottom:12}}>
               <div>
-                <div style={{fontSize:15,fontWeight:700,color:B.text}}>{o.customer}</div>
-                <div style={{fontSize:13,color:B.textMid}}>📮 {o.postcode} · {o.zone}</div>
-                <div style={{fontSize:13,color:B.textMid}}>
+                <div style={{fontSize:18,fontWeight:700,color:B.text}}>{o.customer}</div>
+                <div style={{fontSize:18,color:B.textMid}}>📮 {o.postcode} · {o.zone}</div>
+                <div style={{fontSize:18,color:B.textMid}}>
                   {o.items.length} item{o.items.length!==1?"s":""}
                 </div>
               </div>
               <div style={{background:B.goldLight,border:`1px solid ${B.gold}25`,
                 borderRadius:12,padding:"8px 12px",textAlign:"center"}}>
-                <div style={{fontSize:13,color:B.gold,fontWeight:700}}>Earning</div>
-                <div style={{fontSize:16,fontWeight:800,color:B.gold}}>£4.50</div>
+                <div style={{fontSize:14,color:B.gold,fontWeight:700}}>Earning</div>
+                <div style={{fontSize:18,fontWeight:800,color:B.gold}}>£4.50</div>
               </div>
             </div>
             <div style={{display:"flex",gap:10}}>
@@ -2251,17 +2254,17 @@ function RiderApp() {
         {/* Completed */}
         {completed.length>0&&(
           <>
-            <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:12,marginTop:4}}>
+            <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:12,marginTop:4}}>
               ✅ Completed today ({completed.length})
             </div>
             {completed.map(o=>(
               <Card key={o.id} style={{marginBottom:10,opacity:0.7}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div>
-                    <div style={{fontSize:15,fontWeight:600,color:B.text}}>{o.customer}</div>
-                    <div style={{fontSize:13,color:B.textMid}}>📮 {o.postcode}</div>
+                    <div style={{fontSize:18,fontWeight:600,color:B.text}}>{o.customer}</div>
+                    <div style={{fontSize:18,color:B.textMid}}>📮 {o.postcode}</div>
                   </div>
-                  <div style={{fontSize:15,fontWeight:800,color:B.green}}>+£4.50</div>
+                  <div style={{fontSize:18,fontWeight:800,color:B.green}}>+£4.50</div>
                 </div>
               </Card>
             ))}
@@ -2282,7 +2285,7 @@ function RiderApp() {
               display:"flex",flexDirection:"column",alignItems:"center",gap:3,
               padding:"6px 0",color:screen===sc?B.primary:B.textDim,transition:"color 0.15s"}}>
             {icon}
-            <span style={{fontSize:11,fontWeight:screen===sc?700:500}}>{label}</span>
+            <span style={{fontSize:18,fontWeight:screen===sc?700:500}}>{label}</span>
             {screen===sc&&<div style={{width:4,height:4,borderRadius:2,background:B.primary}}/>}
           </button>
         ))}
@@ -2339,7 +2342,7 @@ function TrackingPage() {
             placeholder="e.g. ACK1234"
             style={{flex:1,padding:"15px 18px",background:B.card,
               border:`1.5px solid ${B.border}`,borderRadius:14,color:B.text,
-              fontSize:16,outline:"none",fontFamily:"inherit"}}
+              fontSize:18,outline:"none",fontFamily:"inherit"}}
             onFocus={e=>e.target.style.borderColor=B.primary}
             onBlur={e=>e.target.style.borderColor=B.border}/>
           <button onClick={search}
@@ -2353,11 +2356,11 @@ function TrackingPage() {
         {/* Recent orders shortcut */}
         {orders.slice(0,4).length>0&&(
           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:24}}>
-            <span style={{fontSize:13,color:B.textMid,alignSelf:"center"}}>Recent:</span>
+            <span style={{fontSize:18,color:B.textMid,alignSelf:"center"}}>Recent:</span>
             {orders.slice(0,4).map(o=>(
               <button key={o.id}
                 onClick={()=>{setOid(o.id);setFound(o);setSearched(true);}}
-                style={{padding:"6px 14px",borderRadius:20,fontSize:13,fontWeight:700,
+                style={{padding:"6px 14px",borderRadius:20,fontSize:18,fontWeight:700,
                   background:B.surface,border:`1px solid ${B.border}`,
                   color:B.textMid,cursor:"pointer"}}>
                 {o.id}
@@ -2370,7 +2373,7 @@ function TrackingPage() {
           <Card style={{textAlign:"center",padding:"40px 20px"}}>
             <div style={{fontSize:44,marginBottom:12}}>🔍</div>
             <div style={{fontSize:18,fontWeight:700,color:B.text}}>Order not found</div>
-            <div style={{fontSize:14,color:B.textMid,marginTop:8,lineHeight:1.6}}>
+            <div style={{fontSize:15,color:B.textMid,marginTop:8,lineHeight:1.6}}>
               Check the order number in your WhatsApp confirmation message
             </div>
           </Card>
@@ -2383,7 +2386,7 @@ function TrackingPage() {
               <div style={{display:"flex",justifyContent:"space-between",
                 alignItems:"flex-start",marginBottom:20}}>
                 <div>
-                  <div style={{fontSize:13,color:B.textDim,marginBottom:4}}>{found.id}</div>
+                  <div style={{fontSize:14,color:B.textDim,marginBottom:4}}>{found.id}</div>
                   <div style={{fontSize:20,fontWeight:800,color:B.text}}>{found.customer}</div>
                 </div>
                 <Pill s={found.status}/>
@@ -2399,7 +2402,7 @@ function TrackingPage() {
                         background:done?`linear-gradient(135deg,${B.primary},${B.gold})`:B.surface,
                         border:`2px solid ${done?B.primary:B.border}`,
                         display:"flex",alignItems:"center",justifyContent:"center",
-                        fontSize:14,color:"#fff",
+                        fontSize:18,color:"#fff",
                         boxShadow:active?`0 0 0 5px ${B.primaryLight}`:""}}>
                         {done?(active?"●":"✓"):""}
                       </div>
@@ -2409,10 +2412,10 @@ function TrackingPage() {
                       )}
                     </div>
                     <div style={{paddingTop:6}}>
-                      <div style={{fontSize:15,fontWeight:active?700:500,
+                      <div style={{fontSize:18,fontWeight:active?700:500,
                         color:active?B.primary:done?B.text:B.textMid}}>{st}</div>
                       {active&&(
-                        <div style={{fontSize:13,color:B.textMid,marginTop:3,
+                        <div style={{fontSize:14,color:B.textMid,marginTop:3,
                           lineHeight:1.5}}>{MSGS[st]}</div>
                       )}
                     </div>
@@ -2423,18 +2426,18 @@ function TrackingPage() {
 
             {/* Order details */}
             <Card style={{marginBottom:14}}>
-              <div style={{fontSize:14,fontWeight:700,color:B.text,marginBottom:12}}>
+              <div style={{fontSize:18,fontWeight:700,color:B.text,marginBottom:12}}>
                 Order details
               </div>
               {found.items.map((it,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",
                   padding:"8px 0",borderBottom:i<found.items.length-1?`1px solid ${B.divider}`:"none"}}>
-                  <span style={{fontSize:14,color:B.textMid}}>{it.name} ×{it.qty}</span>
-                  <span style={{fontSize:14,fontWeight:600,color:B.text}}>{fmt(it.price*it.qty)}</span>
+                  <span style={{fontSize:15,color:B.textMid}}>{it.name} ×{it.qty}</span>
+                  <span style={{fontSize:15,fontWeight:600,color:B.text}}>{fmt(it.price*it.qty)}</span>
                 </div>
               ))}
               <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
-                fontSize:13,borderTop:`1px solid ${B.divider}`,marginTop:2}}>
+                fontSize:18,borderTop:`1px solid ${B.divider}`,marginTop:2}}>
                 <span style={{color:B.textMid}}>Delivery</span>
                 <span style={{color:B.text,fontWeight:600}}>{fmt(found.deliveryFee)}</span>
               </div>
@@ -2447,12 +2450,12 @@ function TrackingPage() {
 
             {/* Delivery info */}
             <Card style={{marginBottom:16}}>
-              <div style={{fontSize:13,color:B.textMid,fontWeight:700,
+              <div style={{fontSize:18,color:B.textMid,fontWeight:700,
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>Delivering to</div>
-              <div style={{fontSize:15,color:B.text,fontWeight:500,marginBottom:4}}>
+              <div style={{fontSize:18,color:B.text,fontWeight:500,marginBottom:4}}>
                 📍 {found.address}
               </div>
-              <div style={{fontSize:14,color:B.textMid,marginBottom:found.rider?8:0}}>
+              <div style={{fontSize:15,color:B.textMid,marginBottom:found.rider?8:0}}>
                 📮 {found.postcode} · {found.zone}
               </div>
               {found.rider&&(
@@ -2462,10 +2465,10 @@ function TrackingPage() {
               )}
               <div style={{marginTop:10}}>
                 {found.paid
-                  ?<span style={{fontSize:13,color:B.green,fontWeight:700}}>
+                  ?<span style={{fontSize:14,color:B.green,fontWeight:700}}>
                     💳 {found.paymentMethod} — confirmed
                   </span>
-                  :<span style={{fontSize:13,color:B.gold,fontWeight:700}}>
+                  :<span style={{fontSize:14,color:B.gold,fontWeight:700}}>
                     ⏳ {found.paymentMethod} — pending
                   </span>}
               </div>
@@ -2569,7 +2572,7 @@ function AdminPanel() {
           <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:6}}>
             Admin Access
           </div>
-          <div style={{fontSize:14,color:B.textMid}}>
+          <div style={{fontSize:18,color:B.textMid}}>
             AfroCrave Kitchen · Choma Platform
           </div>
         </div>
@@ -2578,7 +2581,7 @@ function AdminPanel() {
             onChange={v=>setPassword(v)} placeholder="Enter your password"
             type="password"/>
           {error&&(
-            <div style={{fontSize:13,color:B.red,marginBottom:12,
+            <div style={{fontSize:18,color:B.red,marginBottom:12,
               padding:"10px 12px",background:B.redSoft,borderRadius:10}}>
               ⚠️ {error}
             </div>
@@ -2587,7 +2590,7 @@ function AdminPanel() {
             🔐 Sign in
           </Btn>
         </Card>
-        <div style={{textAlign:"center",marginTop:16,fontSize:12,color:B.textDim}}>
+        <div style={{textAlign:"center",marginTop:16,fontSize:14,color:B.textDim}}>
           Kitchen staff use your kitchen password<br/>
           Choma admin use the platform password
         </div>
@@ -2711,7 +2714,7 @@ function AdminPanel() {
       {toast&&(
         <div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",
           zIndex:9999,background:B.text,color:"#fff",padding:"12px 24px",
-          borderRadius:20,fontSize:14,fontWeight:700,
+          borderRadius:20,fontSize:18,fontWeight:700,
           boxShadow:"0 8px 24px rgba(0,0,0,0.2)"}}>
           {toast}
         </div>
@@ -2725,13 +2728,13 @@ function AdminPanel() {
             <div style={{fontSize:18,fontWeight:800}}>
               {role==="super" ? "⚡ Super Admin" : "👩‍🍳 Kitchen Admin"}
             </div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginTop:2}}>
+            <div style={{fontSize:18,color:"rgba(255,255,255,0.6)",marginTop:2}}>
               AfroCrave Kitchen · Choma Platform
             </div>
           </div>
           <button onClick={()=>{setAuthed(false);setPassword("");setRole(null);}}
             style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",
-              borderRadius:10,padding:"6px 14px",color:"#fff",fontSize:12,
+              borderRadius:10,padding:"6px 14px",color:"#fff",fontSize:18,
               fontWeight:700,cursor:"pointer"}}>
             Sign out
           </button>
@@ -2741,7 +2744,7 @@ function AdminPanel() {
         <div style={{display:"flex",gap:4,marginTop:14,overflowX:"auto"}}>
           {SECTIONS.map(s=>(
             <button key={s.id} onClick={()=>setSection(s.id)}
-              style={{padding:"8px 14px",borderRadius:12,fontSize:12,fontWeight:700,
+              style={{padding:"8px 14px",borderRadius:12,fontSize:18,fontWeight:700,
                 cursor:"pointer",border:"none",whiteSpace:"nowrap",
                 display:"flex",alignItems:"center",gap:6,
                 background:section===s.id?"rgba(255,255,255,0.2)":"transparent",
@@ -2767,13 +2770,13 @@ function AdminPanel() {
             {/* Add/Edit form */}
             <Card style={{marginBottom:20,background:editingItem?B.goldLight:B.card,
               borderColor:editingItem?B.gold:"transparent"}}>
-              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
                 {editingItem ? "✏️ Edit menu item" : "➕ Add new item"}
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:700,color:B.textMid,marginBottom:5,
+                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,marginBottom:5,
                     textTransform:"uppercase",letterSpacing:0.4}}>Food photo</div>
                   <label style={{display:"block",cursor:"pointer"}}>
                     <div style={{width:"100%",aspectRatio:"1",background:B.surface,
@@ -2783,11 +2786,11 @@ function AdminPanel() {
                       position:"relative"}}>
                       {menuForm.imagePreview ? (
                         <img src={menuForm.imagePreview} alt="Food"
-                          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                          loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                       ) : (
                         <>
                           <Plus size={24} color={B.textDim}/>
-                          <div style={{fontSize:11,color:B.textDim,marginTop:6,
+                          <div style={{fontSize:14,color:B.textDim,marginTop:6,
                             textAlign:"center",padding:"0 8px"}}>
                             Tap to add photo
                           </div>
@@ -2810,19 +2813,19 @@ function AdminPanel() {
                   </label>
                   {menuForm.imagePreview&&(
                     <button onClick={()=>setMenuForm(f=>({...f,imagePreview:null,imageFile:null}))}
-                      style={{marginTop:6,fontSize:11,color:B.red,background:"none",
+                      style={{marginTop:6,fontSize:18,color:B.red,background:"none",
                         border:"none",cursor:"pointer",fontWeight:600}}>
                       Remove photo
                     </button>
                   )}
                 </div>
                 <div>
-                  <div style={{fontSize:12,fontWeight:700,color:B.textMid,marginBottom:5,
+                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,marginBottom:5,
                     textTransform:"uppercase",letterSpacing:0.4}}>Category</div>
                   <select value={menuForm.category}
                     onChange={e=>setMenuForm(f=>({...f,category:e.target.value}))}
                     style={{width:"100%",padding:"10px 12px",background:B.surface,
-                      border:`1.5px solid ${B.border}`,borderRadius:10,fontSize:14,
+                      border:`1.5px solid ${B.border}`,borderRadius:10,fontSize:18,
                       boxSizing:"border-box",fontFamily:"inherit",color:B.text}}>
                     {CATEGORIES.map(c=><option key={c}>{c}</option>)}
                   </select>
@@ -2860,7 +2863,7 @@ function AdminPanel() {
                     style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",
                       borderRadius:20,border:`1.5px solid ${menuForm[key]?color:B.border}`,
                       background:menuForm[key]?`${color}15`:"transparent",
-                      cursor:"pointer",fontSize:13,fontWeight:700,
+                      cursor:"pointer",fontSize:18,fontWeight:700,
                       color:menuForm[key]?color:B.textMid}}>
                     <div style={{width:14,height:14,borderRadius:"50%",
                       background:menuForm[key]?color:B.border}}/>
@@ -2891,7 +2894,7 @@ function AdminPanel() {
               if(!items.length) return null;
               return (
                 <div key={cat} style={{marginBottom:20}}>
-                  <div style={{fontSize:13,fontWeight:700,color:B.textMid,
+                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,
                     textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
                     {cat} ({items.length})
                   </div>
@@ -2907,28 +2910,28 @@ function AdminPanel() {
                           display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>
                           {item.image_url
                             ? <img src={item.image_url} alt={item.name}
-                                style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                                loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                             : item.emoji
                           }
                         </div>
                           <div style={{flex:1}}>
-                            <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                            <div style={{fontSize:18,fontWeight:700,color:B.text}}>
                               {item.name}
                             </div>
-                            <div style={{fontSize:13,color:B.textMid,marginTop:2}}>
+                            <div style={{fontSize:14,color:B.textMid,marginTop:2}}>
                               {item.description}
                             </div>
                             <div style={{display:"flex",gap:8,marginTop:6,
                               alignItems:"center",flexWrap:"wrap"}}>
-                              <span style={{fontSize:16,fontWeight:800,color:B.primary}}>
+                              <span style={{fontSize:18,fontWeight:800,color:B.primary}}>
                                 £{item.price.toFixed(2)}
                               </span>
                               {item.portion&&item.portion!=="0"&&(
-                                <span style={{fontSize:12,color:B.textDim}}>
+                                <span style={{fontSize:14,color:B.textDim}}>
                                   {item.portion}
                                 </span>
                               )}
-                              <span style={{fontSize:12,fontWeight:700,
+                              <span style={{fontSize:18,fontWeight:700,
                                 color:item.available?B.green:B.red}}>
                                 {item.available?"● Available":"● Sold out"}
                               </span>
@@ -2937,20 +2940,20 @@ function AdminPanel() {
                         </div>
                         <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
                           <button onClick={()=>toggleAvailable(item)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:18,
                               fontWeight:700,cursor:"pointer",border:"none",
                               background:item.available?B.redSoft:B.greenSoft,
                               color:item.available?B.red:B.green}}>
                             {item.available?"Sold out":"Available"}
                           </button>
                           <button onClick={()=>editItem(item)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:18,
                               fontWeight:700,cursor:"pointer",border:"none",
                               background:B.goldLight,color:B.gold}}>
                             ✏️ Edit
                           </button>
                           <button onClick={()=>deleteMenuItem(item.id)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:12,
+                            style={{padding:"6px 10px",borderRadius:8,fontSize:18,
                               fontWeight:700,cursor:"pointer",border:"none",
                               background:B.redSoft,color:B.red}}>
                             🗑️ Delete
@@ -2978,7 +2981,7 @@ function AdminPanel() {
                 <Card key={label} style={{textAlign:"center",padding:"14px 10px",
                   background:B.surface,borderColor:"transparent"}}>
                   <div style={{fontSize:22,fontWeight:800,color}}>{value}</div>
-                  <div style={{fontSize:12,color:B.textMid,marginTop:4,fontWeight:600}}>
+                  <div style={{fontSize:15,color:B.textMid,marginTop:4,fontWeight:600}}>
                     {label}
                   </div>
                 </Card>
@@ -2990,26 +2993,26 @@ function AdminPanel() {
                 <div style={{display:"flex",justifyContent:"space-between",
                   alignItems:"flex-start",marginBottom:8}}>
                   <div>
-                    <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                    <div style={{fontSize:18,fontWeight:700,color:B.text}}>
                       {o.customer_name}
                     </div>
-                    <div style={{fontSize:12,color:B.textDim}}>
+                    <div style={{fontSize:14,color:B.textDim}}>
                       {o.id} · {o.postcode}
                     </div>
                   </div>
                   <div style={{textAlign:"right"}}>
                     <Pill s={o.status}/>
-                    <div style={{fontSize:15,fontWeight:800,color:B.primary,marginTop:4}}>
+                    <div style={{fontSize:18,fontWeight:800,color:B.primary,marginTop:4}}>
                       £{o.total?.toFixed(2)}
                     </div>
                   </div>
                 </div>
-                <div style={{fontSize:13,color:B.textMid,marginBottom:6}}>
+                <div style={{fontSize:15,color:B.textMid,marginBottom:6}}>
                   📍 {o.delivery_address}
                 </div>
                 <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                   {(o.items||[]).map((it,i)=>(
-                    <span key={i} style={{fontSize:12,background:B.surface,
+                    <span key={i} style={{fontSize:18,background:B.surface,
                       borderRadius:8,padding:"4px 10px",color:B.textMid,fontWeight:600}}>
                       {it.name} ×{it.qty}
                     </span>
@@ -3017,11 +3020,11 @@ function AdminPanel() {
                 </div>
                 <div style={{marginTop:8,display:"flex",justifyContent:"space-between",
                   alignItems:"center"}}>
-                  <span style={{fontSize:12,fontWeight:700,
+                  <span style={{fontSize:18,fontWeight:700,
                     color:o.paid?B.green:B.gold}}>
                     {o.paid?"💳 Paid":"⏳ Awaiting payment"}
                   </span>
-                  <span style={{fontSize:12,color:B.textDim}}>
+                  <span style={{fontSize:14,color:B.textDim}}>
                     {new Date(o.created_at).toLocaleDateString("en-GB",
                       {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
                   </span>
@@ -3042,7 +3045,7 @@ function AdminPanel() {
             {addingRider&&(
               <Card style={{marginBottom:16,background:B.goldLight,
                 borderColor:B.gold}}>
-                <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+                <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
                   Add rider
                 </div>
                 <Input label="Full name" value={riderForm.name}
@@ -3067,10 +3070,10 @@ function AdminPanel() {
             {riders.length===0&&!addingRider&&(
               <Card style={{textAlign:"center",padding:"32px 20px"}}>
                 <div style={{fontSize:36,marginBottom:12}}><Bike size={22} color="#fff"/></div>
-                <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+                <div style={{fontSize:18,fontWeight:700,color:B.text}}>
                   No riders yet
                 </div>
-                <div style={{fontSize:14,color:B.textMid,marginTop:6}}>
+                <div style={{fontSize:15,color:B.textMid,marginTop:6}}>
                   Add your first delivery rider above
                 </div>
               </Card>
@@ -3086,10 +3089,10 @@ function AdminPanel() {
                       display:"flex",alignItems:"center",justifyContent:"center",
                       fontSize:22,flexShrink:0}}><Bike size={22} color="#fff"/></div>
                     <div>
-                      <div style={{fontSize:15,fontWeight:700,color:B.text}}>
+                      <div style={{fontSize:18,fontWeight:700,color:B.text}}>
                         {rider.name}
                       </div>
-                      <div style={{fontSize:13,color:B.textMid}}>
+                      <div style={{fontSize:18,color:B.textMid}}>
                         +{rider.phone}
                       </div>
                     </div>
@@ -3115,7 +3118,7 @@ function AdminPanel() {
         {section==="settings"&&(
           <div>
             <Card style={{marginBottom:16}}>
-              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
                 Kitchen information
               </div>
               <Input label="Kitchen name" value={settings.kitchenName}
@@ -3138,30 +3141,30 @@ function AdminPanel() {
               <Btn full v="green" onClick={()=>showToast("✅ Settings saved — contact Choma support to apply")}>
                 Save settings
               </Btn>
-              <div style={{fontSize:12,color:B.textMid,marginTop:10,textAlign:"center"}}>
+              <div style={{fontSize:18,color:B.textMid,marginTop:10,textAlign:"center"}}>
                 Some settings require a code update to take effect.
               </div>
             </Card>
 
             {/* Delivery zones */}
             <Card style={{marginBottom:16}}>
-              <div style={{fontSize:15,fontWeight:800,color:B.text,marginBottom:14}}>
+              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
                 📍 Delivery zones
               </div>
-              <div style={{fontSize:13,color:B.textMid,lineHeight:1.8,marginBottom:10}}>
+              <div style={{fontSize:15,color:B.textMid,lineHeight:1.8,marginBottom:10}}>
                 <strong style={{color:B.text}}>Sunderland (all SR postcodes)</strong> — £5.00 flat fee<br/>
                 <strong style={{color:B.text}}>Outside Sunderland</strong> — £5.00 + £0.75/mile<br/>
                 <strong style={{color:B.text}}>Maximum charge</strong> — £15.00
               </div>
               <div style={{padding:"12px 14px",background:B.goldLight,borderRadius:10,
-                fontSize:13,color:B.gold,fontWeight:600}}>
+                fontSize:18,color:B.gold,fontWeight:600}}>
                 💡 To change delivery pricing, WhatsApp Choma support
               </div>
             </Card>
 
             {/* Platform info */}
             <Card style={{background:B.surface,borderColor:"transparent"}}>
-              <div style={{fontSize:13,fontWeight:700,color:B.textMid,
+              <div style={{fontSize:14,fontWeight:700,color:B.textMid,
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
                 Platform
               </div>
@@ -3203,7 +3206,7 @@ function PrivacyPolicy({ onBack }) {
             display:"flex",alignItems:"center",justifyContent:"center"}}>
           <ChevronLeft size={20} color="#fff"/>
         </button>
-        <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>Privacy Policy</div>
+        <div style={{fontSize:18,fontWeight:700,color:"#fff"}}>Privacy Policy</div>
       </div>
 
       <div style={{maxWidth:680,margin:"0 auto",padding:"28px 20px 60px"}}>
@@ -3212,7 +3215,7 @@ function PrivacyPolicy({ onBack }) {
           borderBottom:"1px solid #EDE8E0"}}>
           <div style={{fontSize:22,fontWeight:800,color:"#1A1208",
             marginBottom:6}}>Privacy Policy</div>
-          <div style={{fontSize:14,color:"#6B5D4A",lineHeight:1.7}}>
+          <div style={{fontSize:18,color:"#6B5D4A",lineHeight:1.7}}>
             <strong>AfroCrave Kitchen Ltd</strong><br/>
             Company No. 17119134<br/>
             Registered in England & Wales<br/>
@@ -3263,9 +3266,9 @@ function PrivacyPolicy({ onBack }) {
           },
         ].map(section=>(
           <div key={section.title} style={{marginBottom:24}}>
-            <div style={{fontSize:16,fontWeight:700,color:"#1A1208",
+            <div style={{fontSize:18,fontWeight:700,color:"#1A1208",
               marginBottom:8}}>{section.title}</div>
-            <div style={{fontSize:14,color:"#6B5D4A",lineHeight:1.8}}>
+            <div style={{fontSize:15,color:"#6B5D4A",lineHeight:1.8}}>
               {section.body}
             </div>
           </div>
@@ -3275,7 +3278,7 @@ function PrivacyPolicy({ onBack }) {
         <div style={{marginTop:32,padding:"16px 20px",
           background:"#2A1208",borderRadius:16,
           textAlign:"center"}}>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",
+          <div style={{fontSize:18,color:"rgba(255,255,255,0.7)",
             lineHeight:1.8}}>
             AfroCrave Kitchen Ltd · Co. No. 17119134<br/>
             Registered in England & Wales<br/>

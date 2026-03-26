@@ -2250,532 +2250,647 @@ function NotificationBanner({ notifications, onDismiss }) {
 function CookDashboard() {
   const [orders,, fetchOrders] = useOrders();
   const [sel,           setSel]           = useState(null);
-  const [tab,           setTab]           = useState("live");
   const [notifications, setNotifications] = useState([]);
-  const prevOrderCount  = useRef(0);
+  const prevCount = useRef(0);
 
-  // Watch for new orders and show notification
+  const live = orders.filter(o=>!["Delivered","Cancelled"].includes(o.status));
+  const done = orders.filter(o=>o.status==="Delivered").slice(0,5);
+
+  // New order notification
   useEffect(()=>{
     const newOrders = orders.filter(o=>o.status==="New");
-    if(newOrders.length > prevOrderCount.current && prevOrderCount.current >= 0){
+    if(newOrders.length > prevCount.current && prevCount.current >= 0){
       const latest = newOrders[0];
-      if(latest){
-        setNotifications(prev=>[...prev, {
-          id: Date.now(),
-          type: "order",
-          title: `New order — ${latest.customer}`,
-          message: `${latest.items.length} item${latest.items.length!==1?"s":""} · ${fmt(latest.total)} · ${latest.postcode}`,
-        }].slice(-3)); // max 3 notifications
-      }
-    }
-    prevOrderCount.current = newOrders.length;
-  },[orders]);
-  const [isOpen, setIsOpen] = useState(true);
-
-  const NEXT = {"New":"Preparing","Preparing":"Ready","Ready":"Out for delivery","Out for delivery":"Delivered"};
-  const live = orders.filter(o=>!["Delivered","Cancelled"].includes(o.status));
-  const done = orders.filter(o=>["Delivered","Cancelled"].includes(o.status));
-  const list = tab==="live"?live:done;
-  const todayRev = orders.filter(o=>o.paid).reduce((s,o)=>s+o.total,0);
-
-  const advance = async (o) => {
-    const next=NEXT[o.status]; if(!next) return;
-    await supabase.from("orders").update({status:next}).eq("id",o.id);
-    fetchOrders();
-    if(sel?.id===o.id) setSel(p=>p?{...p,status:next}:null);
-    const msgs = {
-      Preparing:"🔥 We've started preparing your order!",
-      Ready:"✅ Your food is packed and ready for pickup by our rider.",
-      "Out for delivery":"🛵 Your order is on its way to you!",
-      Delivered:"🎉 Delivered! Thank you for ordering from AfroCrave Kitchen ❤️",
-    };
-    openWA(o.phone,
-      `Hello ${o.customer.split(" ")[0]} 👋\n\n${msgs[next]}\n\nAfroCrave Kitchen 🍛\nTrack: afrocravekitchen.co.uk/track/${o.id}`);
-  };
-
-  return (
-    <div style={{height:"100%",background:B.bg,display:"flex",flexDirection:"column",
-      overflow:"hidden",width:"100%"}}>
-      <NotificationBanner
-        notifications={notifications}
-        onDismiss={id=>setNotifications(prev=>prev.filter(n=>n.id!==id))}
-      />
-      {/* Header */}
-      <div style={{padding:"14px 16px 12px",background:B.card,
-        borderBottom:`1px solid ${B.divider}`,flexShrink:0,width:"100%",
-        boxSizing:"border-box"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div>
-            <div style={{fontSize:20,fontWeight:800,color:B.text}}><span style={{display:"flex",alignItems:"center",gap:8}}><ChefHat size={20} color={B.primary}/> Kitchen live</span></div>
-            <div style={{fontSize:14,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
-          </div>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontSize:16,color:B.textMid,fontWeight:700,textTransform:"uppercase"}}>
-              Today's revenue
-            </div>
-            <div style={{fontSize:20,fontWeight:800,color:B.green}}>{fmt(todayRev)}</div>
-          </div>
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          {[["New",B.blue,B.blueSoft],["Preparing",B.primary,B.primaryLight],
-            ["On way","#9A6B00","#FFF8E6"],["Done",B.green,B.greenSoft]].map(([l,c,bg])=>(
-            <div key={l} style={{flex:1,background:bg,borderRadius:12,
-              padding:"10px 6px",textAlign:"center"}}>
-              <div style={{fontSize:20,fontWeight:800,color:c}}>
-                {orders.filter(o=>o.status===(
-                  l==="Preparing"?"Preparing":l==="On way"?"Out for delivery":
-                  l==="Done"?"Delivered":l)).length}
-              </div>
-              <div style={{fontSize:16,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div style={{display:"flex",background:B.card,borderBottom:`1px solid ${B.divider}`,
-        flexShrink:0}}>
-        {[["live",`Live (${live.length})`],["done",`Done (${done.length})`]].map(([id,lbl])=>(
-          <button key={id} onClick={()=>setTab(id)}
-            style={{flex:1,padding:"13px",background:"none",border:"none",cursor:"pointer",
-              fontSize:16,fontWeight:700,
-              color:tab===id?B.primary:B.textMid,
-              borderBottom:tab===id?`3px solid ${B.primary}`:"3px solid transparent"}}>
-            {lbl}
-          </button>
-        ))}
-      </div>
-
-      <div style={{flex:1,display:"flex",minHeight:0,overflow:"hidden"}}>
-        {/* Order list */}
-        <div style={{width:sel?"42%":"100%",overflowY:"auto",
-          borderRight:sel?`1px solid ${B.divider}`:"none",transition:"width 0.2s"}}>
-          {list.length===0&&(
-            <div style={{padding:"48px 20px",textAlign:"center",color:B.textMid}}>
-              <div style={{fontSize:40,marginBottom:12}}>🎉</div>
-              <div style={{fontSize:16,fontWeight:700}}>
-                {tab==="live"?"All caught up!":"No completed orders yet"}
-              </div>
-            </div>
-          )}
-          {list.map(o=>(
-            <div key={o.id} onClick={()=>setSel(sel?.id===o.id?null:o)}
-              style={{padding:"14px 18px",borderBottom:`1px solid ${B.divider}`,
-                cursor:"pointer",transition:"background 0.12s",
-                background:sel?.id===o.id?B.surface:"transparent",
-                borderLeft:`4px solid ${sel?.id===o.id?B.primary:"transparent"}`}}>
-              <div style={{display:"flex",justifyContent:"space-between",
-                alignItems:"flex-start",marginBottom:6}}>
-                <div>
-                  <div style={{fontSize:16,fontWeight:700,color:B.text}}>{o.customer}</div>
-                  <div style={{fontSize:14,color:B.textDim}}>{o.id} · {o.postcode}</div>
-                </div>
-                <Pill s={o.status}/>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:15,color:B.textMid}}>
-                  {o.items.length} item{o.items.length!==1?"s":""}
-                </span>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                  {o.paid
-                    ?<span style={{fontSize:14,color:B.green,fontWeight:700}}>💳 Paid</span>
-                    :<span style={{fontSize:14,color:B.gold,fontWeight:700}}>⏳ Awaiting</span>}
-                  <span style={{fontSize:17,fontWeight:800,color:B.primary}}>{fmt(o.total)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Detail panel */}
-        {sel&&(
-          <div style={{flex:1,overflowY:"auto",padding:"14px 14px",
-            boxSizing:"border-box"}}>
-            <div style={{display:"flex",justifyContent:"space-between",
-              alignItems:"center",marginBottom:14}}>
-              <div style={{fontSize:16,fontWeight:800,color:B.text}}>{sel.customer}</div>
-              <button onClick={()=>setSel(null)} style={{background:B.surface,
-                border:`1px solid ${B.border}`,borderRadius:8,width:30,height:30,
-                cursor:"pointer",color:B.textMid,fontSize:16}}>✕</button>
-            </div>
-            <Card style={{marginBottom:12}}>
-              {sel.items.map((it,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",
-                  padding:"8px 0",borderBottom:i<sel.items.length-1?`1px solid ${B.divider}`:"none",
-                  fontSize:14}}>
-                  <span style={{color:B.textMid}}>{it.name} ×{it.qty}</span>
-                  <span style={{fontWeight:600,color:B.text}}>{fmt(it.price*it.qty)}</span>
-                </div>
-              ))}
-              <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
-                borderTop:`1px solid ${B.divider}`,fontSize:13}}>
-                <span style={{color:B.textMid}}>Delivery</span>
-                <span style={{color:B.text,fontWeight:600}}>{fmt(sel.deliveryFee)}</span>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",paddingTop:10,
-                fontWeight:800,fontSize:16}}>
-                <span>Total</span>
-                <span style={{color:B.primary}}>{fmt(sel.total)}</span>
-              </div>
-            </Card>
-            <div style={{background:B.surface,borderRadius:12,padding:"12px 14px",
-              marginBottom:12,fontSize:14}}>
-              <div style={{color:B.textMid,marginBottom:4}}>📍 {sel.address}</div>
-              <div style={{color:B.textMid,marginBottom:4}}>📮 {sel.postcode} · {sel.zone}</div>
-              {sel.note&&<div style={{color:B.primary,fontStyle:"italic"}}>💬 "{sel.note}"</div>}
-              {sel.rider&&<div style={{color:B.green,fontWeight:600,marginTop:4}}>🛵 {sel.rider}</div>}
-              <div style={{marginTop:8}}>
-                {sel.paid
-                  ?<span style={{fontSize:14,color:B.green,fontWeight:700}}>💳 {sel.paymentMethod} — paid</span>
-                  :<span style={{fontSize:14,color:B.gold,fontWeight:700}}>⏳ {sel.paymentMethod} — awaiting</span>}
-              </div>
-            </div>
-            {NEXT[sel.status]&&(
-              <Btn full onClick={()=>advance(sel)} style={{marginBottom:10,fontSize:14}}>
-                Mark as {NEXT[sel.status]}
-              </Btn>
-            )}
-            <Btn full v="wa" style={{fontSize:14}}
-              onClick={()=>openWA(sel.phone,
-                `Hello ${sel.customer.split(" ")[0]}, update on order ${sel.id}: ${sel.status}. AfroCrave Kitchen 🍛`)}>
-              Custom message
-            </Btn>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 3. RIDER APP
-// ════════════════════════════════════════════════════════════════
-function RiderApp() {
-  const RIDER = "Rider";
-  const [orders,, fetchOrders] = useOrders();
-  const [screen,      setScreen]      = useState("home");
-  const [activeOrder, setActiveOrder] = useState(null);
-
-  const mine      = orders.filter(o=>o.rider===RIDER&&o.status==="Out for delivery");
-  const available = orders.filter(o=>o.status==="Ready"&&!o.rider);
-  const completed = orders.filter(o=>o.rider===RIDER&&o.status==="Delivered");
-  const earnings  = completed.length * 4.50;
-  const [riderNotifs, setRiderNotifs] = useState([]);
-  const prevAvailable = useRef(0);
-
-  useEffect(()=>{
-    if(available.length > prevAvailable.current && prevAvailable.current >= 0){
-      setRiderNotifs(prev=>[...prev,{
-        id:Date.now(),
-        type:"ready",
-        title:"New delivery available!",
-        message:`${available[0]?.customer} · ${available[0]?.postcode} · £4.50 earning`,
+      if(latest) setNotifications(p=>[...p,{
+        id:Date.now(), type:"order",
+        title:`New order — ${latest.customer}`,
+        message:`${latest.items?.length||0} item${(latest.items?.length||0)!==1?"s":""} · ${fmt(latest.total)} · ${latest.postcode}`,
       }].slice(-3));
     }
-    prevAvailable.current = available.length;
-  },[available]);
+    prevCount.current = newOrders.length;
+  },[orders]);
 
-  const claim = async (o) => {
-    await supabase.from("orders").update({rider_name:RIDER}).eq("id",o.id);
-    fetchOrders();
-    openWA(B.kitchenWA,
-      `Hi AfroCrave Kitchen! I'm claiming order ${o.id} for ${o.customer} (${o.postcode}). On my way to collect now 🛵`);
+  const NEXT = {
+    "New":             "Preparing",
+    "Preparing":       "Ready",
+    "Ready":           "Out for delivery",
+    "Out for delivery":"Delivered",
   };
 
-  const pickup = async (o) => {
-    await supabase.from("orders").update({status:"Out for delivery",rider_name:RIDER}).eq("id",o.id);
-    fetchOrders();
-    openWA(o.phone,
-      `Hello ${o.customer.split(" ")[0]} 👋, your order from AfroCrave Kitchen is on its way!\n📍 Delivering to: ${o.address}\nEstimated: 20–30 mins 🛵`);
-    setActiveOrder({...o,status:"Out for delivery"});
+  const STATUS_COLOR = {
+    "New":             {bg:"#EBF4FF", text:"#1A52A0", border:"#B5D4F4"},
+    "Preparing":       {bg:"#FFF1E2", text:"#A95412", border:"#FDDBB4"},
+    "Ready":           {bg:"#EAF6EC", text:"#2E7D32", border:"#A8D5AB"},
+    "Out for delivery":{bg:"#F3EEF8", text:"#5C3D9A", border:"#C4B0E0"},
+    "Delivered":       {bg:"#F4F4F4", text:"#6F655E", border:"#D8D4D0"},
   };
 
-  const deliver = async (o) => {
-    await supabase.from("orders").update({status:"Delivered"}).eq("id",o.id);
+  const advance = async (o) => {
+    const next = NEXT[o.status];
+    if(!next) return;
+    await supabase.from("orders").update({status:next}).eq("id",o.id);
+    if(o.phone) openWA(o.phone, `Hi ${o.customer.split(" ")[0]}! Your AfroCrave order ${o.id} is now: ${next}. ${next==="Out for delivery"?"Your rider is on the way!":""}`);
     fetchOrders();
-    openWA(o.phone,
-      `Hello ${o.customer.split(" ")[0]} 🎉, your order has been delivered!\n\nEnjoy your meal from AfroCrave Kitchen 🍛\nThank you for ordering!`);
-    setActiveOrder(null); setScreen("home");
+    setSel(null);
   };
 
-  if(screen==="earnings") return (
-    <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-      <div style={{padding:"16px 20px 12px",background:B.card,
-        borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
-        <button onClick={()=>setScreen("home")} style={{background:B.surface,
-          border:`1px solid ${B.border}`,borderRadius:10,width:36,height:36,cursor:"pointer",
-          fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-        <div style={{fontSize:16,fontWeight:800,color:B.text}}>My earnings</div>
-      </div>
-      <div style={{padding:"20px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-          <Card style={{background:B.greenSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
-            <div style={{fontSize:14,color:B.green,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Today</div>
-            <div style={{fontSize:30,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
-          </Card>
-          <Card style={{background:B.blueSoft,borderColor:"transparent",textAlign:"center",padding:"20px 12px"}}>
-            <div style={{fontSize:14,color:B.blue,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>Runs</div>
-            <div style={{fontSize:30,fontWeight:800,color:B.blue}}>{completed.length}</div>
-          </Card>
-        </div>
-        <Card style={{marginBottom:20,background:B.goldLight,borderColor:"transparent"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div>
-              <div style={{fontSize:14,color:B.gold,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Rate per delivery</div>
-              <div style={{fontSize:26,fontWeight:800,color:B.gold}}>£4.50</div>
-            </div>
-            <div style={{fontSize:40}}><Bike size={22} color="#fff"/></div>
-          </div>
-        </Card>
-        {completed.map(o=>(
-          <Card key={o.id} style={{marginBottom:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div>
-                <div style={{fontSize:16,fontWeight:700,color:B.text}}>{o.customer}</div>
-                <div style={{fontSize:15,color:B.textMid}}>📮 {o.postcode}</div>
-              </div>
-              <div style={{fontSize:16,fontWeight:800,color:B.green}}>+£4.50</div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  if(screen==="detail"&&activeOrder) {
-    const live = orders.find(o=>o.id===activeOrder.id)||activeOrder;
-    return (
-      <div style={{background:B.bg,minHeight:"100%",overflowY:"auto"}}>
-        <div style={{padding:"16px 20px 12px",background:B.card,
-          borderBottom:`1px solid ${B.border}`,display:"flex",
-          justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <button onClick={()=>setScreen("home")} style={{background:B.surface,
-              border:`1px solid ${B.border}`,borderRadius:10,width:36,height:36,
-              cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",
-              justifyContent:"center"}}>‹</button>
-            <div>
-              <div style={{fontSize:16,fontWeight:800,color:B.text}}>{live.id}</div>
-              <div style={{fontSize:15,color:B.textMid}}>{live.customer}</div>
-            </div>
-          </div>
-          <Pill s={live.status}/>
-        </div>
-        <div style={{padding:"20px"}}>
-          {/* Address — prominent */}
-          <div style={{background:`linear-gradient(135deg,#3D1A06,#5A3418)`,
-            borderRadius:18,padding:"20px",marginBottom:16,textAlign:"center",color:"#fff"}}>
-            <div style={{fontSize:16,color:"rgba(255,255,255,0.6)",fontWeight:700,
-              textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>Deliver to</div>
-            <div style={{fontSize:16,fontWeight:800,lineHeight:1.4}}>📍 {live.address}</div>
-            <div style={{fontSize:16,color:"rgba(255,255,255,0.7)",marginTop:6}}>
-              📮 {live.postcode}
-            </div>
-            <button onClick={()=>window.open(`https://maps.google.com/?q=${encodeURIComponent(live.address)}`,"_blank")}
-              style={{marginTop:14,padding:"10px 20px",borderRadius:20,
-                background:"rgba(255,255,255,0.2)",color:"#fff",border:"1px solid rgba(255,255,255,0.3)",
-                cursor:"pointer",fontWeight:700,fontSize:14}}>
-              🗺 Navigate to address
-            </button>
-          </div>
-
-          <Card style={{marginBottom:14}}>
-            <div style={{fontSize:16,fontWeight:700,color:B.text,marginBottom:10}}>Customer</div>
-            <div style={{fontSize:16,fontWeight:700,color:B.text}}>{live.customer}</div>
-            <div style={{fontSize:15,color:B.textMid,marginTop:4}}>+{live.phone}</div>
-            {live.note&&<div style={{fontSize:16,color:B.primary,marginTop:8,fontStyle:"italic"}}>💬 "{live.note}"</div>}
-          </Card>
-
-          <Card style={{marginBottom:16}}>
-            <div style={{fontSize:16,fontWeight:700,color:B.text,marginBottom:10}}>Items</div>
-            {live.items.map((it,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",
-                borderBottom:i<live.items.length-1?`1px solid ${B.divider}`:"none"}}>
-                <div style={{width:28,height:28,borderRadius:8,background:B.surface,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:17,fontWeight:800,color:B.primary,flexShrink:0}}>{it.qty}×</div>
-                <span style={{fontSize:16,color:B.text}}>{it.name}</span>
-              </div>
-            ))}
-            <div style={{marginTop:12,padding:"10px 14px",background:B.greenSoft,
-              borderRadius:10,fontSize:14,color:B.green,fontWeight:700}}>
-              💳 Prepaid — no cash collection needed
-            </div>
-          </Card>
-
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {live.status==="Ready"&&live.rider===RIDER&&(
-              <Btn full v="gold" style={{fontSize:15}} onClick={()=>pickup(live)}>
-                ✅ Confirm pickup — start delivery
-              </Btn>
-            )}
-            {live.status==="Out for delivery"&&(
-              <Btn full v="green" style={{fontSize:15}} onClick={()=>deliver(live)}>
-                🎉 Mark as delivered
-              </Btn>
-            )}
-            <Btn full v="wa" style={{fontSize:14}}
-              onClick={()=>openWA(live.phone,
-                `Hello ${live.customer.split(" ")[0]}, I'm your AfroCrave Kitchen delivery rider. I'll be with you at ${live.postcode} shortly 🛵`)}>
-              Message customer
-            </Btn>
-            <Btn full v="ghost" style={{fontSize:14}}
-              onClick={()=>openWA(B.kitchenWA,
-                `Hi AfroCrave Kitchen, issue with order ${live.id}. Please call me.`)}>
-              📞 Contact kitchen
-            </Btn>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const revenue = orders.filter(o=>o.paid).reduce((s,o)=>s+o.total,0);
+  const newCount = orders.filter(o=>o.status==="New").length;
+  const prepCount = orders.filter(o=>o.status==="Preparing").length;
+  const readyCount = orders.filter(o=>o.status==="Ready").length;
 
   return (
-    <div style={{background:B.bg,minHeight:"100%",display:"flex",flexDirection:"column",
-      width:"100%",boxSizing:"border-box"}}>
-      <NotificationBanner
-        notifications={riderNotifs}
-        onDismiss={id=>setRiderNotifs(prev=>prev.filter(n=>n.id!==id))}
-      />
-      {/* Header */}
-      <div style={{padding:"14px 16px 12px",background:B.card,
-        borderBottom:`1px solid ${B.border}`,flexShrink:0,width:"100%",
-        boxSizing:"border-box"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <div style={{fontSize:22,fontWeight:800,color:B.text}}>Hey {RIDER} 🛵</div>
-            <div style={{fontSize:14,color:B.textMid}}>AfroCrave Kitchen · Sunderland</div>
+    <div style={{height:"100%",background:"#F4F1EE",display:"flex",
+      flexDirection:"column",overflow:"hidden",width:"100%"}}>
+
+      {/* Notification banners */}
+      {notifications.map(n=>(
+        <div key={n.id} style={{background:"#1A52A0",padding:"10px 14px",
+          display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,
+          flexShrink:0}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{n.title}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.75)"}}>{n.message}</div>
           </div>
-          <button onClick={()=>setScreen("earnings")}
-            style={{background:B.greenSoft,border:`1px solid ${B.green}30`,
-              borderRadius:14,padding:"10px 16px",cursor:"pointer",textAlign:"center"}}>
-            <div style={{fontSize:14,color:B.green,fontWeight:700,textTransform:"uppercase"}}>Today</div>
-            <div style={{fontSize:16,fontWeight:800,color:B.green}}>{fmt(earnings)}</div>
+          <button onClick={()=>setNotifications(p=>p.filter(x=>x.id!==n.id))}
+            style={{background:"rgba(255,255,255,0.2)",border:"none",
+              borderRadius:6,width:24,height:24,cursor:"pointer",color:"#fff",
+              display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <X size={12} color="#fff"/>
           </button>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:16}}>
-          {[["Active",mine.length,B.primary],["Available",available.length,B.gold],["Done",completed.length,B.green]].map(([l,v,c])=>(
-            <div key={l} style={{background:`${c}18`,borderRadius:12,padding:"10px 6px",textAlign:"center"}}>
-              <div style={{fontSize:22,fontWeight:800,color:c}}>{v}</div>
-              <div style={{fontSize:16,color:c,fontWeight:700,opacity:0.8}}>{l}</div>
+      ))}
+
+      {/* Header strip */}
+      <div style={{background:"#1F1A17",padding:"10px 14px",flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <ChefHat size={18} color="#E7A93B"/>
+            <span style={{fontSize:15,fontWeight:800,color:"#fff"}}>Kitchen</span>
+            <div style={{width:8,height:8,borderRadius:"50%",
+              background:"#2E7D32",marginLeft:4}}/>
+          </div>
+          <button onClick={fetchOrders}
+            style={{background:"rgba(255,255,255,0.1)",border:"none",
+              borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.7)",
+              fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+            <RefreshCw size={12}/>Refresh
+          </button>
+        </div>
+        {/* Quick stats */}
+        <div style={{display:"flex",gap:8,marginTop:8}}>
+          {[
+            {label:"NEW",  value:newCount,  bg:"#1A52A0"},
+            {label:"PREP", value:prepCount, bg:"#A95412"},
+            {label:"READY",value:readyCount,bg:"#2E7D32"},
+            {label:"TODAY",value:`£${revenue.toFixed(0)}`,bg:"#5A3418"},
+          ].map(s=>(
+            <div key={s.label} style={{flex:1,background:s.bg,
+              borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
+              <div style={{fontSize:15,fontWeight:900,color:"#fff"}}>{s.value}</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,0.7)",
+                fontWeight:700,letterSpacing:0.5}}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px",width:"100%",
-        boxSizing:"border-box"}}>
-        {/* Active */}
-        {mine.length>0&&(
-          <>
-            <div style={{fontSize:16,fontWeight:700,color:B.text,marginBottom:12}}>🔴 Active delivery</div>
-            {mine.map(o=>(
-              <div key={o.id} style={{background:`linear-gradient(135deg,${B.primaryLight},#fff)`,
-                border:`2px solid ${B.primary}30`,borderRadius:18,padding:"18px",
-                marginBottom:16,cursor:"pointer"}}
-                onClick={()=>{setActiveOrder(o);setScreen("detail");}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-                  <div>
-                    <div style={{fontSize:16,fontWeight:800,color:B.text}}>{o.customer}</div>
-                    <div style={{fontSize:15,color:B.textMid}}>📍 {o.address}</div>
-                  </div>
-                  <Pill s={o.status}/>
-                </div>
-                <Btn full v="primary" style={{fontSize:14}}
-                  onClick={e=>{e.stopPropagation();setActiveOrder(o);setScreen("detail");}}>
-                  View delivery details
-                </Btn>
-              </div>
-            ))}
-          </>
-        )}
-
-        {/* Available */}
-        <div style={{fontSize:15,fontWeight:700,color:B.text,marginBottom:12}}>
-          🟢 Available to claim ({available.length})
-        </div>
-        {available.length===0&&(
-          <Card style={{marginBottom:16}}>
-            <div style={{textAlign:"center",padding:"16px 0",color:B.textMid,fontSize:14}}>
-              No orders ready for pickup
-            </div>
-          </Card>
-        )}
-        {available.map(o=>(
-          <Card key={o.id} style={{marginBottom:12}}>
+      {/* Order detail modal */}
+      {sel&&(
+        <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",
+          zIndex:200,display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:"#fff",width:"100%",borderRadius:"20px 20px 0 0",
+            padding:"20px 16px 32px",maxHeight:"80vh",overflowY:"auto"}}>
+            {/* Order header */}
             <div style={{display:"flex",justifyContent:"space-between",
-              alignItems:"flex-start",marginBottom:12}}>
+              alignItems:"center",marginBottom:16}}>
               <div>
-                <div style={{fontSize:16,fontWeight:700,color:B.text}}>{o.customer}</div>
-                <div style={{fontSize:15,color:B.textMid}}>📮 {o.postcode} · {o.zone}</div>
-                <div style={{fontSize:15,color:B.textMid}}>
-                  {o.items.length} item{o.items.length!==1?"s":""}
-                </div>
+                <div style={{fontSize:22,fontWeight:900,color:"#1F1A17",
+                  letterSpacing:-0.5}}>{sel.id}</div>
+                <div style={{fontSize:14,color:"#6F655E"}}>{sel.customer}</div>
               </div>
-              <div style={{background:B.goldLight,border:`1px solid ${B.gold}25`,
-                borderRadius:12,padding:"8px 12px",textAlign:"center"}}>
-                <div style={{fontSize:14,color:B.gold,fontWeight:700}}>Earning</div>
-                <div style={{fontSize:16,fontWeight:800,color:B.gold}}>£4.50</div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                {(() => {
+                  const c = STATUS_COLOR[sel.status]||STATUS_COLOR["New"];
+                  return (
+                    <div style={{background:c.bg,border:`1px solid ${c.border}`,
+                      borderRadius:8,padding:"4px 10px",fontSize:12,
+                      fontWeight:700,color:c.text}}>
+                      {sel.status}
+                    </div>
+                  );
+                })()}
+                <button onClick={()=>setSel(null)}
+                  style={{background:"#F4F1EE",border:"none",borderRadius:8,
+                    width:32,height:32,cursor:"pointer",display:"flex",
+                    alignItems:"center",justifyContent:"center"}}>
+                  <X size={16}/>
+                </button>
               </div>
             </div>
-            <div style={{display:"flex",gap:10}}>
-              <Btn v="ghost" style={{flex:1,fontSize:13}}
-                onClick={()=>{setActiveOrder(o);setScreen("detail");}}>
-                View details
-              </Btn>
-              <Btn style={{flex:1,fontSize:13}} onClick={()=>claim(o)}>
-                🛵 Claim order
-              </Btn>
-            </div>
-          </Card>
-        ))}
 
-        {/* Completed */}
-        {completed.length>0&&(
-          <>
-            <div style={{fontSize:16,fontWeight:700,color:B.text,marginBottom:12,marginTop:4}}>
-              ✅ Completed today ({completed.length})
+            {/* Items */}
+            <div style={{background:"#F4F1EE",borderRadius:12,
+              padding:"12px 14px",marginBottom:14}}>
+              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+                textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>
+                Items ordered
+              </div>
+              {(sel.items||[]).map((it,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",
+                  padding:"6px 0",borderBottom:i<sel.items.length-1?"1px solid #E9DDD0":"none"}}>
+                  <span style={{fontSize:15,fontWeight:700,color:"#1F1A17"}}>
+                    {it.name}
+                  </span>
+                  <span style={{fontSize:15,fontWeight:800,color:"#C96A1B"}}>
+                    ×{it.qty}
+                  </span>
+                </div>
+              ))}
             </div>
-            {completed.map(o=>(
-              <Card key={o.id} style={{marginBottom:10,opacity:0.7}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div>
-                    <div style={{fontSize:16,fontWeight:600,color:B.text}}>{o.customer}</div>
-                    <div style={{fontSize:15,color:B.textMid}}>📮 {o.postcode}</div>
+
+            {/* Order info */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",
+              gap:8,marginBottom:16}}>
+              {[
+                ["Time",     sel.time||"—"],
+                ["Payment",  sel.paid?"✓ Paid":"⏳ Pending"],
+                ["Postcode", sel.postcode||"—"],
+                ["Total",    fmt(sel.total)],
+              ].map(([l,v])=>(
+                <div key={l} style={{background:"#F4F1EE",borderRadius:10,
+                  padding:"10px 12px"}}>
+                  <div style={{fontSize:11,color:"#A0968E",fontWeight:700,
+                    textTransform:"uppercase",letterSpacing:0.3,marginBottom:3}}>
+                    {l}
                   </div>
-                  <div style={{fontSize:16,fontWeight:800,color:B.green}}>+£4.50</div>
+                  <div style={{fontSize:15,fontWeight:800,color:"#1F1A17"}}>
+                    {v}
+                  </div>
                 </div>
-              </Card>
-            ))}
-          </>
-        )}
-      </div>
+              ))}
+            </div>
 
-      {/* Bottom nav */}
-      <div style={{display:"flex",background:B.card,borderTop:`1px solid ${B.border}`,
-        paddingTop:6,paddingBottom:12,flexShrink:0}}>
-        {[
-          {icon:<Home size={22}/>, label:"Home",     sc:"home"},
-          {icon:<Package size={22}/>, label:"Orders", sc:"home"},
-          {icon:<Wallet size={22}/>, label:"Earnings",sc:"earnings"},
-        ].map(({icon,label,sc})=>(
-          <button key={label} onClick={()=>setScreen(sc)}
-            style={{flex:1,background:"none",border:"none",cursor:"pointer",
-              display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-              padding:"6px 0",color:screen===sc?B.primary:B.textDim,transition:"color 0.15s"}}>
-            {icon}
-            <span style={{fontSize:16,fontWeight:screen===sc?700:500}}>{label}</span>
-            {screen===sc&&<div style={{width:4,height:4,borderRadius:2,background:B.primary}}/>}
-          </button>
-        ))}
+            {/* Note */}
+            {sel.note&&(
+              <div style={{background:"#FFF1E2",border:"1px solid #FDDBB4",
+                borderRadius:10,padding:"10px 12px",marginBottom:14}}>
+                <div style={{fontSize:11,fontWeight:800,color:"#A95412",
+                  marginBottom:3}}>NOTE</div>
+                <div style={{fontSize:14,color:"#1F1A17"}}>{sel.note}</div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {NEXT[sel.status]&&(
+                <button onClick={()=>advance(sel)}
+                  style={{width:"100%",background:"#C96A1B",border:"none",
+                    borderRadius:14,padding:"16px",fontSize:16,fontWeight:800,
+                    color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
+                  Mark as {NEXT[sel.status]} →
+                </button>
+              )}
+              {sel.phone&&(
+                <button onClick={()=>openWA(sel.phone,
+                  `Hi ${sel.customer.split(" ")[0]}, your AfroCrave order ${sel.id} status: ${sel.status}`)}
+                  style={{width:"100%",background:"#25D366",border:"none",
+                    borderRadius:14,padding:"13px",fontSize:14,fontWeight:700,
+                    color:"#fff",cursor:"pointer",fontFamily:"inherit",
+                    display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                  <MessageCircle size={16} color="#fff"/>
+                  WhatsApp customer
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order board */}
+      <div style={{flex:1,overflowY:"auto",padding:"10px 10px 20px"}}>
+        {live.length===0&&(
+          <div style={{textAlign:"center",padding:"48px 20px"}}>
+            <div style={{fontSize:48,marginBottom:12}}>✅</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#1F1A17"}}>
+              All clear
+            </div>
+            <div style={{fontSize:14,color:"#6F655E",marginTop:4}}>
+              No active orders right now
+            </div>
+          </div>
+        )}
+
+        {live.map(o=>{
+          const c = STATUS_COLOR[o.status]||STATUS_COLOR["New"];
+          return (
+            <button key={o.id} onClick={()=>setSel(o)}
+              style={{width:"100%",background:"#fff",
+                border:`2px solid ${c.border}`,borderRadius:14,
+                padding:"14px",marginBottom:8,cursor:"pointer",
+                textAlign:"left",fontFamily:"inherit",
+                display:"flex",flexDirection:"column",gap:8}}>
+              {/* Top row */}
+              <div style={{display:"flex",justifyContent:"space-between",
+                alignItems:"center"}}>
+                <div style={{fontSize:18,fontWeight:900,color:"#1F1A17",
+                  letterSpacing:-0.3}}>{o.id}</div>
+                <div style={{background:c.bg,border:`1px solid ${c.border}`,
+                  borderRadius:6,padding:"3px 10px",fontSize:12,
+                  fontWeight:800,color:c.text}}>
+                  {o.status}
+                </div>
+              </div>
+              {/* Items */}
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {(o.items||[]).map((it,i)=>(
+                  <div key={i} style={{background:"#F4F1EE",borderRadius:6,
+                    padding:"3px 8px",fontSize:13,fontWeight:700,color:"#1F1A17"}}>
+                    {it.name} ×{it.qty}
+                  </div>
+                ))}
+              </div>
+              {/* Bottom row */}
+              <div style={{display:"flex",justifyContent:"space-between",
+                alignItems:"center"}}>
+                <div style={{fontSize:13,color:"#6F655E"}}>{o.customer} · {o.postcode}</div>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <span style={{fontSize:13,fontWeight:700,
+                    color:o.paid?"#2E7D32":"#A95412"}}>
+                    {o.paid?"Paid":"Unpaid"}
+                  </span>
+                  <span style={{fontSize:13,fontWeight:800,color:"#1F1A17"}}>
+                    {fmt(o.total)}
+                  </span>
+                </div>
+              </div>
+              {o.note&&(
+                <div style={{background:"#FFF1E2",borderRadius:6,
+                  padding:"4px 8px",fontSize:12,color:"#A95412",fontWeight:600}}>
+                  📝 {o.note}
+                </div>
+              )}
+            </button>
+          );
+        })}
+
+        {/* Completed today */}
+        {done.length>0&&(
+          <div style={{marginTop:8}}>
+            <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+              textTransform:"uppercase",letterSpacing:0.5,
+              padding:"8px 4px",marginBottom:6}}>
+              Completed today
+            </div>
+            {done.map(o=>(
+              <div key={o.id} style={{background:"#F4F1EE",borderRadius:10,
+                padding:"10px 12px",marginBottom:6,opacity:0.7,
+                display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <span style={{fontSize:14,fontWeight:700,color:"#1F1A17"}}>
+                    {o.id}
+                  </span>
+                  <span style={{fontSize:13,color:"#6F655E",marginLeft:8}}>
+                    {o.customer}
+                  </span>
+                </div>
+                <span style={{fontSize:13,fontWeight:700,color:"#2E7D32"}}>
+                  {fmt(o.total)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-// 4. ORDER TRACKING
-// ════════════════════════════════════════════════════════════════
+
+function RiderApp() {
+  const [orders,, fetchOrders] = useOrders();
+  const [RIDER] = useState("Rider");
+  const [sel,         setSel]         = useState(null);
+  const [riderNotifs, setRiderNotifs] = useState([]);
+  const prevAvail = useRef(0);
+
+  const available = orders.filter(o=>o.status==="Ready"&&!o.rider_name);
+  const mine      = orders.filter(o=>o.rider_name===RIDER&&
+    ["Out for delivery"].includes(o.status));
+  const completed = orders.filter(o=>o.rider_name===RIDER&&o.status==="Delivered");
+  const earnings  = completed.length * 4.50;
+
+  // Notification for new ready orders
+  useEffect(()=>{
+    if(available.length > prevAvail.current && prevAvail.current >= 0){
+      setRiderNotifs(p=>[...p,{
+        id:Date.now(),
+        title:"New delivery available!",
+        message:`${available[0]?.customer} · ${available[0]?.postcode}`,
+      }].slice(-2));
+    }
+    prevAvail.current = available.length;
+  },[available]);
+
+  const claimOrder = async (o) => {
+    await supabase.from("orders")
+      .update({rider_name:RIDER, status:"Out for delivery"})
+      .eq("id",o.id);
+    fetchOrders();
+    setSel(null);
+  };
+
+  const markDelivered = async (o) => {
+    await supabase.from("orders")
+      .update({status:"Delivered"})
+      .eq("id",o.id);
+    if(o.customer_phone) openWA(o.customer_phone,
+      `Hi ${o.customer_name?.split(" ")[0]}, your AfroCrave order ${o.id} has been delivered! Enjoy your meal 🍛`);
+    fetchOrders();
+    setSel(null);
+  };
+
+  return (
+    <div style={{height:"100%",background:"#F4F1EE",display:"flex",
+      flexDirection:"column",overflow:"hidden",width:"100%"}}>
+
+      {/* Notifications */}
+      {riderNotifs.map(n=>(
+        <div key={n.id} style={{background:"#2E7D32",padding:"10px 14px",
+          display:"flex",alignItems:"center",justifyContent:"space-between",
+          flexShrink:0}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{n.title}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.8)"}}>{n.message}</div>
+          </div>
+          <button onClick={()=>setRiderNotifs(p=>p.filter(x=>x.id!==n.id))}
+            style={{background:"rgba(255,255,255,0.2)",border:"none",
+              borderRadius:6,width:24,height:24,cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <X size={12} color="#fff"/>
+          </button>
+        </div>
+      ))}
+
+      {/* Header */}
+      <div style={{background:"#1F1A17",padding:"12px 14px",flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <Bike size={18} color="#E7A93B"/>
+            <span style={{fontSize:15,fontWeight:800,color:"#fff"}}>Rider</span>
+          </div>
+          <button onClick={fetchOrders}
+            style={{background:"rgba(255,255,255,0.1)",border:"none",
+              borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.7)",
+              fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+            <RefreshCw size={12}/>Refresh
+          </button>
+        </div>
+        {/* Earnings strip */}
+        <div style={{display:"flex",gap:8,marginTop:8}}>
+          {[
+            {label:"AVAILABLE", value:available.length, bg:"#2E7D32"},
+            {label:"ACTIVE",    value:mine.length,      bg:"#A95412"},
+            {label:"TODAY",     value:completed.length, bg:"#1A52A0"},
+            {label:"EARNED",    value:`£${earnings.toFixed(0)}`, bg:"#5A3418"},
+          ].map(s=>(
+            <div key={s.label} style={{flex:1,background:s.bg,
+              borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
+              <div style={{fontSize:15,fontWeight:900,color:"#fff"}}>{s.value}</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,0.7)",
+                fontWeight:700,letterSpacing:0.5}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Order detail bottom sheet */}
+      {sel&&(
+        <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",
+          zIndex:200,display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:"#fff",width:"100%",borderRadius:"20px 20px 0 0",
+            padding:"20px 16px 36px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",
+              alignItems:"center",marginBottom:16}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:900,color:"#1F1A17"}}>
+                  {sel.id}
+                </div>
+                <div style={{fontSize:14,color:"#6F655E"}}>{sel.customer}</div>
+              </div>
+              <button onClick={()=>setSel(null)}
+                style={{background:"#F4F1EE",border:"none",borderRadius:8,
+                  width:36,height:36,cursor:"pointer",display:"flex",
+                  alignItems:"center",justifyContent:"center"}}>
+                <X size={18}/>
+              </button>
+            </div>
+
+            {/* Address */}
+            <div style={{background:"#F4F1EE",borderRadius:12,
+              padding:"12px 14px",marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+                textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>
+                Delivery address
+              </div>
+              <div style={{fontSize:16,fontWeight:700,color:"#1F1A17",
+                marginBottom:2}}>{sel.address}</div>
+              <div style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+                {sel.postcode}
+              </div>
+            </div>
+
+            {/* Items summary */}
+            <div style={{background:"#F4F1EE",borderRadius:12,
+              padding:"10px 14px",marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+                textTransform:"uppercase",letterSpacing:0.5,marginBottom:6}}>
+                Items
+              </div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {(sel.items||[]).map((it,i)=>(
+                  <div key={i} style={{background:"#fff",borderRadius:6,
+                    padding:"3px 8px",fontSize:13,fontWeight:700,color:"#1F1A17"}}>
+                    {it.name} ×{it.qty}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contact + map buttons */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",
+              gap:8,marginBottom:12}}>
+              {sel.phone&&(
+                <button onClick={()=>window.open(`tel:+${sel.phone}`)}
+                  style={{background:"#EAF6EC",border:"1px solid #A8D5AB",
+                    borderRadius:12,padding:"12px 8px",cursor:"pointer",
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <Phone size={20} color="#2E7D32"/>
+                  <span style={{fontSize:11,fontWeight:700,color:"#2E7D32"}}>Call</span>
+                </button>
+              )}
+              {sel.phone&&(
+                <button onClick={()=>openWA(sel.phone,
+                  `Hi ${sel.customer?.split(" ")[0]}, I'm your AfroCrave rider heading to you now!`)}
+                  style={{background:"#EAF6EC",border:"1px solid #A8D5AB",
+                    borderRadius:12,padding:"12px 8px",cursor:"pointer",
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <MessageCircle size={20} color="#2E7D32"/>
+                  <span style={{fontSize:11,fontWeight:700,color:"#2E7D32"}}>WhatsApp</span>
+                </button>
+              )}
+              <button onClick={()=>window.open(
+                `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(sel.address+", "+sel.postcode+", UK")}`,"_blank")}
+                style={{background:"#EBF4FF",border:"1px solid #B5D4F4",
+                  borderRadius:12,padding:"12px 8px",cursor:"pointer",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                <MapPinned size={20} color="#1A52A0"/>
+                <span style={{fontSize:11,fontWeight:700,color:"#1A52A0"}}>Navigate</span>
+              </button>
+            </div>
+
+            {/* Primary action */}
+            {sel.status==="Ready"&&(
+              <button onClick={()=>claimOrder(sel)}
+                style={{width:"100%",background:"#C96A1B",border:"none",
+                  borderRadius:14,padding:"16px",fontSize:16,fontWeight:800,
+                  color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
+                Accept delivery →
+              </button>
+            )}
+            {sel.status==="Out for delivery"&&(
+              <button onClick={()=>markDelivered(sel)}
+                style={{width:"100%",background:"#2E7D32",border:"none",
+                  borderRadius:14,padding:"16px",fontSize:16,fontWeight:800,
+                  color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
+                ✓ Mark as delivered
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Main content */}
+      <div style={{flex:1,overflowY:"auto",padding:"10px 10px 20px"}}>
+
+        {/* Active delivery */}
+        {mine.map(o=>(
+          <div key={o.id}>
+            <div style={{fontSize:11,fontWeight:800,color:"#A95412",
+              textTransform:"uppercase",letterSpacing:0.5,padding:"4px 4px 6px"}}>
+              🔴 Active delivery
+            </div>
+            <button onClick={()=>setSel(o)}
+              style={{width:"100%",background:"#fff",
+                border:"2px solid #C96A1B",borderRadius:14,
+                padding:"16px",marginBottom:12,cursor:"pointer",
+                textAlign:"left",fontFamily:"inherit"}}>
+              <div style={{display:"flex",justifyContent:"space-between",
+                alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:20,fontWeight:900,color:"#1F1A17"}}>
+                  {o.id}
+                </div>
+                <div style={{background:"#FFF1E2",border:"1px solid #FDDBB4",
+                  borderRadius:6,padding:"4px 10px",fontSize:12,
+                  fontWeight:800,color:"#A95412"}}>
+                  Out for delivery
+                </div>
+              </div>
+              <div style={{fontSize:15,fontWeight:700,color:"#1F1A17",
+                marginBottom:4}}>{o.customer}</div>
+              <div style={{fontSize:14,color:"#6F655E",marginBottom:10}}>
+                {o.address} · {o.postcode}
+              </div>
+              <div style={{background:"#C96A1B",borderRadius:10,padding:"12px",
+                textAlign:"center",fontSize:14,fontWeight:800,color:"#fff"}}>
+                Tap to mark delivered →
+              </div>
+            </button>
+          </div>
+        ))}
+
+        {/* Available orders */}
+        {available.length>0&&(
+          <div>
+            <div style={{fontSize:11,fontWeight:800,color:"#2E7D32",
+              textTransform:"uppercase",letterSpacing:0.5,padding:"4px 4px 6px"}}>
+              🟢 Available to pick up ({available.length})
+            </div>
+            {available.map(o=>(
+              <button key={o.id} onClick={()=>setSel(o)}
+                style={{width:"100%",background:"#fff",
+                  border:"2px solid #A8D5AB",borderRadius:14,
+                  padding:"14px",marginBottom:8,cursor:"pointer",
+                  textAlign:"left",fontFamily:"inherit"}}>
+                <div style={{display:"flex",justifyContent:"space-between",
+                  alignItems:"center",marginBottom:6}}>
+                  <div style={{fontSize:18,fontWeight:900,color:"#1F1A17"}}>
+                    {o.id}
+                  </div>
+                  <div style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+                    £4.50 earning
+                  </div>
+                </div>
+                <div style={{fontSize:14,fontWeight:700,color:"#1F1A17",
+                  marginBottom:3}}>{o.customer}</div>
+                <div style={{fontSize:13,color:"#6F655E",marginBottom:10}}>
+                  {o.postcode}
+                </div>
+                <div style={{background:"#EAF6EC",border:"1px solid #A8D5AB",
+                  borderRadius:10,padding:"10px",textAlign:"center",
+                  fontSize:14,fontWeight:800,color:"#2E7D32"}}>
+                  Accept delivery →
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mine.length===0&&available.length===0&&(
+          <div style={{textAlign:"center",padding:"48px 20px"}}>
+            <div style={{fontSize:48,marginBottom:12}}>🛵</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#1F1A17"}}>
+              No deliveries yet
+            </div>
+            <div style={{fontSize:14,color:"#6F655E",marginTop:4}}>
+              Orders will appear here when ready
+            </div>
+          </div>
+        )}
+
+        {/* Completed today */}
+        {completed.length>0&&(
+          <div style={{marginTop:8}}>
+            <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+              textTransform:"uppercase",letterSpacing:0.5,
+              padding:"8px 4px",marginBottom:6}}>
+              Completed today ({completed.length})
+            </div>
+            {completed.map(o=>(
+              <div key={o.id} style={{background:"#F4F1EE",borderRadius:10,
+                padding:"10px 14px",marginBottom:6,opacity:0.7,
+                display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <span style={{fontSize:14,fontWeight:700,color:"#1F1A17"}}>
+                    {o.id}
+                  </span>
+                  <span style={{fontSize:13,color:"#6F655E",marginLeft:8}}>
+                    {o.customer}
+                  </span>
+                </div>
+                <span style={{fontSize:13,fontWeight:700,color:"#2E7D32"}}>
+                  +£4.50
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 function TrackingPage() {
   const [orders] = useOrders();
   const [oid,      setOid]     = useState("");
@@ -3002,346 +3117,498 @@ const KITCHEN_PASS = "|tislife2026|";
 
 function AdminPanel() {
   const [authed,    setAuthed]    = useState(false);
-  const [role,      setRole]      = useState(null); // "super" | "kitchen"
+  const [role,      setRole]      = useState(null);
   const [password,  setPassword]  = useState("");
   const [error,     setError]     = useState("");
-  const [section,   setSection]   = useState("menu"); // menu | riders | orders | settings
+  const [section,   setSection]   = useState("orders");
   const [menuItems, setMenuItems] = useState([]);
   const [orders,    setOrders]    = useState([]);
   const [riders,    setRiders]    = useState([]);
   const [loading,   setLoading]   = useState(false);
   const [toast,     setToast]     = useState("");
+  const [selOrder,  setSelOrder]  = useState(null);
 
-  // Menu form state
   const [editingItem, setEditingItem] = useState(null);
   const [menuForm,    setMenuForm]    = useState({
     name:"", description:"", price:"", category:"Rice Dishes",
-    emoji:"🍛", portion:"", calories:"", available:true, is_halal:true, is_vegan:false,
-    imagePreview:null, imageFile:null, imageUrl:"", chef_pick:false,
+    emoji:"🍛", portion:"", calories:"", available:true,
+    is_vegan:false, chef_pick:false,
+    imagePreview:null, imageFile:null, imageUrl:"",
   });
 
-  // Rider form state
-  const [riderForm, setRiderForm] = useState({ name:"", phone:"" });
+  const [riderForm,   setRiderForm]   = useState({name:"",phone:""});
   const [addingRider, setAddingRider] = useState(false);
 
-  // Settings form
   const [settings, setSettings] = useState({
     kitchenName:"AfroCrave Kitchen",
     phone:"+44 7823 644323",
     address:"Sunderland, UK",
-    minOrder:"0",
+    minOrder:"15",
     deliveryTime:"45–75 min",
   });
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 3000);
-  };
+  const showToast = msg => { setToast(msg); setTimeout(()=>setToast(""),3000); };
 
   const login = () => {
-    if (password === ADMIN_PASS) {
-      setAuthed(true); setRole("super"); setError("");
-      loadAll();
-    } else if (password === KITCHEN_PASS) {
-      setAuthed(true); setRole("kitchen"); setError("");
-      loadAll();
-    } else {
-      setError("Incorrect password. Please try again.");
-      setPassword("");
-    }
+    if(password===ADMIN_PASS){setAuthed(true);setRole("super");setError("");loadAll();}
+    else if(password===KITCHEN_PASS){setAuthed(true);setRole("kitchen");setError("");loadAll();}
+    else{setError("Incorrect password.");setPassword("");}
   };
 
   const loadAll = async () => {
     setLoading(true);
-    const [menuRes, ordersRes, ridersRes, settingsRes] = await Promise.all([
+    const [mR,oR,rR,sR] = await Promise.all([
       supabase.from("menu_items").select("*").order("category"),
-      supabase.from("orders").select("*").order("created_at", {ascending:false}).limit(50),
+      supabase.from("orders").select("*").order("created_at",{ascending:false}).limit(100),
       supabase.from("riders").select("*").order("name"),
       supabase.from("kitchen_settings").select("*").eq("id",1).single(),
     ]);
-    if (menuRes.data)   setMenuItems(menuRes.data);
-    if (ordersRes.data) setOrders(ordersRes.data.map(o=>({
-      ...o,
-      items: typeof o.items==="string" ? JSON.parse(o.items) : (o.items||[]),
-    })));
-    if (ridersRes.data) setRiders(ridersRes.data);
-    if (settingsRes.data) setSettings({
-      kitchenName:  settingsRes.data.kitchen_name  || "AfroCrave Kitchen",
-      phone:        settingsRes.data.phone          || "+44 7823 644323",
-      address:      settingsRes.data.address        || "Sunderland, UK",
-      minOrder:     settingsRes.data.min_order?.toString() || "15",
-      deliveryTime: settingsRes.data.delivery_time  || "45–75 min",
+    if(mR.data)  setMenuItems(mR.data);
+    if(oR.data)  setOrders(oR.data.map(o=>({...o,
+      items:typeof o.items==="string"?JSON.parse(o.items):(o.items||[])})));
+    if(rR.data)  setRiders(rR.data);
+    if(sR.data)  setSettings({
+      kitchenName: sR.data.kitchen_name||"AfroCrave Kitchen",
+      phone:       sR.data.phone||"+44 7823 644323",
+      address:     sR.data.address||"Sunderland, UK",
+      minOrder:    sR.data.min_order?.toString()||"15",
+      deliveryTime:sR.data.delivery_time||"45–75 min",
     });
     setLoading(false);
   };
 
-  // ── Login screen ──
-  if (!authed) return (
-    <div style={{minHeight:"100%",background:B.bg,display:"flex",alignItems:"center",
-      justifyContent:"center",padding:24}}>
-      <div style={{width:"100%",maxWidth:380}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:56,marginBottom:12,display:"flex",justifyContent:"center"}}><Lock size={56} color={B.primary}/></div>
-          <div style={{fontSize:24,fontWeight:800,color:B.text,marginBottom:6}}>
+  // Login screen
+  if(!authed) return (
+    <div style={{minHeight:"100%",background:"#1F1A17",display:"flex",
+      alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{width:"100%",maxWidth:360}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <Lock size={48} color="#E7A93B" style={{marginBottom:12}}/>
+          <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:4}}>
             Admin Access
           </div>
-          <div style={{fontSize:15,color:B.textMid}}>
+          <div style={{fontSize:14,color:"rgba(255,255,255,0.5)"}}>
             AfroCrave Kitchen · Choma Platform
           </div>
         </div>
-        <Card>
+        <div style={{background:"rgba(255,255,255,0.07)",
+          border:"0.5px solid rgba(255,255,255,0.12)",
+          borderRadius:18,padding:"20px"}}>
           <Input label="Password" value={password}
             onChange={v=>setPassword(v)} placeholder="Enter your password"
             type="password"/>
           {error&&(
-            <div style={{fontSize:16,color:B.red,marginBottom:12,
-              padding:"10px 12px",background:B.redSoft,borderRadius:10}}>
-              ⚠️ {error}
-            </div>
+            <div style={{fontSize:13,color:"#FF8A7A",marginBottom:14,
+              background:"rgba(220,80,50,0.15)",padding:"10px 12px",
+              borderRadius:10}}>⚠️ {error}</div>
           )}
-          <Btn full onClick={login} disabled={!password}>
-            🔐 Sign in
-          </Btn>
-        </Card>
-        <div style={{textAlign:"center",marginTop:16,fontSize:14,color:B.textDim}}>
-          Kitchen staff use your kitchen password<br/>
-          Choma admin use the platform password
+          <button onClick={login} disabled={!password}
+            style={{width:"100%",background:password?"#C96A1B":"rgba(255,255,255,0.1)",
+              border:"none",borderRadius:12,padding:"14px",fontSize:15,
+              fontWeight:800,color:password?"#fff":"rgba(255,255,255,0.3)",
+              cursor:password?"pointer":"not-allowed",fontFamily:"inherit"}}>
+            Sign in
+          </button>
         </div>
       </div>
     </div>
   );
 
   const SECTIONS = [
-    {id:"menu",     label:"Menu",    icon:<UtensilsCrossed size={14}/>, desc:"Add, edit, remove dishes"},
-    {id:"orders",   label:"Orders",  icon:<ClipboardList size={14}/>, desc:"View all orders"},
-    {id:"riders",   label:"Riders",  icon:<Bike size={14}/>, desc:"Manage delivery riders"},
-    {id:"settings", label:"Settings",icon:<Settings size={14}/>, desc:"Kitchen info & zones"},
+    {id:"orders",  label:"Orders",   icon:<ClipboardList size={14}/>},
+    {id:"menu",    label:"Menu",     icon:<UtensilsCrossed size={14}/>},
+    {id:"riders",  label:"Riders",   icon:<Bike size={14}/>},
+    {id:"settings",label:"Settings", icon:<Settings size={14}/>},
   ];
 
   const CATEGORIES = ["Rice Dishes","Nigerian Soups","Snacks","Cakes"];
 
-  // ── Save menu item ──
-  const saveMenuItem = async () => {
-    if (!menuForm.name || !menuForm.price) return;
-    setLoading(true);
+  // Stats
+  const today = orders.filter(o=>{
+    const d = new Date(o.created_at);
+    const t = new Date();
+    return d.toDateString()===t.toDateString();
+  });
+  const statuses = ["New","Preparing","Ready","Out for delivery","Delivered"];
 
-    // Upload image to Supabase storage if a new image was selected
-    let imageUrl = menuForm.imageUrl || "";
-    if (menuForm.imageFile) {
-      const fileName = `menu/${Date.now()}_${menuForm.name.replace(/\s+/g,"_")}.jpg`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("food-images")
-        .upload(fileName, menuForm.imageFile, { upsert: true });
-      if (!uploadError && uploadData) {
-        const { data: urlData } = supabase.storage
-          .from("food-images")
-          .getPublicUrl(fileName);
-        imageUrl = urlData.publicUrl;
+  const saveMenuItem = async () => {
+    if(!menuForm.name||!menuForm.price) return;
+    setLoading(true);
+    let imageUrl = menuForm.imageUrl||"";
+    if(menuForm.imageFile){
+      const fileName=`menu/${Date.now()}_${menuForm.name.replace(/\s+/g,"_")}.jpg`;
+      const {data:ud,error:ue}=await supabase.storage
+        .from("food-images").upload(fileName,menuForm.imageFile,{upsert:true});
+      if(!ue&&ud){
+        const {data:urlData}=supabase.storage.from("food-images").getPublicUrl(fileName);
+        imageUrl=urlData.publicUrl;
       }
     }
-
-    const data = {
-      name:        menuForm.name,
-      description: menuForm.description,
-      price:       parseFloat(menuForm.price),
-      category:    menuForm.category,
-      emoji:       menuForm.emoji,
-      portion:     menuForm.portion,
-      calories:    parseInt(menuForm.calories)||0,
-      available:   menuForm.available,
-      is_halal:    menuForm.is_halal,
-      is_vegan:    menuForm.is_vegan,
-      allergens:   [],
-      image_url:   imageUrl,
-      chef_pick:   menuForm.chef_pick||false,
+    const data={
+      name:menuForm.name, description:menuForm.description,
+      price:parseFloat(menuForm.price), category:menuForm.category,
+      emoji:menuForm.emoji, portion:menuForm.portion,
+      calories:parseInt(menuForm.calories)||0,
+      available:menuForm.available, is_vegan:menuForm.is_vegan,
+      chef_pick:menuForm.chef_pick, allergens:[], image_url:imageUrl,
     };
-    if (editingItem) {
-      await supabase.from("menu_items").update(data).eq("id", editingItem.id);
-      showToast("✅ Menu item updated");
-    } else {
+    if(editingItem)
+      await supabase.from("menu_items").update(data).eq("id",editingItem.id);
+    else
       await supabase.from("menu_items").insert([data]);
-      showToast("✅ Menu item added");
-    }
+    showToast(editingItem?"✅ Item updated":"✅ Item added");
     setEditingItem(null);
     setMenuForm({name:"",description:"",price:"",category:"Rice Dishes",
-      emoji:"🍛",portion:"",calories:"",available:true,is_halal:true,is_vegan:false});
-    await loadAll();
-    setLoading(false);
+      emoji:"🍛",portion:"",calories:"",available:true,is_vegan:false,
+      chef_pick:false,imagePreview:null,imageFile:null,imageUrl:""});
+    await loadAll(); setLoading(false);
   };
 
-  const deleteMenuItem = async (id) => {
-    if (!window.confirm("Delete this menu item?")) return;
-    await supabase.from("menu_items").delete().eq("id", id);
-    showToast("🗑️ Item deleted");
-    await loadAll();
+  const deleteMenuItem = async id => {
+    if(!window.confirm("Delete this item?")) return;
+    await supabase.from("menu_items").delete().eq("id",id);
+    showToast("🗑️ Deleted"); await loadAll();
   };
 
-  const toggleAvailable = async (item) => {
+  const toggleAvailable = async item => {
     await supabase.from("menu_items").update({available:!item.available}).eq("id",item.id);
-    showToast(item.available ? "❌ Item marked sold out" : "✅ Item marked available");
+    showToast(item.available?"❌ Marked sold out":"✅ Marked available");
     await loadAll();
   };
 
-  const editItem = (item) => {
+  const editItem = item => {
     setEditingItem(item);
     setMenuForm({
-      name:         item.name,
-      description:  item.description||"",
-      price:        item.price.toString(),
-      category:     item.category,
-      emoji:        item.emoji||"🍛",
-      portion:      item.portion||"",
-      calories:     item.calories?.toString()||"",
-      available:    item.available,
-      is_halal:     item.is_halal,
-      is_vegan:     item.is_vegan,
-      imagePreview: item.image_url||null,
-      imageFile:    null,
-      imageUrl:     item.image_url||"",
-      chef_pick:    item.chef_pick||false,
+      name:item.name, description:item.description||"",
+      price:item.price.toString(), category:item.category,
+      emoji:item.emoji||"🍛", portion:item.portion||"",
+      calories:item.calories?.toString()||"",
+      available:item.available, is_vegan:item.is_vegan,
+      chef_pick:item.chef_pick||false,
+      imagePreview:item.image_url||null, imageFile:null,
+      imageUrl:item.image_url||"",
     });
   };
 
-  // ── Save rider ──
   const saveRider = async () => {
-    if (!riderForm.name || !riderForm.phone) return;
+    if(!riderForm.name||!riderForm.phone) return;
     await supabase.from("riders").insert([{
-      name:  riderForm.name,
-      phone: riderForm.phone.replace(/\D/g,""),
+      name:riderForm.name, phone:riderForm.phone.replace(/\D/g,""),
     }]);
     showToast("✅ Rider added");
-    setRiderForm({name:"",phone:""});
-    setAddingRider(false);
+    setRiderForm({name:"",phone:""}); setAddingRider(false);
     await loadAll();
   };
 
-  const deleteRider = async (id) => {
-    if (!window.confirm("Remove this rider?")) return;
-    await supabase.from("riders").delete().eq("id",id);
-    showToast("🗑️ Rider removed");
-    await loadAll();
+  const assignRider = async (orderId, riderName) => {
+    await supabase.from("orders").update({rider_name:riderName}).eq("id",orderId);
+    showToast(`✅ Assigned to ${riderName}`); await loadAll();
   };
 
   return (
-    <div style={{minHeight:"100%",background:B.bg,display:"flex",flexDirection:"column"}}>
+    <div style={{minHeight:"100%",background:"#F4F1EE",display:"flex",
+      flexDirection:"column"}}>
 
-      {/* Toast notification */}
+      {/* Toast */}
       {toast&&(
-        <div style={{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",
-          zIndex:9999,background:B.text,color:"#fff",padding:"12px 24px",
-          borderRadius:20,fontSize:16,fontWeight:700,
-          boxShadow:"0 8px 24px rgba(0,0,0,0.2)"}}>
+        <div style={{position:"fixed",top:70,left:"50%",
+          transform:"translateX(-50%)",zIndex:9999,
+          background:"#1F1A17",color:"#fff",padding:"10px 20px",
+          borderRadius:20,fontSize:13,fontWeight:700}}>
           {toast}
         </div>
       )}
 
-      {/* Admin header */}
-      <div style={{background:`linear-gradient(135deg,#3D1A06,#5A3418)`,
-        padding:"16px 16px 14px",color:"#fff",flexShrink:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <div style={{fontSize:16,fontWeight:800}}>
-              {role==="super" ? "⚡ Super Admin" : "👩‍🍳 Kitchen Admin"}
+      {/* Order detail sheet */}
+      {selOrder&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",
+          zIndex:300,display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:"#fff",width:"100%",
+            borderRadius:"20px 20px 0 0",padding:"20px 16px 36px",
+            maxHeight:"85vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",
+              alignItems:"center",marginBottom:14}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:900,color:"#1F1A17"}}>
+                  {selOrder.id}
+                </div>
+                <div style={{fontSize:14,color:"#6F655E"}}>
+                  {selOrder.customer_name}
+                </div>
+              </div>
+              <button onClick={()=>setSelOrder(null)}
+                style={{background:"#F4F1EE",border:"none",borderRadius:8,
+                  width:36,height:36,cursor:"pointer",display:"flex",
+                  alignItems:"center",justifyContent:"center"}}>
+                <X size={18}/>
+              </button>
             </div>
-            <div style={{fontSize:16,color:"rgba(255,255,255,0.6)",marginTop:2}}>
-              AfroCrave Kitchen · Choma Platform
+            {/* Full order details */}
+            <div style={{background:"#F4F1EE",borderRadius:12,
+              padding:"12px 14px",marginBottom:12}}>
+              {(selOrder.items||[]).map((it,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",
+                  padding:"5px 0",borderBottom:i<selOrder.items.length-1
+                    ?"1px solid #E9DDD0":"none"}}>
+                  <span style={{fontSize:14,fontWeight:700}}>{it.name}</span>
+                  <span style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+                    ×{it.qty}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",
+              gap:8,marginBottom:12}}>
+              {[
+                ["Status",  selOrder.status],
+                ["Payment", selOrder.paid?"✓ Paid":"⏳ Pending"],
+                ["Total",   fmt(selOrder.total)],
+                ["Postcode",selOrder.postcode],
+              ].map(([l,v])=>(
+                <div key={l} style={{background:"#F4F1EE",borderRadius:10,
+                  padding:"10px 12px"}}>
+                  <div style={{fontSize:10,color:"#A0968E",fontWeight:700,
+                    textTransform:"uppercase",letterSpacing:0.3,marginBottom:2}}>
+                    {l}
+                  </div>
+                  <div style={{fontSize:14,fontWeight:800,color:"#1F1A17"}}>
+                    {v}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:13,color:"#6F655E",marginBottom:12,
+              padding:"8px 12px",background:"#F4F1EE",borderRadius:10}}>
+              📍 {selOrder.delivery_address}
+            </div>
+            {/* Assign rider */}
+            {selOrder.status==="Ready"&&riders.length>0&&(
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:12,fontWeight:800,color:"#A0968E",
+                  textTransform:"uppercase",marginBottom:8}}>
+                  Assign rider
+                </div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  {riders.map(r=>(
+                    <button key={r.id}
+                      onClick={()=>{assignRider(selOrder.id,r.name);setSelOrder(null);}}
+                      style={{background:"#EAF6EC",border:"1px solid #A8D5AB",
+                        borderRadius:10,padding:"8px 14px",fontSize:13,
+                        fontWeight:700,color:"#2E7D32",cursor:"pointer",
+                        fontFamily:"inherit"}}>
+                      {r.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin header */}
+      <div style={{background:"#1F1A17",padding:"12px 14px",flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",
+          alignItems:"center",marginBottom:10}}>
+          <div>
+            <div style={{fontSize:15,fontWeight:800,color:"#fff"}}>
+              {role==="super"?"⚡ Admin":"👩‍🍳 Kitchen Admin"}
+            </div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>
+              AfroCrave Kitchen
             </div>
           </div>
           <button onClick={()=>{setAuthed(false);setPassword("");setRole(null);}}
-            style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",
-              borderRadius:10,padding:"6px 14px",color:"#fff",fontSize:16,
-              fontWeight:700,cursor:"pointer"}}>
-            Sign out
+            style={{background:"rgba(255,255,255,0.1)",border:"none",
+              borderRadius:8,padding:"5px 10px",color:"rgba(255,255,255,0.6)",
+              fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+            <LogOut size={12}/>Sign out
           </button>
         </div>
 
+        {/* Today stats */}
+        <div style={{display:"flex",gap:6,marginBottom:10}}>
+          {[
+            {label:"TODAY",  value:today.length},
+            {label:"NEW",    value:today.filter(o=>o.status==="New").length,      bg:"#1A52A0"},
+            {label:"PREP",   value:today.filter(o=>o.status==="Preparing").length,bg:"#A95412"},
+            {label:"DONE",   value:today.filter(o=>o.status==="Delivered").length,bg:"#2E7D32"},
+          ].map((s,i)=>(
+            <div key={s.label} style={{flex:1,
+              background:s.bg||"rgba(255,255,255,0.1)",
+              borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
+              <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{s.value}</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,0.6)",
+                fontWeight:700,letterSpacing:0.5}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
         {/* Section tabs */}
-        <div style={{display:"flex",gap:4,marginTop:14,overflowX:"auto"}}>
+        <div style={{display:"flex",gap:3}}>
           {SECTIONS.map(s=>(
             <button key={s.id} onClick={()=>setSection(s.id)}
-              style={{padding:"8px 14px",borderRadius:12,fontSize:16,fontWeight:700,
-                cursor:"pointer",border:"none",whiteSpace:"nowrap",
-                display:"flex",alignItems:"center",gap:6,
+              style={{flex:1,padding:"7px 4px",borderRadius:10,
+                fontSize:11,fontWeight:700,cursor:"pointer",border:"none",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:section===s.id?"rgba(255,255,255,0.2)":"transparent",
-                color:section===s.id?"#fff":"rgba(255,255,255,0.6)"}}>
-              {s.icon}
-              {s.label}
+                color:section===s.id?"#fff":"rgba(255,255,255,0.5)",
+                fontFamily:"inherit"}}>
+              {s.icon}{s.label}
             </button>
           ))}
         </div>
       </div>
 
       {loading&&(
-        <div style={{padding:"20px",textAlign:"center",color:B.textMid,fontSize:14}}>
+        <div style={{padding:16,textAlign:"center",color:"#6F655E",fontSize:14}}>
           Loading…
         </div>
       )}
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 40px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 12px 40px"}}>
 
-        {/* ── MENU SECTION ── */}
+        {/* ── ORDERS ── */}
+        {section==="orders"&&(
+          <div>
+            {/* Revenue card */}
+            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+              borderRadius:14,padding:"14px 16px",marginBottom:12,
+              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:12,color:"#6F655E",fontWeight:700,
+                  textTransform:"uppercase",letterSpacing:0.5}}>
+                  Today's revenue
+                </div>
+                <div style={{fontSize:28,fontWeight:900,color:"#C96A1B",letterSpacing:-0.5}}>
+                  {fmt(today.filter(o=>o.paid).reduce((s,o)=>s+o.total,0))}
+                </div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:14,color:"#6F655E"}}>
+                  {today.filter(o=>o.paid).length} paid
+                </div>
+                <div style={{fontSize:13,color:"#A95412",fontWeight:600}}>
+                  {today.filter(o=>!o.paid).length} pending
+                </div>
+              </div>
+            </div>
+
+            {orders.length===0&&(
+              <div style={{textAlign:"center",padding:"32px 20px",color:"#6F655E"}}>
+                No orders yet
+              </div>
+            )}
+
+            {orders.map(o=>(
+              <button key={o.id} onClick={()=>setSelOrder(o)}
+                style={{width:"100%",background:"#fff",
+                  border:"1px solid #E9DDD0",borderRadius:12,
+                  padding:"12px 14px",marginBottom:8,cursor:"pointer",
+                  textAlign:"left",fontFamily:"inherit",
+                  display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                    <span style={{fontSize:15,fontWeight:800,color:"#1F1A17"}}>
+                      {o.id}
+                    </span>
+                    <Pill s={o.status}/>
+                  </div>
+                  <div style={{fontSize:13,color:"#6F655E",overflow:"hidden",
+                    textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    {o.customer_name} · {o.postcode}
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}>
+                  <div style={{fontSize:15,fontWeight:800,color:"#C96A1B"}}>
+                    {fmt(o.total)}
+                  </div>
+                  <div style={{fontSize:11,fontWeight:600,
+                    color:o.paid?"#2E7D32":"#A95412"}}>
+                    {o.paid?"Paid":"Pending"}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── MENU ── */}
         {section==="menu"&&(
           <div>
             {/* Add/Edit form */}
-            <Card style={{marginBottom:20,background:editingItem?B.goldLight:B.card,
-              borderColor:editingItem?B.gold:"transparent"}}>
-              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
-                {editingItem ? "✏️ Edit menu item" : "➕ Add new item"}
+            <div style={{background:"#fff",border:`1px solid ${editingItem?"#C96A1B":"#E9DDD0"}`,
+              borderRadius:14,padding:14,marginBottom:16}}>
+              <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:12}}>
+                {editingItem?"✏️ Edit item":"➕ Add new item"}
               </div>
 
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-                <div>
-                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,marginBottom:5,
-                    textTransform:"uppercase",letterSpacing:0.4}}>Food photo</div>
-                  <label style={{display:"block",cursor:"pointer"}}>
-                    <div style={{width:"100%",aspectRatio:"1",background:B.surface,
-                      border:`1.5px dashed ${menuForm.imagePreview?B.primary:B.border}`,
-                      borderRadius:12,display:"flex",flexDirection:"column",
-                      alignItems:"center",justifyContent:"center",overflow:"hidden",
-                      position:"relative"}}>
-                      {menuForm.imagePreview ? (
-                        <img src={menuForm.imagePreview} alt="Food"
-                          loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                      ) : (
-                        <>
-                          <Plus size={24} color={B.textDim}/>
-                          <div style={{fontSize:14,color:B.textDim,marginTop:6,
-                            textAlign:"center",padding:"0 8px"}}>
+              {/* Image upload */}
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                  textTransform:"uppercase",letterSpacing:0.4,marginBottom:6}}>
+                  Food photo
+                </div>
+                <label style={{display:"block",cursor:"pointer"}}>
+                  <div style={{width:"100%",aspectRatio:"2.5/1",
+                    background:"#F4F1EE",
+                    border:`1.5px dashed ${menuForm.imagePreview?"#C96A1B":"#E9DDD0"}`,
+                    borderRadius:12,display:"flex",flexDirection:"column",
+                    alignItems:"center",justifyContent:"center",
+                    overflow:"hidden",position:"relative"}}>
+                    {menuForm.imagePreview
+                      ? <img src={menuForm.imagePreview} alt="Food"
+                          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                      : <><Plus size={20} color="#A0968E"/>
+                          <div style={{fontSize:12,color:"#A0968E",marginTop:4}}>
                             Tap to add photo
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <input type="file" accept="image/*" style={{display:"none"}}
-                      onChange={e=>{
-                        const file = e.target.files[0];
-                        if(file){
-                          const reader = new FileReader();
-                          reader.onload = ev => setMenuForm(f=>({
-                            ...f,
-                            imageFile: file,
-                            imagePreview: ev.target.result,
-                          }));
-                          reader.readAsDataURL(file);
-                        }
-                      }}/>
-                  </label>
-                  {menuForm.imagePreview&&(
-                    <button onClick={()=>setMenuForm(f=>({...f,imagePreview:null,imageFile:null}))}
-                      style={{marginTop:6,fontSize:16,color:B.red,background:"none",
-                        border:"none",cursor:"pointer",fontWeight:600}}>
-                      Remove photo
-                    </button>
-                  )}
+                          </div></>
+                    }
+                  </div>
+                  <input type="file" accept="image/*" style={{display:"none"}}
+                    onChange={e=>{
+                      const file=e.target.files[0];
+                      if(file){
+                        const r=new FileReader();
+                        r.onload=ev=>setMenuForm(f=>({...f,
+                          imageFile:file,imagePreview:ev.target.result}));
+                        r.readAsDataURL(file);
+                      }
+                    }}/>
+                </label>
+                {menuForm.imagePreview&&(
+                  <button onClick={()=>setMenuForm(f=>({...f,
+                    imagePreview:null,imageFile:null}))}
+                    style={{marginTop:4,fontSize:11,color:"#B23A30",
+                      background:"none",border:"none",cursor:"pointer",
+                      fontWeight:600}}>
+                    Remove photo
+                  </button>
+                )}
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                    textTransform:"uppercase",letterSpacing:0.4,marginBottom:4}}>
+                    Emoji
+                  </div>
+                  <input value={menuForm.emoji}
+                    onChange={e=>setMenuForm(f=>({...f,emoji:e.target.value}))}
+                    style={{width:"100%",padding:"10px",background:"#F4F1EE",
+                      border:"1px solid #E9DDD0",borderRadius:8,fontSize:20,
+                      boxSizing:"border-box",fontFamily:"inherit"}}/>
                 </div>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,marginBottom:5,
-                    textTransform:"uppercase",letterSpacing:0.4}}>Category</div>
+                  <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                    textTransform:"uppercase",letterSpacing:0.4,marginBottom:4}}>
+                    Category
+                  </div>
                   <select value={menuForm.category}
                     onChange={e=>setMenuForm(f=>({...f,category:e.target.value}))}
-                    style={{width:"100%",padding:"10px 12px",background:B.surface,
-                      border:`1.5px solid ${B.border}`,borderRadius:10,fontSize:16,
-                      boxSizing:"border-box",fontFamily:"inherit",color:B.text}}>
+                    style={{width:"100%",padding:"10px",background:"#F4F1EE",
+                      border:"1px solid #E9DDD0",borderRadius:8,fontSize:13,
+                      boxSizing:"border-box",fontFamily:"inherit",color:"#1F1A17"}}>
                     {CATEGORIES.map(c=><option key={c}>{c}</option>)}
                   </select>
                 </div>
@@ -3352,131 +3619,123 @@ function AdminPanel() {
                 placeholder="e.g. Jollof Rice + Chicken"/>
               <Input label="Description" value={menuForm.description}
                 onChange={v=>setMenuForm(f=>({...f,description:v}))}
-                placeholder="Short description of the dish"/>
-
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                placeholder="Short description"/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 <Input label="Price (£)" value={menuForm.price}
                   onChange={v=>setMenuForm(f=>({...f,price:v}))}
                   placeholder="12.50" type="number"/>
-                <Input label="Portion size" value={menuForm.portion}
+                <Input label="Portion" value={menuForm.portion}
                   onChange={v=>setMenuForm(f=>({...f,portion:v}))}
                   placeholder="e.g. 450g"/>
               </div>
 
-              <Input label="Calories (optional)" value={menuForm.calories}
-                onChange={v=>setMenuForm(f=>({...f,calories:v}))}
-                placeholder="e.g. 620" type="number"/>
-
               {/* Toggles */}
-              <div style={{display:"flex",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+              <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
                 {[
-                  ["available","Available for order",B.green],
-                  ["is_vegan","Vegan",B.purple],
-                  ["chef_pick","Chef's Pick ⭐",B.gold],
+                  ["available","Available","#2E7D32"],
+                  ["is_vegan","Vegan","#5C3D9A"],
+                  ["chef_pick","Chef's Pick","#C96A1B"],
                 ].map(([key,label,color])=>(
                   <button key={key}
                     onClick={()=>setMenuForm(f=>({...f,[key]:!f[key]}))}
-                    style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",
-                      borderRadius:20,border:`1.5px solid ${menuForm[key]?color:B.border}`,
+                    style={{display:"flex",alignItems:"center",gap:6,
+                      padding:"7px 12px",borderRadius:20,
+                      border:`1.5px solid ${menuForm[key]?color:"#E9DDD0"}`,
                       background:menuForm[key]?`${color}15`:"transparent",
-                      cursor:"pointer",fontSize:16,fontWeight:700,
-                      color:menuForm[key]?color:B.textMid}}>
-                    <div style={{width:14,height:14,borderRadius:"50%",
-                      background:menuForm[key]?color:B.border}}/>
+                      cursor:"pointer",fontSize:13,fontWeight:700,
+                      color:menuForm[key]?color:"#A0968E",fontFamily:"inherit"}}>
+                    <div style={{width:12,height:12,borderRadius:"50%",
+                      background:menuForm[key]?color:"#E9DDD0"}}/>
                     {label}
                   </button>
                 ))}
               </div>
 
-              <div style={{display:"flex",gap:10}}>
+              <div style={{display:"flex",gap:8}}>
                 <Btn full onClick={saveMenuItem}
                   disabled={!menuForm.name||!menuForm.price}>
-                  {editingItem ? "Save changes" : "Add to menu"}
+                  {editingItem?"Save changes":"Add to menu"}
                 </Btn>
                 {editingItem&&(
                   <Btn v="ghost" onClick={()=>{
                     setEditingItem(null);
-                    setMenuForm({name:"",description:"",price:"",category:"Rice Dishes",
-                      emoji:"🍛",portion:"",calories:"",available:true,
-                      is_halal:true,is_vegan:false,imagePreview:null,imageFile:null,imageUrl:"",chef_pick:false});
+                    setMenuForm({name:"",description:"",price:"",
+                      category:"Rice Dishes",emoji:"🍛",portion:"",
+                      calories:"",available:true,is_vegan:false,
+                      chef_pick:false,imagePreview:null,imageFile:null,imageUrl:""});
                   }}>Cancel</Btn>
                 )}
               </div>
-            </Card>
+            </div>
 
-            {/* Menu items list grouped by category */}
+            {/* Menu list */}
             {CATEGORIES.map(cat=>{
-              const items = menuItems.filter(m=>m.category===cat);
-              if(!items.length) return null;
+              const catItems = menuItems.filter(m=>m.category===cat);
+              if(!catItems.length) return null;
               return (
-                <div key={cat} style={{marginBottom:20}}>
-                  <div style={{fontSize:14,fontWeight:700,color:B.textMid,
-                    textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
-                    {cat} ({items.length})
+                <div key={cat} style={{marginBottom:16}}>
+                  <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+                    textTransform:"uppercase",letterSpacing:0.5,
+                    marginBottom:8,padding:"0 2px"}}>
+                    {cat} ({catItems.length})
                   </div>
-                  {items.map(item=>(
-                    <Card key={item.id} style={{marginBottom:10,
-                      opacity:item.available?1:0.6,
-                      borderLeft:`4px solid ${item.available?B.green:B.red}`}}>
-                      <div style={{display:"flex",justifyContent:"space-between",
-                        alignItems:"flex-start",gap:10}}>
-                        <div style={{display:"flex",gap:10,flex:1}}>
-                          <div style={{width:48,height:48,borderRadius:10,
-                          background:B.surface,overflow:"hidden",flexShrink:0,
-                          display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>
-                          {item.image_url
-                            ? <img src={item.image_url} alt={item.name}
-                                loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                            : item.emoji
-                          }
+                  {catItems.map(item=>(
+                    <div key={item.id} style={{background:"#fff",
+                      border:`1px solid ${item.available?"#E9DDD0":"#F0C4C0"}`,
+                      borderLeft:`4px solid ${item.available?"#2E7D32":"#B23A30"}`,
+                      borderRadius:10,padding:"10px 12px",marginBottom:6,
+                      display:"flex",alignItems:"center",gap:10,
+                      opacity:item.available?1:0.7}}>
+                      <div style={{width:44,height:44,borderRadius:8,
+                        background:"#F4F1EE",overflow:"hidden",flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:20}}>
+                        {item.image_url
+                          ? <img src={item.image_url} alt={item.name}
+                              style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                          : item.emoji}
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:14,fontWeight:700,color:"#1F1A17",
+                          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {item.name}
+                          {item.chef_pick&&
+                            <span style={{fontSize:10,background:"#FFF1E2",
+                              color:"#C96A1B",borderRadius:4,padding:"1px 5px",
+                              marginLeft:5,fontWeight:800}}>
+                              ⭐
+                            </span>}
                         </div>
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:16,fontWeight:700,color:B.text}}>
-                              {item.name}
-                            </div>
-                            <div style={{fontSize:14,color:B.textMid,marginTop:2}}>
-                              {item.description}
-                            </div>
-                            <div style={{display:"flex",gap:8,marginTop:6,
-                              alignItems:"center",flexWrap:"wrap"}}>
-                              <span style={{fontSize:17,fontWeight:800,color:B.primary}}>
-                                £{item.price.toFixed(2)}
-                              </span>
-                              {item.portion&&item.portion!=="0"&&(
-                                <span style={{fontSize:14,color:B.textDim}}>
-                                  {item.portion}
-                                </span>
-                              )}
-                              <span style={{fontSize:16,fontWeight:700,
-                                color:item.available?B.green:B.red}}>
-                                {item.available?"● Available":"● Sold out"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{display:"flex",flexDirection:"column",gap:6,flexShrink:0}}>
-                          <button onClick={()=>toggleAvailable(item)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:16,
-                              fontWeight:700,cursor:"pointer",border:"none",
-                              background:item.available?B.redSoft:B.greenSoft,
-                              color:item.available?B.red:B.green}}>
-                            {item.available?"Sold out":"Available"}
-                          </button>
-                          <button onClick={()=>editItem(item)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:16,
-                              fontWeight:700,cursor:"pointer",border:"none",
-                              background:B.goldLight,color:B.gold}}>
-                            ✏️ Edit
-                          </button>
-                          <button onClick={()=>deleteMenuItem(item.id)}
-                            style={{padding:"6px 10px",borderRadius:8,fontSize:16,
-                              fontWeight:700,cursor:"pointer",border:"none",
-                              background:B.redSoft,color:B.red}}>
-                            🗑️ Delete
-                          </button>
+                        <div style={{fontSize:13,fontWeight:700,color:"#A95412"}}>
+                          £{item.price.toFixed(2)}
+                          <span style={{fontSize:11,color:"#A0968E",marginLeft:6,
+                            fontWeight:600}}>
+                            {item.available?"Available":"Sold out"}
+                          </span>
                         </div>
                       </div>
-                    </Card>
+                      <div style={{display:"flex",gap:5,flexShrink:0}}>
+                        <button onClick={()=>toggleAvailable(item)}
+                          style={{padding:"5px 8px",borderRadius:6,fontSize:11,
+                            fontWeight:700,cursor:"pointer",border:"none",
+                            background:item.available?"#FCECEA":"#EAF6EC",
+                            color:item.available?"#B23A30":"#2E7D32"}}>
+                          {item.available?"Sold out":"Available"}
+                        </button>
+                        <button onClick={()=>editItem(item)}
+                          style={{padding:"5px 8px",borderRadius:6,fontSize:11,
+                            fontWeight:700,cursor:"pointer",border:"none",
+                            background:"#FFF1E2",color:"#C96A1B"}}>
+                          <Pencil size={12}/>
+                        </button>
+                        <button onClick={()=>deleteMenuItem(item.id)}
+                          style={{padding:"5px 8px",borderRadius:6,fontSize:11,
+                            fontWeight:700,cursor:"pointer",border:"none",
+                            background:"#FCECEA",color:"#B23A30"}}>
+                          <Trash2 size={12}/>
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               );
@@ -3484,245 +3743,155 @@ function AdminPanel() {
           </div>
         )}
 
-        {/* ── ORDERS SECTION ── */}
-        {section==="orders"&&(
-          <div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
-              {[
-                ["Total orders",orders.length,B.primary],
-                ["Paid orders",orders.filter(o=>o.paid).length,B.green],
-                ["Pending",orders.filter(o=>!o.paid).length,B.gold],
-                ["Revenue",`£${orders.filter(o=>o.paid).reduce((s,o)=>s+o.total,0).toFixed(2)}`,B.green],
-              ].map(([label,value,color])=>(
-                <Card key={label} style={{textAlign:"center",padding:"14px 10px",
-                  background:B.surface,borderColor:"transparent"}}>
-                  <div style={{fontSize:22,fontWeight:800,color}}>{value}</div>
-                  <div style={{fontSize:15,color:B.textMid,marginTop:4,fontWeight:600}}>
-                    {label}
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {orders.map(o=>(
-              <Card key={o.id} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",
-                  alignItems:"flex-start",marginBottom:8}}>
-                  <div>
-                    <div style={{fontSize:16,fontWeight:700,color:B.text}}>
-                      {o.customer_name}
-                    </div>
-                    <div style={{fontSize:14,color:B.textDim}}>
-                      {o.id} · {o.postcode}
-                    </div>
-                  </div>
-                  <div style={{textAlign:"right"}}>
-                    <Pill s={o.status}/>
-                    <div style={{fontSize:17,fontWeight:800,color:B.primary,marginTop:4}}>
-                      £{o.total?.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-                <div style={{fontSize:15,color:B.textMid,marginBottom:6}}>
-                  📍 {o.delivery_address}
-                </div>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                  {(o.items||[]).map((it,i)=>(
-                    <span key={i} style={{fontSize:16,background:B.surface,
-                      borderRadius:8,padding:"4px 10px",color:B.textMid,fontWeight:600}}>
-                      {it.name} ×{it.qty}
-                    </span>
-                  ))}
-                </div>
-                <div style={{marginTop:8,display:"flex",justifyContent:"space-between",
-                  alignItems:"center"}}>
-                  <span style={{fontSize:13,fontWeight:700,
-                    color:o.paid?B.green:B.gold}}>
-                    {o.paid?"💳 Paid":"⏳ Awaiting payment"}
-                  </span>
-                  <span style={{fontSize:14,color:B.textDim}}>
-                    {new Date(o.created_at).toLocaleDateString("en-GB",
-                      {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
-                  </span>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* ── RIDERS SECTION ── */}
+        {/* ── RIDERS ── */}
         {section==="riders"&&(
           <div>
-            <Btn full style={{marginBottom:16}}
+            <Btn full style={{marginBottom:12}}
               onClick={()=>setAddingRider(true)}>
-              ➕ Add new rider
+              <span style={{display:"flex",alignItems:"center",gap:6}}>
+                <Plus size={14}/>Add rider
+              </span>
             </Btn>
 
             {addingRider&&(
-              <Card style={{marginBottom:16,background:B.goldLight,
-                borderColor:B.gold}}>
-                <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
-                  Add rider
-                </div>
+              <div style={{background:"#fff",border:"1px solid #C96A1B",
+                borderRadius:14,padding:14,marginBottom:12}}>
                 <Input label="Full name" value={riderForm.name}
                   onChange={v=>setRiderForm(f=>({...f,name:v}))}
                   placeholder="Rider's full name"/>
                 <Input label="Phone / WhatsApp" value={riderForm.phone}
                   onChange={v=>setRiderForm(f=>({...f,phone:v}))}
                   placeholder="+44 7xxx xxxxxx"/>
-                <div style={{display:"flex",gap:10}}>
+                <div style={{display:"flex",gap:8}}>
                   <Btn full onClick={saveRider}
                     disabled={!riderForm.name||!riderForm.phone}>
                     Add rider
                   </Btn>
                   <Btn v="ghost" onClick={()=>{
-                    setAddingRider(false);
-                    setRiderForm({name:"",phone:""});
-                  }}>Cancel</Btn>
+                    setAddingRider(false);setRiderForm({name:"",phone:""});}}>
+                    Cancel
+                  </Btn>
                 </div>
-              </Card>
+              </div>
             )}
 
             {riders.length===0&&!addingRider&&(
-              <Card style={{textAlign:"center",padding:"32px 20px"}}>
-                <div style={{fontSize:36,marginBottom:12}}><Bike size={22} color="#fff"/></div>
-                <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+              <div style={{textAlign:"center",padding:"32px 20px"}}>
+                <Bike size={48} color="#A0968E" style={{marginBottom:8}}/>
+                <div style={{fontSize:16,fontWeight:700,color:"#1F1A17"}}>
                   No riders yet
                 </div>
-                <div style={{fontSize:15,color:B.textMid,marginTop:6}}>
-                  Add your first delivery rider above
-                </div>
-              </Card>
+              </div>
             )}
 
             {riders.map(rider=>(
-              <Card key={rider.id} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",
-                  alignItems:"center"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:44,height:44,borderRadius:12,
-                      background:`linear-gradient(135deg,${B.primary},${B.gold})`,
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:22,flexShrink:0}}><Bike size={22} color="#fff"/></div>
-                    <div>
-                      <div style={{fontSize:16,fontWeight:700,color:B.text}}>
-                        {rider.name}
-                      </div>
-                      <div style={{fontSize:15,color:B.textMid}}>
-                        +{rider.phone}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <Btn v="wa" style={{padding:"8px 12px",fontSize:13}}
-                      onClick={()=>openWA(rider.phone,
-                        `Hi ${rider.name}, this is AfroCrave Kitchen. Are you available for deliveries today?`)}>
-                      💬
-                    </Btn>
-                    <Btn v="danger" style={{padding:"8px 12px",fontSize:13}}
-                      onClick={()=>deleteRider(rider.id)}>
-                      🗑️
-                    </Btn>
-                  </div>
+              <div key={rider.id} style={{background:"#fff",
+                border:"1px solid #E9DDD0",borderRadius:12,
+                padding:"12px 14px",marginBottom:8,
+                display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:40,height:40,borderRadius:10,
+                  background:"#FFF1E2",display:"flex",alignItems:"center",
+                  justifyContent:"center",flexShrink:0}}>
+                  <Bike size={20} color="#C96A1B"/>
                 </div>
-              </Card>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:15,fontWeight:700,color:"#1F1A17"}}>
+                    {rider.name}
+                  </div>
+                  <div style={{fontSize:13,color:"#6F655E"}}>+{rider.phone}</div>
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>openWA(rider.phone,
+                    `Hi ${rider.name}, AfroCrave Kitchen: are you available for deliveries?`)}
+                    style={{background:"#25D366",border:"none",borderRadius:8,
+                      width:34,height:34,cursor:"pointer",display:"flex",
+                      alignItems:"center",justifyContent:"center"}}>
+                    <MessageCircle size={14} color="#fff"/>
+                  </button>
+                  <button onClick={async()=>{
+                    if(!window.confirm(`Remove ${rider.name}?`)) return;
+                    await supabase.from("riders").delete().eq("id",rider.id);
+                    showToast("Rider removed"); await loadAll();
+                  }}
+                    style={{background:"#FCECEA",border:"none",borderRadius:8,
+                      width:34,height:34,cursor:"pointer",display:"flex",
+                      alignItems:"center",justifyContent:"center"}}>
+                    <Trash2 size={14} color="#B23A30"/>
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
 
-        {/* ── SETTINGS SECTION ── */}
+        {/* ── SETTINGS ── */}
         {section==="settings"&&(
           <div>
-            <Card style={{marginBottom:16}}>
-              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
+            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+              borderRadius:14,padding:14,marginBottom:12}}>
+              <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:12}}>
                 Kitchen information
               </div>
               <Input label="Kitchen name" value={settings.kitchenName}
-                onChange={v=>setSettings(s=>({...s,kitchenName:v}))}
-                placeholder="AfroCrave Kitchen"/>
+                onChange={v=>setSettings(s=>({...s,kitchenName:v}))}/>
               <Input label="WhatsApp / Phone" value={settings.phone}
-                onChange={v=>setSettings(s=>({...s,phone:v}))}
-                placeholder="+44 7823 644323"/>
-              <Input label="Address / Location" value={settings.address}
-                onChange={v=>setSettings(s=>({...s,address:v}))}
-                placeholder="Sunderland, UK"/>
+                onChange={v=>setSettings(s=>({...s,phone:v}))}/>
+              <Input label="Address" value={settings.address}
+                onChange={v=>setSettings(s=>({...s,address:v}))}/>
               <Input label="Minimum order (£)" value={settings.minOrder}
                 onChange={v=>setSettings(s=>({...s,minOrder:v}))}
-                placeholder="15.00" type="number"
-                hint="Set to 0 for no minimum order"/>
-              <Input label="Estimated delivery time" value={settings.deliveryTime}
-                onChange={v=>setSettings(s=>({...s,deliveryTime:v}))}
-                placeholder="45–75 min"
-                hint="Shown to customers on the order page"/>
-              <Btn full v="green" onClick={async()=>{
+                type="number"/>
+              <Input label="Delivery time" value={settings.deliveryTime}
+                onChange={v=>setSettings(s=>({...s,deliveryTime:v}))}/>
+              <button onClick={async()=>{
                 setLoading(true);
-                const {error} = await supabase
-                  .from("kitchen_settings")
-                  .upsert({
-                    id:1,
-                    kitchen_name: settings.kitchenName,
-                    phone: settings.phone,
-                    address: settings.address,
-                    min_order: parseFloat(settings.minOrder)||0,
-                    delivery_time: settings.deliveryTime,
-                    updated_at: new Date().toISOString(),
-                  });
+                const {error}=await supabase.from("kitchen_settings").upsert({
+                  id:1, kitchen_name:settings.kitchenName,
+                  phone:settings.phone, address:settings.address,
+                  min_order:parseFloat(settings.minOrder)||0,
+                  delivery_time:settings.deliveryTime,
+                  updated_at:new Date().toISOString(),
+                });
                 setLoading(false);
-                if(!error) showToast("✅ Settings saved successfully");
-                else showToast("⚠️ Could not save — check connection");
-              }}>
-                <span style={{display:"flex",alignItems:"center",gap:8}}>
-                  <Check size={16}/>Save settings
-                </span>
-              </Btn>
-            </Card>
-
-            {/* Delivery zones */}
-            <Card style={{marginBottom:16}}>
-              <div style={{fontSize:18,fontWeight:800,color:B.text,marginBottom:14}}>
-                📍 Delivery zones
-              </div>
-              <div style={{fontSize:15,color:B.textMid,lineHeight:1.8,marginBottom:10}}>
-                <strong style={{color:B.text}}>Sunderland (all SR postcodes)</strong> — £5.00 flat fee<br/>
-                <strong style={{color:B.text}}>Outside Sunderland</strong> — £5.00 + £0.75/mile<br/>
-                <strong style={{color:B.text}}>Maximum charge</strong> — £15.00
-              </div>
-              <div style={{padding:"12px 14px",background:B.goldLight,borderRadius:10,
-                fontSize:13,color:B.gold,fontWeight:600}}>
-                💡 To change delivery pricing, WhatsApp Choma support
-              </div>
-            </Card>
+                if(!error) showToast("✅ Settings saved");
+                else showToast("⚠️ Could not save");
+              }}
+                style={{width:"100%",background:"#C96A1B",border:"none",
+                  borderRadius:12,padding:"13px",fontSize:14,fontWeight:800,
+                  color:"#fff",cursor:"pointer",fontFamily:"inherit",
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                <Check size={14}/>Save settings
+              </button>
+            </div>
 
             {/* Platform info */}
-            <Card style={{background:B.surface,borderColor:"transparent"}}>
-              <div style={{fontSize:14,fontWeight:700,color:B.textMid,
+            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+              borderRadius:14,padding:14}}>
+              <div style={{fontSize:12,fontWeight:800,color:"#A0968E",
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
                 Platform
               </div>
               {[
                 ["Platform","Choma"],
-                ["Kitchen","AfroCrave Kitchen"],
-                ["Plan","Starter"],
-                ["Support","WhatsApp: +44 7823 644323"],
-              ].map(([label,value])=>(
-                <div key={label} style={{display:"flex",justifyContent:"space-between",
-                  padding:"8px 0",borderBottom:`1px solid ${B.divider}`,fontSize:14}}>
-                  <span style={{color:B.textMid}}>{label}</span>
-                  <span style={{fontWeight:600,color:B.text}}>{value}</span>
+                ["Company","AfroCrave Kitchen Ltd"],
+                ["Co. No.","17119134"],
+                ["Role",role==="super"?"Super Admin":"Kitchen Admin"],
+              ].map(([l,v])=>(
+                <div key={l} style={{display:"flex",justifyContent:"space-between",
+                  padding:"8px 0",borderBottom:"1px solid #F0E8DC",fontSize:13}}>
+                  <span style={{color:"#6F655E"}}>{l}</span>
+                  <span style={{fontWeight:700,color:"#1F1A17"}}>{v}</span>
                 </div>
               ))}
-            </Card>
+            </div>
           </div>
         )}
-
       </div>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-// PRIVACY POLICY PAGE
-// ════════════════════════════════════════════════════════════════
+
 function PrivacyPolicy({ onBack }) {
   return (
     <div style={{minHeight:"100vh",background:B.bg,

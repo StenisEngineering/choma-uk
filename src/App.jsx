@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import React from "react";
 import { supabase } from "./supabase";
 import {
   ShoppingCart, ChefHat, Bike, MapPin, Lock,
@@ -168,7 +169,8 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
     danger: { background:B.redSoft, color:B.red, border:`1px solid ${B.red}30` },
   };
   return <button onClick={onClick} disabled={disabled}
-    style={{padding:"14px 20px",borderRadius:14,fontSize:15,fontWeight:700,border:"none",
+    style={{padding:"clamp(12px,3.5vw,16px) clamp(16px,4vw,22px)",borderRadius:14,
+      fontSize:"clamp(14px,3.8vw,16px)",fontWeight:700,border:"none",
       cursor:disabled?"not-allowed":"pointer",width:full?"100%":"auto",opacity:disabled?0.45:1,
       display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,
       boxSizing:"border-box",transition:"transform 0.1s,box-shadow 0.1s",letterSpacing:0.2,
@@ -179,13 +181,15 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
 
 function Input({ label, value, onChange, placeholder, type="text", hint }) {
   return <div style={{marginBottom:16}}>
-    {label&&<div style={{fontSize:13,fontWeight:700,color:B.textMid,marginBottom:6,
-      textTransform:"uppercase",letterSpacing:0.5}}>{label}</div>}
+    {label&&<div style={{fontSize:"clamp(12px,3vw,14px)",fontWeight:700,
+      color:B.textMid,marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>
+      {label}</div>}
     <input type={type} value={value} onChange={e=>onChange(e.target.value)}
       placeholder={placeholder}
-      style={{width:"100%",padding:"13px 15px",background:B.surface,
+      style={{width:"100%",padding:"14px 16px",background:B.surface,
         border:`1.5px solid ${B.border}`,borderRadius:12,color:B.text,
-        fontSize:16,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}
+        fontSize:"clamp(15px,4vw,17px)",outline:"none",boxSizing:"border-box",
+        fontFamily:"inherit"}}
       onFocus={e=>e.target.style.borderColor=B.primary}
       onBlur={e=>e.target.style.borderColor=B.border}/>
     {hint&&<div style={{fontSize:13,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
@@ -1438,7 +1442,8 @@ function CustomerPage({ onOrderPlaced }) {
           <Input label="Full name" value={info.name}
             onChange={v=>setInfo(i=>({...i,name:v}))} placeholder="Your full name"/>
           <Input label="Phone / WhatsApp (optional)" value={info.phone}
-            onChange={v=>setInfo(i=>({...i,phone:v}))} placeholder="+44 7xxx xxxxxx"
+            onChange={v=>setInfo(i=>({...i,phone:v.replace(/[^0-9+]/g,"")}))}
+            placeholder="+44 7xxx xxxxxx" type="tel"
             hint="Add your number to receive live WhatsApp updates on your order"/>
           <Input label="Email address" value={info.email}
             onChange={v=>setInfo(i=>({...i,email:v}))} placeholder="your@email.com"
@@ -1712,13 +1717,77 @@ function CustomerPage({ onOrderPlaced }) {
   );
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// NOTIFICATION BANNER
+// ════════════════════════════════════════════════════════════════
+function NotificationBanner({ notifications, onDismiss }) {
+  if (!notifications.length) return null;
+  return (
+    <div style={{position:"sticky",top:0,zIndex:200,width:"100%"}}>
+      {notifications.map((n,i)=>(
+        <div key={n.id} style={{
+          background: n.type==="order" ? "#1A52A0"
+            : n.type==="ready" ? "#C8960A"
+            : n.type==="delivered" ? "#1A6B3A"
+            : "#D4580A",
+          padding:"12px 16px",
+          display:"flex",alignItems:"center",justifyContent:"space-between",
+          gap:12,
+          borderBottom:"1px solid rgba(255,255,255,0.1)",
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:10,flex:1}}>
+            <div style={{fontSize:20,flexShrink:0}}>
+              {n.type==="order"?"🛒":n.type==="ready"?"✅":n.type==="delivered"?"🎉":"🔔"}
+            </div>
+            <div>
+              <div style={{fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.3}}>
+                {n.title}
+              </div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",marginTop:2}}>
+                {n.message}
+              </div>
+            </div>
+          </div>
+          <button onClick={()=>onDismiss(n.id)}
+            style={{background:"rgba(255,255,255,0.15)",border:"none",
+              borderRadius:8,width:28,height:28,cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              flexShrink:0,color:"#fff"}}>
+            <X size={14} color="#fff"/>
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // 2. COOK / KITCHEN DASHBOARD
 // ════════════════════════════════════════════════════════════════
 function CookDashboard() {
   const [orders,, fetchOrders] = useOrders();
-  const [sel, setSel] = useState(null);
-  const [tab, setTab] = useState("live");
+  const [sel,           setSel]           = useState(null);
+  const [tab,           setTab]           = useState("live");
+  const [notifications, setNotifications] = useState([]);
+  const prevOrderCount  = useRef(0);
+
+  // Watch for new orders and show notification
+  useEffect(()=>{
+    const newOrders = orders.filter(o=>o.status==="New");
+    if(newOrders.length > prevOrderCount.current && prevOrderCount.current >= 0){
+      const latest = newOrders[0];
+      if(latest){
+        setNotifications(prev=>[...prev, {
+          id: Date.now(),
+          type: "order",
+          title: `New order — ${latest.customer}`,
+          message: `${latest.items.length} item${latest.items.length!==1?"s":""} · ${fmt(latest.total)} · ${latest.postcode}`,
+        }].slice(-3)); // max 3 notifications
+      }
+    }
+    prevOrderCount.current = newOrders.length;
+  },[orders]);
   const [isOpen, setIsOpen] = useState(true);
 
   const NEXT = {"New":"Preparing","Preparing":"Ready","Ready":"Out for delivery","Out for delivery":"Delivered"};
@@ -1745,6 +1814,10 @@ function CookDashboard() {
   return (
     <div style={{height:"100%",background:B.bg,display:"flex",flexDirection:"column",
       overflow:"hidden",width:"100%"}}>
+      <NotificationBanner
+        notifications={notifications}
+        onDismiss={id=>setNotifications(prev=>prev.filter(n=>n.id!==id))}
+      />
       {/* Header */}
       <div style={{padding:"14px 16px 12px",background:B.card,
         borderBottom:`1px solid ${B.divider}`,flexShrink:0,width:"100%",
@@ -1905,6 +1978,20 @@ function RiderApp() {
   const available = orders.filter(o=>o.status==="Ready"&&!o.rider);
   const completed = orders.filter(o=>o.rider===RIDER&&o.status==="Delivered");
   const earnings  = completed.length * 4.50;
+  const [riderNotifs, setRiderNotifs] = useState([]);
+  const prevAvailable = useRef(0);
+
+  useEffect(()=>{
+    if(available.length > prevAvailable.current && prevAvailable.current >= 0){
+      setRiderNotifs(prev=>[...prev,{
+        id:Date.now(),
+        type:"ready",
+        title:"New delivery available!",
+        message:`${available[0]?.customer} · ${available[0]?.postcode} · £4.50 earning`,
+      }].slice(-3));
+    }
+    prevAvailable.current = available.length;
+  },[available]);
 
   const claim = async (o) => {
     await supabase.from("orders").update({rider_name:RIDER}).eq("id",o.id);
@@ -2064,6 +2151,10 @@ function RiderApp() {
   return (
     <div style={{background:B.bg,minHeight:"100%",display:"flex",flexDirection:"column",
       width:"100%",boxSizing:"border-box"}}>
+      <NotificationBanner
+        notifications={riderNotifs}
+        onDismiss={id=>setRiderNotifs(prev=>prev.filter(n=>n.id!==id))}
+      />
       {/* Header */}
       <div style={{padding:"14px 16px 12px",background:B.card,
         borderBottom:`1px solid ${B.border}`,flexShrink:0,width:"100%",

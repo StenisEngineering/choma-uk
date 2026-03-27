@@ -2145,9 +2145,11 @@ function CustomerPage({ onOrderPlaced }) {
       if(onOrderPlaced) onOrderPlaced();
       const res = await fetch("/api/create-checkout",{
         method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({orderId,amount:Math.round(total*100),
-          customerName:info.name,customerEmail:info.email,
-          description:`AfroCrave Kitchen — ${cartItems.map(i=>i.name).join(", ")}`,
+        body:JSON.stringify({
+          orderId,
+          items: cartItems.map(i=>({name:i.name,qty:i.qty,price:i.price})),
+          deliveryFee,
+          customerEmail: info.email||undefined,
         }),
       });
       const json = await res.json();

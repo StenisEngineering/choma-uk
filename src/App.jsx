@@ -3596,6 +3596,23 @@ function AdminPanel() {
                 </div>
               </div>
             )}
+
+            {/* Delete order */}
+            <button onClick={async()=>{
+              if(!window.confirm(`Delete order ${selOrder.id}? This cannot be undone.`)) return;
+              await supabase.from("orders").delete().eq("id",selOrder.id);
+              showToast("🗑️ Order deleted");
+              setSelOrder(null);
+              await loadAll();
+            }}
+              style={{width:"100%",background:"#FCECEA",
+                border:"1px solid #F0C4C0",borderRadius:12,
+                padding:"11px",fontSize:13,fontWeight:700,
+                color:"#B23A30",cursor:"pointer",fontFamily:"inherit",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+              <Trash2 size={14} color="#B23A30"/>
+              Delete this order
+            </button>
           </div>
         </div>
       )}
@@ -3688,14 +3705,56 @@ function AdminPanel() {
               </div>
             </div>
 
-            {orders.length===0&&(
-              <div style={{textAlign:"center",padding:"32px 20px",color:"#6F655E"}}>
-                No orders yet
-              </div>
-            )}
+            {/* Order filter tabs + Clear all */}
+            <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap",
+              alignItems:"center"}}>
+              {[
+                {id:"active",  label:"Active",   filter:o=>!["Delivered","Cancelled"].includes(o.status)},
+                {id:"archive", label:"Archive",  filter:o=>["Delivered","Cancelled"].includes(o.status)},
+                {id:"all",     label:"All",      filter:()=>true},
+              ].map(t=>(
+                <button key={t.id}
+                  onClick={()=>setSection("orders_"+t.id)}
+                  style={{padding:"5px 12px",borderRadius:20,fontSize:12,
+                    fontWeight:700,cursor:"pointer",border:"none",
+                    background:section==="orders_"+t.id||
+                      (t.id==="active"&&section==="orders")
+                      ?"#1F1A17":"#E9DDD0",
+                    color:section==="orders_"+t.id||
+                      (t.id==="active"&&section==="orders")
+                      ?"#fff":"#6F655E",
+                    fontFamily:"inherit"}}>
+                  {t.label} ({orders.filter(t.filter).length})
+                </button>
+              ))}
+              <button onClick={async()=>{
+                if(!window.confirm("Delete ALL orders? This is permanent and cannot be undone.")) return;
+                const {error} = await supabase.from("orders").delete().gt("id","");
+                if(!error){showToast("🗑️ All orders cleared");await loadAll();}
+                else showToast("⚠️ Error clearing orders");
+              }}
+                style={{marginLeft:"auto",padding:"5px 10px",borderRadius:20,
+                  fontSize:11,fontWeight:700,cursor:"pointer",
+                  background:"#FCECEA",border:"1px solid #F0C4C0",
+                  color:"#B23A30",fontFamily:"inherit"}}>
+                🗑️ Clear all
+              </button>
+            </div>
 
-            {orders.map(o=>(
-              <button key={o.id} onClick={()=>setSelOrder(o)}
+            {(() => {
+              const activeFilter = section==="orders_archive"
+                ? o=>["Delivered","Cancelled"].includes(o.status)
+                : section==="orders_all"
+                ? ()=>true
+                : o=>!["Delivered","Cancelled"].includes(o.status);
+              const filtered = orders.filter(activeFilter);
+              if(filtered.length===0) return (
+                <div style={{textAlign:"center",padding:"32px 20px",color:"#6F655E"}}>
+                  No orders here
+                </div>
+              );
+              return filtered.map(o=>(
+                <button key={o.id} onClick={()=>setSelOrder(o)}
                 style={{width:"100%",background:"#fff",
                   border:"1px solid #E9DDD0",borderRadius:12,
                   padding:"12px 14px",marginBottom:8,cursor:"pointer",
@@ -3723,7 +3782,8 @@ function AdminPanel() {
                   </div>
                 </div>
               </button>
-            ))}
+              ));
+            })()}
           </div>
         )}
 

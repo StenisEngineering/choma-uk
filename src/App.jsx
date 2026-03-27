@@ -182,21 +182,37 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
 }
 
 function Input({ label, value, onChange, placeholder, type="text", hint }) {
+  const inputMode = type==="tel"?"tel":type==="number"?"numeric":"text";
   return <div style={{marginBottom:16}}>
-    {label&&<div style={{fontSize:"clamp(14px,3.5vw,16px)",fontWeight:700,
+    {label&&<div style={{fontSize:"clamp(12px,3vw,13px)",fontWeight:700,
       color:B.textMid,marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>
       {label}</div>}
-    <input type={type} value={value} onChange={e=>onChange(e.target.value)}
+    <input
+      type={type}
+      inputMode={inputMode}
+      value={value}
+      onChange={e=>{
+        e.preventDefault();
+        onChange(e.target.value);
+      }}
       placeholder={placeholder}
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize={type==="email"?"none":"sentences"}
+      spellCheck="false"
       style={{width:"100%",padding:"14px 16px",background:B.surface,
         border:`1.5px solid ${B.border}`,borderRadius:12,color:B.text,
-        fontSize:"clamp(17px,4.2vw,19px)",outline:"none",boxSizing:"border-box",
-        fontFamily:"inherit"}}
-      onFocus={e=>e.target.style.borderColor=B.primary}
-      onBlur={e=>e.target.style.borderColor=B.border}/>
-    {hint&&<div style={{fontSize:14,color:B.textMid,marginTop:5,lineHeight:1.5}}>{hint}</div>}
+        fontSize:"clamp(15px,4vw,17px)",outline:"none",
+        boxSizing:"border-box",fontFamily:"inherit",
+        WebkitAppearance:"none",appearance:"none"}}
+      onFocus={e=>{e.target.style.borderColor=B.primary;}}
+      onBlur={e=>{e.target.style.borderColor=B.border;}}
+    />
+    {hint&&<div style={{fontSize:"clamp(11px,2.8vw,13px)",color:B.textMid,
+      marginTop:5,lineHeight:1.5}}>{hint}</div>}
   </div>;
 }
+
 
 function Section({ title, children, style={} }) {
   return <div style={{marginBottom:24,...style}}>
@@ -1273,6 +1289,7 @@ function CustomerPage({ onOrderPlaced }) {
   const [cart,        setCart]        = useState({});
   const [menuItems,   setMenuItems]   = useState([]);
   const [screen,      setScreen]      = useState("home");
+  const [history,     setHistory]     = useState(["home"]);
   const [catFilter,   setCatFilter]   = useState("All");
   const [search,      setSearch]      = useState("");
   const [info,        setInfo]        = useState({name:"",phone:"",email:"",address:"",postcode:"",note:""});
@@ -1281,6 +1298,34 @@ function CustomerPage({ onOrderPlaced }) {
   const [payStep,     setPayStep]     = useState("form");
   const [payError,    setPayError]    = useState("");
   const [showPrivacy, setShowPrivacy] = useState(false);
+
+  // Navigate with history tracking
+  const navigateTo = (newScreen) => {
+    setHistory(h=>[...h, newScreen]);
+    setScreen(newScreen);
+    window.history.pushState({screen:newScreen}, "", window.location.pathname);
+  };
+
+  const navigateBack = () => {
+    setHistory(h=>{
+      if(h.length <= 1) return h;
+      const newHistory = h.slice(0, -1);
+      setScreen(newHistory[newHistory.length-1]);
+      return newHistory;
+    });
+  };
+
+  // Intercept Android back button
+  useEffect(()=>{
+    const handlePop = (e) => {
+      e.preventDefault();
+      navigateBack();
+      window.history.pushState({}, "", window.location.pathname);
+    };
+    window.history.pushState({screen:"home"}, "", window.location.pathname);
+    window.addEventListener("popstate", handlePop);
+    return ()=>window.removeEventListener("popstate", handlePop);
+  },[]);
 
   useEffect(()=>{
     supabase.from("menu_items")
@@ -1341,7 +1386,7 @@ function CustomerPage({ onOrderPlaced }) {
         {id:"cart",  icon:<ShoppingCart size={22}/>, label:"Cart"},
         {id:"track", icon:<MapPin size={22}/>,       label:"Track"},
       ].map(t=>(
-        <button key={t.id} onClick={()=>setScreen(t.id)}
+        <button key={t.id} onClick={()=>navigateTo(t.id)}
           style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",
             gap:2,background:"none",border:"none",cursor:"pointer",
             color:screen===t.id?B.primary:B.textMid,transition:"color 0.15s",
@@ -1449,7 +1494,7 @@ function CustomerPage({ onOrderPlaced }) {
         marginTop:-20,position:"relative",zIndex:1,padding:"20px 16px 0"}}>
 
         {/* Primary CTA */}
-        <button onClick={()=>setScreen("menu")}
+        <button onClick={()=>navigateTo("menu")}
           style={{width:"100%",background:B.primary,border:"none",
             borderRadius:16,padding:"16px",fontSize:16,fontWeight:800,
             color:"#fff",cursor:"pointer",fontFamily:"inherit",
@@ -1467,7 +1512,7 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             {categories.filter(c=>c!=="All").map(cat=>(
-              <button key={cat} onClick={()=>{setCatFilter(cat);setScreen("menu");}}
+              <button key={cat} onClick={()=>{setCatFilter(cat);navigateTo("menu");}}
                 style={{background:B.bg,border:`1.5px solid ${B.border}`,
                   borderRadius:16,padding:"16px 12px",
                   display:"flex",flexDirection:"column",alignItems:"center",gap:8,
@@ -1492,7 +1537,7 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{fontSize:15,fontWeight:800,color:B.text}}>
                 ⭐ Chef's Picks
               </div>
-              <button onClick={()=>setScreen("menu")}
+              <button onClick={()=>navigateTo("menu")}
                 style={{fontSize:13,fontWeight:700,color:B.primary,
                   background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>
                 See all →
@@ -1581,7 +1626,7 @@ function CustomerPage({ onOrderPlaced }) {
           {count>0&&(
             <div style={{background:B.primary,borderRadius:20,
               padding:"5px 12px",display:"flex",alignItems:"center",gap:5,
-              cursor:"pointer"}} onClick={()=>setScreen("cart")}>
+              cursor:"pointer"}} onClick={()=>navigateTo("cart")}>
               <ShoppingCart size={13} color="#fff"/>
               <span style={{fontSize:12,fontWeight:800,color:"#fff"}}>{count}</span>
             </div>
@@ -1735,7 +1780,7 @@ function CustomerPage({ onOrderPlaced }) {
         <div style={{position:"fixed",bottom:66,left:"50%",
           transform:"translateX(-50%)",
           width:"calc(100% - 32px)",maxWidth:528,zIndex:150}}>
-          <button onClick={()=>setScreen("cart")}
+          <button onClick={()=>navigateTo("cart")}
             style={{width:"100%",background:B.primary,border:"none",
               borderRadius:16,padding:"14px 20px",
               display:"flex",alignItems:"center",justifyContent:"space-between",
@@ -1765,7 +1810,7 @@ function CustomerPage({ onOrderPlaced }) {
         position:"sticky",top:0,zIndex:100,
         width:"100%",boxSizing:"border-box"}}>
         <div style={{fontSize:20,fontWeight:900,color:B.text}}>Your order</div>
-        <button onClick={()=>setScreen("menu")}
+        <button onClick={()=>navigateTo("menu")}
           style={{fontSize:13,fontWeight:700,color:B.primary,
             background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>
           + Add items
@@ -1782,7 +1827,7 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{fontSize:14,color:B.textMid,marginBottom:20}}>
               Add some delicious Nigerian food
             </div>
-            <button onClick={()=>setScreen("menu")}
+            <button onClick={()=>navigateTo("menu")}
               style={{background:B.primary,border:"none",borderRadius:14,
                 padding:"13px 28px",fontSize:15,fontWeight:800,color:"#fff",
                 cursor:"pointer",fontFamily:"inherit"}}>
@@ -1873,7 +1918,7 @@ function CustomerPage({ onOrderPlaced }) {
             )}
 
             {/* CTA — McDonald's bold single button */}
-            <button onClick={()=>setScreen("checkout")}
+            <button onClick={()=>navigateTo("checkout")}
               disabled={subtotal<15}
               style={{width:"100%",
                 background:subtotal>=15?B.primary:"#D8CBBE",
@@ -1901,7 +1946,7 @@ function CustomerPage({ onOrderPlaced }) {
         borderBottom:`1px solid ${B.border}`,
         display:"flex",alignItems:"center",gap:10,
         position:"sticky",top:0,zIndex:100}}>
-        <button onClick={()=>setScreen("cart")}
+        <button onClick={()=>navigateTo("cart")}
           style={{background:"none",border:"none",cursor:"pointer",
             display:"flex",alignItems:"center",color:B.primary,padding:0}}>
           <ChevronLeft size={24}/>
@@ -2017,7 +2062,7 @@ function CustomerPage({ onOrderPlaced }) {
           </span>
         </div>
 
-        <button onClick={()=>setScreen("payment")}
+        <button onClick={()=>navigateTo("payment")}
           disabled={!info.name||!info.postcode||!delivery?.available||!gdpr}
           style={{width:"100%",
             background:info.name&&info.postcode&&delivery?.available&&gdpr
@@ -2137,7 +2182,7 @@ function CustomerPage({ onOrderPlaced }) {
           borderBottom:`1px solid ${B.border}`,
           display:"flex",alignItems:"center",gap:10,
           position:"sticky",top:0,zIndex:100}}>
-          <button onClick={()=>setScreen("checkout")}
+          <button onClick={()=>navigateTo("checkout")}
             style={{background:"none",border:"none",cursor:"pointer",
               display:"flex",alignItems:"center",color:B.primary,padding:0}}>
             <ChevronLeft size={24}/>

@@ -2002,12 +2002,12 @@ function CustomerPage({ onOrderPlaced }) {
             Your details
           </div>
           {[
-            {id:"name",    label:"Full name",                 type:"text",  placeholder:"Your full name",           hint:""},
-            {id:"email",   label:"Email address",             type:"email", placeholder:"your@email.com",           hint:"Order confirmation sent here"},
-            {id:"phone",   label:"Phone / WhatsApp (optional)",type:"tel",  placeholder:"+44 7xxx xxxxxx",          hint:"Add for live WhatsApp updates"},
-            {id:"postcode",label:"Postcode",                  type:"text",  placeholder:"SR1 1AA",                  hint:delivery?`✓ ${delivery.label}`:"Enter postcode to see delivery fee"},
-            {id:"address", label:"Delivery address",          type:"text",  placeholder:"Full delivery address",    hint:""},
-            {id:"note",    label:"Order notes (optional)",    type:"text",  placeholder:"Any special requests",     hint:""},
+            {id:"name",    label:"Full name *",                type:"text",  placeholder:"Your full name",           hint:"",            required:true,  validate:null},
+            {id:"email",   label:"Email address",              type:"email", placeholder:"your@email.com",           hint:"Confirmation sent here", required:false, validate:/^[^@]+@[^@]+\.[^@]+$/},
+            {id:"phone",   label:"Phone / WhatsApp (optional)",type:"tel",   placeholder:"+44 7xxx xxxxxx",          hint:"For live delivery updates", required:false, validate:null},
+            {id:"postcode",label:"Postcode *",                 type:"text",  placeholder:"SR1 1AA",                  hint:delivery?`✓ ${delivery.label}`:"Enter postcode to see delivery fee", required:true, validate:null},
+            {id:"address", label:"Delivery address *",         type:"text",  placeholder:"Full delivery address",    hint:"",            required:true,  validate:null},
+            {id:"note",    label:"Order notes (optional)",     type:"text",  placeholder:"Any special requests",     hint:"",            required:false, validate:null},
           ].map(f=>(
             <div key={f.id} style={{marginBottom:14}}>
               <div style={{fontSize:12,fontWeight:700,color:B.textMid,
@@ -2015,25 +2015,33 @@ function CustomerPage({ onOrderPlaced }) {
                 {f.label}
               </div>
               <input
-                id={`checkout-${f.id}`}
+                id={`field-${f.id}`}
                 name={f.id}
                 type={f.type}
-                inputMode={f.type==="tel"?"tel":f.type==="email"?"email":"text"}
+                inputMode={f.id==="phone"?"tel":f.id==="postcode"?"text":f.type==="email"?"email":"text"}
                 defaultValue={info[f.id]||""}
                 placeholder={f.placeholder}
-                autoComplete={f.id==="email"?"email":f.id==="name"?"name":"off"}
+                autoComplete={f.id==="email"?"email":f.id==="name"?"name":f.id==="postcode"?"postal-code":f.id==="address"?"street-address":"off"}
                 autoCorrect="off"
-                autoCapitalize={f.type==="email"?"none":"off"}
+                autoCapitalize={f.type==="email"||f.id==="phone"?"none":"sentences"}
                 spellCheck="false"
                 onBlur={e=>{
-                  e.target.style.borderColor=B.border;
-                  const val = f.id==="postcode"
-                    ? e.target.value.toUpperCase()
-                    : f.id==="phone"
-                    ? e.target.value.replace(/[^0-9+]/g,"")
-                    : e.target.value;
+                  let val = e.target.value;
+                  // Sanitise
+                  if(f.id==="postcode") val = val.toUpperCase().trim();
+                  if(f.id==="phone")    val = val.replace(/[^0-9+\s\-()]/g,"");
+                  e.target.value = val;
+                  // Validate
+                  let err = "";
+                  if(f.required && !val.trim()) err = `${f.label.replace(" *","")} is required`;
+                  if(f.validate && val && !f.validate.test(val)) err = "Please enter a valid email address";
+                  if(f.id==="phone" && val && !/^[0-9+]/.test(val)) err = "Phone must start with a number or +";
+                  // Show error
+                  const errEl = document.getElementById(`err-${f.id}`);
+                  if(errEl) errEl.textContent = err;
+                  e.target.style.borderColor = err ? B.red : B.border;
+                  // Save to state
                   setInfo(i=>({...i,[f.id]:val}));
-                  if(f.id==="postcode") e.target.value=val;
                 }}
                 style={{
                   width:"100%",padding:"14px 16px",
@@ -2042,15 +2050,24 @@ function CustomerPage({ onOrderPlaced }) {
                   borderRadius:12,color:B.text,
                   fontSize:16,outline:"none",
                   boxSizing:"border-box",
-                  fontFamily:"'Plus Jakarta Sans','Segoe UI',sans-serif",
+                  fontFamily:"inherit",
                   WebkitAppearance:"none",appearance:"none",
                   touchAction:"manipulation",
                   display:"block",
                 }}
-                onFocus={e=>{e.target.style.borderColor=B.primary;}}
+                onFocus={e=>{
+                  e.target.style.borderColor=B.primary;
+                  const errEl=document.getElementById(`err-${f.id}`);
+                  if(errEl) errEl.textContent="";
+                }}
               />
-              {f.hint&&(
-                <div style={{fontSize:12,color:B.textMid,marginTop:4}}>
+              {/* Inline error message */}
+              <div id={`err-${f.id}`}
+                style={{fontSize:12,color:B.red,marginTop:4,
+                  fontWeight:600,minHeight:0}}/>
+              {f.hint&&!info[f.id]&&(
+                <div style={{fontSize:12,color:B.textMid,marginTop:2,
+                  lineHeight:1.4}}>
                   {f.hint}
                 </div>
               )}
@@ -2110,15 +2127,51 @@ function CustomerPage({ onOrderPlaced }) {
           </span>
         </div>
 
-        <button onClick={()=>navigateTo("payment")}
-          disabled={!info.name||!info.postcode||!delivery?.available||!gdpr}
+        <button onClick={()=>{
+            const fields=["name","email","phone","postcode","address","note"];
+            const collected={};
+            let hasErrors=false;
+            fields.forEach(f=>{
+              const el=document.getElementById(`field-${f}`);
+              if(!el) return;
+              let val=el.value.trim();
+              if(f==="postcode") val=val.toUpperCase();
+              if(f==="phone")    val=val.replace(/[^0-9+\s]/g,"");
+              el.value=val;
+              collected[f]=val;
+              const errEl=document.getElementById(`err-${f}`);
+              const required=["name","postcode","address"];
+              if(required.includes(f)&&!val){
+                if(errEl) errEl.textContent=f.charAt(0).toUpperCase()+f.slice(1)+" is required";
+                el.style.borderColor=B.red;
+                hasErrors=true;
+              } else if(f==="email"&&val&&!val.includes("@")){
+                if(errEl) errEl.textContent="Please enter a valid email address";
+                el.style.borderColor=B.red;
+                hasErrors=true;
+              } else if(f==="phone"&&val&&!/^[0-9+]/.test(val)){
+                if(errEl) errEl.textContent="Phone must contain numbers only";
+                el.style.borderColor=B.red;
+                hasErrors=true;
+              }
+            });
+            if(hasErrors) return;
+            if(!delivery?.available){
+              const el=document.getElementById("field-postcode");
+              const errEl=document.getElementById("err-postcode");
+              if(errEl) errEl.textContent="Please enter a valid UK postcode";
+              if(el) el.style.borderColor=B.red;
+              return;
+            }
+            setInfo(i=>({...i,...collected}));
+            setTimeout(()=>navigateTo("payment"),80);
+          }}
+          disabled={!gdpr}
           style={{width:"100%",
-            background:info.name&&info.postcode&&delivery?.available&&gdpr
-              ?B.primary:"#D8CBBE",
+            background:gdpr?B.primary:"#D8CBBE",
             border:"none",borderRadius:16,padding:"16px",
             fontSize:15,fontWeight:800,color:"#fff",
-            cursor:info.name&&info.postcode&&delivery?.available&&gdpr
-              ?"pointer":"not-allowed",
+            cursor:gdpr?"pointer":"not-allowed",
             fontFamily:"inherit",marginBottom:20}}>
           Continue to payment →
         </button>

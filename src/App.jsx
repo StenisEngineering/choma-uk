@@ -45,8 +45,8 @@ const B = {
   // WhatsApp
   wa:           "#25D366",
   // Kitchen number
-  kitchenPhone: "447823644323",
-  kitchenWA:    "447823644323",
+  kitchenPhone: import.meta.env.VITE_KITCHEN_WA||"447823644323",
+  kitchenWA:    import.meta.env.VITE_KITCHEN_WA||"447823644323",
 };
 
 const fmt = n => "£" + Number(n).toFixed(2);
@@ -549,10 +549,10 @@ function SplashScreen({ onDone }) {
 // STAFF APP — One URL /staff with role selector
 // ════════════════════════════════════════════════════════════════
 const PASSWORDS = {
-  kitchen: "|tislife2026|",
-  rider:   "|funtoride26|",
-  manager: "|favour2026|",
-  admin:   "|willsucc££d2026",
+  kitchen: import.meta.env.VITE_PASS_KITCHEN,
+  rider:   import.meta.env.VITE_PASS_RIDER,
+  manager: import.meta.env.VITE_PASS_MANAGER,
+  admin:   import.meta.env.VITE_PASS_ADMIN,
 };
 
 const ROLES = [
@@ -3203,8 +3203,8 @@ function TrackingPage() {
 // ADMIN PANEL
 // ════════════════════════════════════════════════════════════════
 // Passwords defined in StaffApp
-const ADMIN_PASS  = "|willsucc££d2026";
-const KITCHEN_PASS = "|tislife2026|";
+const ADMIN_PASS  = import.meta.env.VITE_PASS_ADMIN;
+const KITCHEN_PASS = import.meta.env.VITE_PASS_KITCHEN;
 
 function AdminPanel() {
   const [authed,    setAuthed]    = useState(false);

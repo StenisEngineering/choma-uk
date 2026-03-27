@@ -1994,33 +1994,68 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
         </div>
 
-        {/* Form */}
+        {/* Form - uncontrolled inputs to prevent mobile focus loss */}
         <div style={{background:B.surface,border:`1px solid ${B.border}`,
           borderRadius:16,padding:14,marginBottom:14}}>
           <div style={{fontSize:12,fontWeight:800,color:B.textMid,
             textTransform:"uppercase",letterSpacing:0.5,marginBottom:12}}>
             Your details
           </div>
-          <Input label="Full name" value={info.name}
-            onChange={v=>setInfo(i=>({...i,name:v}))} placeholder="Your full name"/>
-          <Input label="Email address" value={info.email}
-            onChange={v=>setInfo(i=>({...i,email:v}))}
-            placeholder="your@email.com" type="email"
-            hint="Order confirmation sent here"/>
-          <Input label="Phone / WhatsApp (optional)" value={info.phone}
-            onChange={v=>setInfo(i=>({...i,phone:v.replace(/[^0-9+]/g,"")}))}
-            placeholder="+44 7xxx xxxxxx" type="tel"
-            hint="Add for live WhatsApp updates"/>
-          <Input label="Postcode" value={info.postcode}
-            onChange={v=>setInfo(i=>({...i,postcode:v.toUpperCase()}))}
-            placeholder="SR1 1AA"
-            hint={delivery?`✓ ${delivery.label}`:"Enter postcode to calculate delivery fee"}/>
-          <Input label="Delivery address" value={info.address}
-            onChange={v=>setInfo(i=>({...i,address:v}))}
-            placeholder="Full delivery address"/>
-          <Input label="Order notes (optional)" value={info.note}
-            onChange={v=>setInfo(i=>({...i,note:v}))}
-            placeholder="Any special requests or instructions"/>
+          {[
+            {id:"name",    label:"Full name",                 type:"text",  placeholder:"Your full name",           hint:""},
+            {id:"email",   label:"Email address",             type:"email", placeholder:"your@email.com",           hint:"Order confirmation sent here"},
+            {id:"phone",   label:"Phone / WhatsApp (optional)",type:"tel",  placeholder:"+44 7xxx xxxxxx",          hint:"Add for live WhatsApp updates"},
+            {id:"postcode",label:"Postcode",                  type:"text",  placeholder:"SR1 1AA",                  hint:delivery?`✓ ${delivery.label}`:"Enter postcode to see delivery fee"},
+            {id:"address", label:"Delivery address",          type:"text",  placeholder:"Full delivery address",    hint:""},
+            {id:"note",    label:"Order notes (optional)",    type:"text",  placeholder:"Any special requests",     hint:""},
+          ].map(f=>(
+            <div key={f.id} style={{marginBottom:14}}>
+              <div style={{fontSize:12,fontWeight:700,color:B.textMid,
+                marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>
+                {f.label}
+              </div>
+              <input
+                id={`checkout-${f.id}`}
+                name={f.id}
+                type={f.type}
+                inputMode={f.type==="tel"?"tel":f.type==="email"?"email":"text"}
+                defaultValue={info[f.id]||""}
+                placeholder={f.placeholder}
+                autoComplete={f.id==="email"?"email":f.id==="name"?"name":"off"}
+                autoCorrect="off"
+                autoCapitalize={f.type==="email"?"none":"off"}
+                spellCheck="false"
+                onBlur={e=>{
+                  e.target.style.borderColor=B.border;
+                  const val = f.id==="postcode"
+                    ? e.target.value.toUpperCase()
+                    : f.id==="phone"
+                    ? e.target.value.replace(/[^0-9+]/g,"")
+                    : e.target.value;
+                  setInfo(i=>({...i,[f.id]:val}));
+                  if(f.id==="postcode") e.target.value=val;
+                }}
+                style={{
+                  width:"100%",padding:"14px 16px",
+                  background:"#fff",
+                  border:`1.5px solid ${B.border}`,
+                  borderRadius:12,color:B.text,
+                  fontSize:16,outline:"none",
+                  boxSizing:"border-box",
+                  fontFamily:"'Plus Jakarta Sans','Segoe UI',sans-serif",
+                  WebkitAppearance:"none",appearance:"none",
+                  touchAction:"manipulation",
+                  display:"block",
+                }}
+                onFocus={e=>{e.target.style.borderColor=B.primary;}}
+              />
+              {f.hint&&(
+                <div style={{fontSize:12,color:B.textMid,marginTop:4}}>
+                  {f.hint}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Delivery fee */}

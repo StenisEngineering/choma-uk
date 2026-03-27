@@ -183,18 +183,25 @@ function Btn({ children, onClick, v="primary", full=false, style={}, disabled=fa
 
 function Input({ label, value, onChange, placeholder, type="text", hint }) {
   const inputMode = type==="tel"?"tel":type==="number"?"numeric":"text";
+  const ref = useRef(null);
+
+  // Sync external value to DOM only when it differs — prevents cursor jump
+  useEffect(()=>{
+    if(ref.current && document.activeElement !== ref.current){
+      ref.current.value = value||"";
+    }
+  },[value]);
+
   return <div style={{marginBottom:16}}>
-    {label&&<div style={{fontSize:"clamp(12px,3vw,13px)",fontWeight:700,
+    {label&&<div style={{fontSize:13,fontWeight:700,
       color:B.textMid,marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>
       {label}</div>}
     <input
+      ref={ref}
       type={type}
       inputMode={inputMode}
-      value={value}
-      onChange={e=>{
-        e.preventDefault();
-        onChange(e.target.value);
-      }}
+      defaultValue={value||""}
+      onChange={e=>onChange(e.target.value)}
       placeholder={placeholder}
       autoComplete="off"
       autoCorrect="off"
@@ -202,13 +209,17 @@ function Input({ label, value, onChange, placeholder, type="text", hint }) {
       spellCheck="false"
       style={{width:"100%",padding:"14px 16px",background:B.surface,
         border:`1.5px solid ${B.border}`,borderRadius:12,color:B.text,
-        fontSize:"clamp(15px,4vw,17px)",outline:"none",
+        fontSize:16,outline:"none",
         boxSizing:"border-box",fontFamily:"inherit",
-        WebkitAppearance:"none",appearance:"none"}}
+        WebkitAppearance:"none",appearance:"none",
+        touchAction:"manipulation"}}
       onFocus={e=>{e.target.style.borderColor=B.primary;}}
-      onBlur={e=>{e.target.style.borderColor=B.border;}}
+      onBlur={e=>{
+        e.target.style.borderColor=B.border;
+        onChange(e.target.value);
+      }}
     />
-    {hint&&<div style={{fontSize:"clamp(11px,2.8vw,13px)",color:B.textMid,
+    {hint&&<div style={{fontSize:12,color:B.textMid,
       marginTop:5,lineHeight:1.5}}>{hint}</div>}
   </div>;
 }
@@ -1317,8 +1328,7 @@ function CustomerPage({ onOrderPlaced }) {
 
   // Intercept Android back button
   useEffect(()=>{
-    const handlePop = (e) => {
-      e.preventDefault();
+    const handlePop = () => {
       navigateBack();
       window.history.pushState({}, "", window.location.pathname);
     };
@@ -1363,12 +1373,15 @@ function CustomerPage({ onOrderPlaced }) {
   };
 
   useEffect(()=>{
-    if(!info.postcode) return;
-    const pc=info.postcode.toUpperCase().replace(/\s/g,"");
-    if(/^SR[1-6]/.test(pc))
-      setDelivery({fee:5.00,zone:"Sunderland",available:true,label:"£5.00 flat fee"});
-    else if(pc.length>=3)
-      setDelivery({fee:7.50,zone:"Northeast",available:true,label:"£7.50"});
+    if(!info.postcode||info.postcode.length<3) return;
+    const timer = setTimeout(()=>{
+      const pc=info.postcode.toUpperCase().replace(/\s/g,"");
+      if(/^SR[1-6]/.test(pc))
+        setDelivery({fee:5.00,zone:"Sunderland",available:true,label:"£5.00 flat fee"});
+      else if(pc.length>=5)
+        setDelivery({fee:7.50,zone:"Northeast",available:true,label:"£7.50"});
+    }, 400);
+    return ()=>clearTimeout(timer);
   },[info.postcode]);
 
   if(showPrivacy) return <PrivacyPolicy onBack={()=>setShowPrivacy(false)}/>;

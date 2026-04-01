@@ -16,12 +16,12 @@ import {
 
 // ─── AfroCrave Kitchen Brand Tokens ───────────────────────────
 const B = {
-  // Premium AfroCrave palette
-  primary:      "#C96A1B",   // burnt orange
+  // AfroCrave premium palette — polished
+  primary:      "#B85C16",   // deepened burnt orange
   primaryLight: "#FFF1E2",
-  primaryDark:  "#A95412",
-  gold:         "#E7A93B",   // golden amber
-  goldLight:    "#FEF9EC",
+  primaryDark:  "#8F4711",
+  gold:         "#D99A2B",   // refined golden amber
+  goldLight:    "#FEF8E8",
   green:        "#2E7D32",
   greenSoft:    "#EAF6EC",
   red:          "#B23A30",
@@ -30,18 +30,18 @@ const B = {
   blueSoft:     "#E8EEF8",
   purple:       "#5C3D9A",
   purpleSoft:   "#F0ECF8",
-  dark:         "#5A3418",   // cocoa brown
+  dark:         "#4A2A14",   // deepened cocoa brown
   // Neutrals — warm cream base
   bg:           "#FFF8F1",
   card:         "#FFFFFF",
   cardWarm:     "#FFFDF8",
-  border:       "#E9DDD0",
+  border:       "#E6D8C8",
   surface:      "#FFFDF9",
-  divider:      "#F0E8DC",
-  // Text — warm brown tones
+  divider:      "#EEE4D7",
+  // Text
   text:         "#1F1A17",
-  textMid:      "#6F655E",
-  textDim:      "#A0968E",
+  textMid:      "#665C55",
+  textDim:      "#978C84",
   // WhatsApp
   wa:           "#25D366",
   // Kitchen number
@@ -153,7 +153,7 @@ function Card({ children, onClick, style={} }) {
   return <div onClick={onClick} style={{background:B.card,border:`1px solid ${B.border}`,
     borderRadius:18,padding:"16px 18px",cursor:onClick?"pointer":"default",
     transition:"box-shadow 0.15s,transform 0.1s",...style}}
-    onMouseEnter={e=>{if(onClick){e.currentTarget.style.boxShadow="0 6px 24px rgba(212,88,10,0.12)";e.currentTarget.style.transform="translateY(-1px)";}}}
+    onMouseEnter={e=>{if(onClick){e.currentTarget.style.boxShadow="0 6px 24px rgba(74,42,20,0.15)";e.currentTarget.style.transform="translateY(-1px)";}}}
     onMouseLeave={e=>{if(onClick){e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="translateY(0)";}}}>
     {children}
   </div>;
@@ -284,7 +284,7 @@ function OrderSuccessPage({ orderId, onDone }) {
   return (
     <div style={{minHeight:"100vh",background:B.bg,overflowY:"auto"}}>
       {/* Header */}
-      <div style={{background:`linear-gradient(135deg,#1A0C04,#2D1508,#5A3418)`,
+      <div style={{background:`linear-gradient(135deg,#100802,#261204,#3A1808)`,
         padding:"40px 24px 32px",textAlign:"center",color:"#fff"}}>
         <div style={{width:80,height:80,borderRadius:"50%",background:"rgba(255,255,255,0.2)",
           display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,
@@ -305,7 +305,7 @@ function OrderSuccessPage({ orderId, onDone }) {
       <div style={{maxWidth:520,margin:"0 auto",padding:"24px 20px 40px"}}>
         {/* ETA block */}
         <div style={{
-          background:`linear-gradient(135deg,${B.primaryLight},#FEF9EC)`,
+          background:`linear-gradient(135deg,${B.primaryLight},#FEF8E8)`,
           border:`1px solid ${B.primary}20`,borderRadius:16,
           padding:"14px 18px",marginBottom:16,
           display:"flex",alignItems:"center",gap:14}}>
@@ -491,7 +491,7 @@ function SplashScreen({ onDone }) {
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:9999,
-      background:"linear-gradient(160deg, #5A3418 0%, #5A3418 55%, #8A4510 100%)",
+      background:"linear-gradient(160deg, #4A2A14 0%, #4A2A14 55%, #8A4510 100%)",
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
       transition:"opacity 0.6s ease",
@@ -502,7 +502,7 @@ function SplashScreen({ onDone }) {
       <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,
         borderRadius:"50%",background:"rgba(255,255,255,0.03)"}}/>
       <div style={{position:"absolute",bottom:-80,left:-40,width:200,height:200,
-        borderRadius:"50%",background:"rgba(212,88,10,0.12)"}}/>
+        borderRadius:"50%",background:"rgba(74,42,20,0.15)"}}/>
 
       {/* Logo */}
       <div style={{position:"relative",zIndex:1,textAlign:"center"}}>
@@ -607,7 +607,7 @@ function StaffApp() {
   if (step === "role") return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#5A3418 0%,#3D1A06 40%,#5A3418 80%,#5A3418 100%)",
+      background:"linear-gradient(170deg,#4A2A14 0%,#3D1A06 40%,#4A2A14 80%,#4A2A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"24px",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
@@ -692,7 +692,7 @@ function StaffApp() {
   if (step === "password") return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#5A3418 0%,#3D1A06 40%,#5A3418 80%,#5A3418 100%)",
+      background:"linear-gradient(170deg,#4A2A14 0%,#3D1A06 40%,#4A2A14 80%,#4A2A14 100%)",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"24px",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       boxSizing:"border-box",
@@ -770,7 +770,7 @@ function StaffApp() {
           <button onClick={login} disabled={!password}
             style={{
               width:"100%",
-              background:password?"linear-gradient(135deg,#E05A0A,#E7A93B)":"rgba(255,255,255,0.1)",
+              background:password?"linear-gradient(135deg,#E05A0A,#D99A2B)":"rgba(255,255,255,0.1)",
               border:"none",borderRadius:14,padding:"14px",
               fontSize:16,fontWeight:700,
               color:password?"#fff":"rgba(255,255,255,0.3)",
@@ -822,7 +822,7 @@ function StaffApp() {
       flexDirection:"column",fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif",
       width:"100%"}}>
       {/* Staff nav bar */}
-      <div style={{background:"#5A3418",padding:"10px 16px",
+      <div style={{background:"#4A2A14",padding:"10px 16px",
         flexShrink:0,position:"sticky",top:0,zIndex:100,
         boxShadow:"0 2px 8px rgba(90,52,24,0.3)"}}>
         <div style={{display:"flex",alignItems:"center",
@@ -868,7 +868,7 @@ function StaffApp() {
               {t.label}
               {(t.badge||0)>0&&(
                 <span style={{position:"absolute",top:-4,right:-2,width:18,height:18,
-                  borderRadius:9,background:"#E7A93B",color:"#fff",fontSize:16,
+                  borderRadius:9,background:"#D99A2B",color:"#fff",fontSize:16,
                   fontWeight:800,display:"flex",alignItems:"center",
                   justifyContent:"center"}}>
                   {t.badge}
@@ -883,7 +883,7 @@ function StaffApp() {
         {view==="cook"     && <CookDashboard/>}
         {view==="rider"    && <RiderApp/>}
         {view==="tracking" && <TrackingPage/>}
-        {view==="admin"    && role.id==="admin" && <AdminPanel/>}
+        {view==="admin"    && role.id==="admin" && <AdminPanel fromStaff={true}/>}
       </div>
     </div>
   );
@@ -948,11 +948,11 @@ export default function AfroCraveApp() {
     <div style={{minHeight:"100vh",background:B.bg,
       fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
       <div style={{background:"#fff",padding:"10px 16px",
-        borderBottom:"1px solid #E9DDD0",display:"flex",
+        borderBottom:"1px solid #E6D8C8",display:"flex",
         alignItems:"center",gap:10}}>
         <button onClick={()=>setPage("landing")}
           style={{background:"none",border:"none",cursor:"pointer",
-            fontSize:22,color:"#C96A1B",padding:"0 4px",lineHeight:1}}>‹</button>
+            fontSize:22,color:"#B85C16",padding:"0 4px",lineHeight:1}}>‹</button>
         <div style={{fontSize:16,fontWeight:700,color:"#1F1A17"}}>Track your order</div>
       </div>
       <TrackingPage/>
@@ -1040,7 +1040,7 @@ function LandingPage({ onOrder, onTrack }) {
   return (
     <div style={{
       minHeight:"100vh",
-      background:"linear-gradient(170deg,#5A3418 0%,#3D1A06 40%,#5A3418 80%,#5A3418 100%)",
+      background:"linear-gradient(170deg,#4A2A14 0%,#3D1A06 40%,#4A2A14 80%,#4A2A14 100%)",
       display:"flex",
       flexDirection:"column",
       alignItems:"center",
@@ -1053,7 +1053,7 @@ function LandingPage({ onOrder, onTrack }) {
     }}>
       {/* Decorative glows */}
       <div style={{position:"absolute",top:"-60px",right:"-60px",width:"200px",height:"200px",
-        borderRadius:"50%",background:"rgba(212,88,10,0.10)",pointerEvents:"none"}}/>
+        borderRadius:"50%",background:"rgba(74,42,20,0.15)",pointerEvents:"none"}}/>
       <div style={{position:"absolute",bottom:"60px",left:"-50px",width:"160px",height:"160px",
         borderRadius:"50%",background:"rgba(200,150,10,0.07)",pointerEvents:"none"}}/>
 
@@ -1198,7 +1198,7 @@ function LandingPage({ onOrder, onTrack }) {
         {/* Primary CTA */}
         <button onClick={onOrder} style={{
           width:"100%",
-          background:"linear-gradient(135deg,#E05A0A,#E7A93B)",
+          background:"linear-gradient(135deg,#E05A0A,#D99A2B)",
           border:"none",
           borderRadius:"16px",
           padding:"clamp(13px,3.5vw,16px)",
@@ -1207,7 +1207,7 @@ function LandingPage({ onOrder, onTrack }) {
           color:"#fff",
           cursor:"pointer",
           letterSpacing:"0.3px",
-          boxShadow:"0 6px 20px rgba(212,88,10,0.45)",
+          boxShadow:"0 6px 20px rgba(74,42,20,0.15)",
           fontFamily:"inherit",
         }}>
           Start your order →
@@ -1451,7 +1451,7 @@ function CustomerPage({ onOrderPlaced }) {
   if(screen==="home") return (
     <Wrap>
       {/* Full-bleed hero */}
-      <div style={{background:`linear-gradient(160deg,#1A0C04 0%,#3D1A06 50%,#5A3418 100%)`,
+      <div style={{background:`linear-gradient(160deg,#100802 0%,#261204 40%,#3A1808 70%,#4A2A14 100%)`,
         padding:"20px 16px 36px",color:"#fff",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,
           borderRadius:"50%",background:"rgba(231,169,59,0.08)"}}/>
@@ -1467,7 +1467,7 @@ function CustomerPage({ onOrderPlaced }) {
               <div style={{fontSize:15,fontWeight:800,color:"#fff",lineHeight:1.2}}>
                 AfroCrave Kitchen
               </div>
-              <div style={{fontSize:10,color:"#E7A93B",fontWeight:700,letterSpacing:0.5}}>
+              <div style={{fontSize:10,color:"#D99A2B",fontWeight:700,letterSpacing:0.5}}>
                 AUTHENTIC NIGERIAN HOME COOKING
               </div>
             </div>
@@ -1478,7 +1478,7 @@ function CustomerPage({ onOrderPlaced }) {
           <div style={{fontSize:28,fontWeight:900,color:"#fff",lineHeight:1.15,
             letterSpacing:-0.5,marginBottom:8}}>
             Fresh Nigerian food,<br/>
-            <span style={{color:"#E7A93B"}}>delivered hot</span>
+            <span style={{color:"#D99A2B"}}>delivered hot</span>
           </div>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",lineHeight:1.6,
             marginBottom:14}}>
@@ -1511,7 +1511,7 @@ function CustomerPage({ onOrderPlaced }) {
           style={{width:"100%",background:B.primary,border:"none",
             borderRadius:16,padding:"16px",fontSize:16,fontWeight:800,
             color:"#fff",cursor:"pointer",fontFamily:"inherit",
-            boxShadow:`0 6px 20px ${B.primary}45`,marginBottom:20,
+            boxShadow:`0 6px 20px rgba(90,52,24,0.12)`,marginBottom:20,
             display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
           <UtensilsCrossed size={18} color="#fff"/>
           Start your order
@@ -1622,7 +1622,7 @@ function CustomerPage({ onOrderPlaced }) {
   if(screen==="menu") return (
     <Wrap>
       {/* Dark header with search */}
-      <div style={{background:`linear-gradient(135deg,#1A0C04,#3D1A06,#5A3418)`,
+      <div style={{background:`linear-gradient(135deg,#100802,#261204,#3A1808,#4A2A14)`,
         padding:"14px 16px 16px",position:"sticky",top:0,zIndex:100,
         width:"100%",boxSizing:"border-box"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
@@ -1632,7 +1632,7 @@ function CustomerPage({ onOrderPlaced }) {
             <div style={{fontSize:15,fontWeight:800,color:"#fff"}}>
               AfroCrave Kitchen
             </div>
-            <div style={{fontSize:10,color:"#E7A93B",fontWeight:700,letterSpacing:0.5}}>
+            <div style={{fontSize:10,color:"#D99A2B",fontWeight:700,letterSpacing:0.5}}>
               AUTHENTIC NIGERIAN CUISINE
             </div>
           </div>
@@ -1774,7 +1774,7 @@ function CustomerPage({ onOrderPlaced }) {
                           style={{width:38,height:38,borderRadius:11,
                             background:B.primary,border:"none",cursor:"pointer",
                             display:"flex",alignItems:"center",justifyContent:"center",
-                            boxShadow:`0 4px 12px ${B.primary}40`}}>
+                            boxShadow:`0 6px 20px rgba(90,52,24,0.12)`}}>
                           <Plus size={20} color="#fff"/>
                         </button>
                       )}
@@ -1797,7 +1797,7 @@ function CustomerPage({ onOrderPlaced }) {
             style={{width:"100%",background:B.primary,border:"none",
               borderRadius:16,padding:"14px 20px",
               display:"flex",alignItems:"center",justifyContent:"space-between",
-              cursor:"pointer",boxShadow:`0 8px 28px ${B.primary}55`,
+              cursor:"pointer",boxShadow:`0 6px 20px rgba(90,52,24,0.12)`,
               fontFamily:"inherit"}}>
             <span style={{background:"rgba(255,255,255,0.2)",borderRadius:8,
               padding:"3px 10px",fontSize:13,fontWeight:800,color:"#fff"}}>
@@ -1939,7 +1939,7 @@ function CustomerPage({ onOrderPlaced }) {
                 fontSize:16,fontWeight:800,color:"#fff",
                 cursor:subtotal>=15?"pointer":"not-allowed",
                 fontFamily:"inherit",marginBottom:8,
-                boxShadow:subtotal>=15?`0 6px 20px ${B.primary}45`:"none"}}>
+                boxShadow:subtotal>=15?`0 6px 20px rgba(90,52,24,0.12)`:"none"}}>
               {subtotal>=15
                 ? `Checkout → Pay ~${fmt(subtotal+5)}`
                 : `Add ${fmt(15-subtotal)} more to continue`}
@@ -2117,7 +2117,7 @@ function CustomerPage({ onOrderPlaced }) {
         </div>
 
         {/* Total + CTA */}
-        <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF9EC)`,
+        <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF8E8)`,
           border:`1px solid ${B.primary}20`,borderRadius:16,
           padding:"14px 16px",marginBottom:14,
           display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -2296,7 +2296,7 @@ function CustomerPage({ onOrderPlaced }) {
 
         <div style={{padding:16,maxWidth:560,margin:"0 auto"}}>
           {/* Total */}
-          <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF9EC)`,
+          <div style={{background:`linear-gradient(135deg,${B.primaryLight},#FEF8E8)`,
             border:`1px solid ${B.primary}20`,borderRadius:18,
             padding:"18px 20px",marginBottom:20,
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -2333,7 +2333,7 @@ function CustomerPage({ onOrderPlaced }) {
               borderRadius:16,padding:"18px 20px",
               display:"flex",alignItems:"center",gap:14,
               cursor:"pointer",marginBottom:10,fontFamily:"inherit",
-              boxShadow:`0 6px 20px ${B.primary}40`}}>
+              boxShadow:`0 6px 20px rgba(90,52,24,0.12)`}}>
             <div style={{width:46,height:46,borderRadius:12,
               background:"rgba(255,255,255,0.2)",
               display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -2404,9 +2404,9 @@ function NotificationBanner({ notifications, onDismiss }) {
       {notifications.map((n,i)=>(
         <div key={n.id} style={{
           background: n.type==="order" ? "#1A52A0"
-            : n.type==="ready" ? "#E7A93B"
+            : n.type==="ready" ? "#D99A2B"
             : n.type==="delivered" ? "#2E7D32"
-            : "#C96A1B",
+            : "#B85C16",
           padding:"12px 16px",
           display:"flex",alignItems:"center",justifyContent:"space-between",
           gap:12,
@@ -2473,10 +2473,10 @@ function CookDashboard() {
 
   const STATUS_COLOR = {
     "New":             {bg:"#EBF4FF", text:"#1A52A0", border:"#B5D4F4"},
-    "Preparing":       {bg:"#FFF1E2", text:"#A95412", border:"#FDDBB4"},
+    "Preparing":       {bg:"#FFF1E2", text:"#8F4711", border:"#FDDBB4"},
     "Ready":           {bg:"#EAF6EC", text:"#2E7D32", border:"#A8D5AB"},
     "Out for delivery":{bg:"#F3EEF8", text:"#5C3D9A", border:"#C4B0E0"},
-    "Delivered":       {bg:"#F4F4F4", text:"#6F655E", border:"#D8D4D0"},
+    "Delivered":       {bg:"#F4F4F4", text:"#665C55", border:"#D8D4D0"},
   };
 
   const advance = async (o) => {
@@ -2530,7 +2530,7 @@ function CookDashboard() {
       <div style={{background:"#1F1A17",padding:"10px 14px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <ChefHat size={18} color="#E7A93B"/>
+            <ChefHat size={18} color="#D99A2B"/>
             <span style={{fontSize:15,fontWeight:800,color:"#fff"}}>Kitchen</span>
             <div style={{width:8,height:8,borderRadius:"50%",
               background:"#2E7D32",marginLeft:4}}/>
@@ -2546,9 +2546,9 @@ function CookDashboard() {
         <div style={{display:"flex",gap:8,marginTop:8}}>
           {[
             {label:"NEW",  value:newCount,  bg:"#1A52A0"},
-            {label:"PREP", value:prepCount, bg:"#A95412"},
+            {label:"PREP", value:prepCount, bg:"#8F4711"},
             {label:"READY",value:readyCount,bg:"#2E7D32"},
-            {label:"TODAY",value:`£${revenue.toFixed(0)}`,bg:"#5A3418"},
+            {label:"TODAY",value:`£${revenue.toFixed(0)}`,bg:"#4A2A14"},
           ].map(s=>(
             <div key={s.label} style={{flex:1,background:s.bg,
               borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
@@ -2572,7 +2572,7 @@ function CookDashboard() {
               <div>
                 <div style={{fontSize:22,fontWeight:900,color:"#1F1A17",
                   letterSpacing:-0.5}}>{sel.id}</div>
-                <div style={{fontSize:14,color:"#6F655E"}}>{sel.customer}</div>
+                <div style={{fontSize:14,color:"#665C55"}}>{sel.customer}</div>
               </div>
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
                 {(() => {
@@ -2597,17 +2597,17 @@ function CookDashboard() {
             {/* Items */}
             <div style={{background:"#F4F1EE",borderRadius:12,
               padding:"12px 14px",marginBottom:14}}>
-              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+              <div style={{fontSize:11,fontWeight:800,color:"#978C84",
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>
                 Items ordered
               </div>
               {(sel.items||[]).map((it,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",
-                  padding:"6px 0",borderBottom:i<sel.items.length-1?"1px solid #E9DDD0":"none"}}>
+                  padding:"6px 0",borderBottom:i<sel.items.length-1?"1px solid #E6D8C8":"none"}}>
                   <span style={{fontSize:15,fontWeight:700,color:"#1F1A17"}}>
                     {it.name}
                   </span>
-                  <span style={{fontSize:15,fontWeight:800,color:"#C96A1B"}}>
+                  <span style={{fontSize:15,fontWeight:800,color:"#B85C16"}}>
                     ×{it.qty}
                   </span>
                 </div>
@@ -2625,7 +2625,7 @@ function CookDashboard() {
               ].map(([l,v])=>(
                 <div key={l} style={{background:"#F4F1EE",borderRadius:10,
                   padding:"10px 12px"}}>
-                  <div style={{fontSize:11,color:"#A0968E",fontWeight:700,
+                  <div style={{fontSize:11,color:"#978C84",fontWeight:700,
                     textTransform:"uppercase",letterSpacing:0.3,marginBottom:3}}>
                     {l}
                   </div>
@@ -2640,7 +2640,7 @@ function CookDashboard() {
             {sel.note&&(
               <div style={{background:"#FFF1E2",border:"1px solid #FDDBB4",
                 borderRadius:10,padding:"10px 12px",marginBottom:14}}>
-                <div style={{fontSize:11,fontWeight:800,color:"#A95412",
+                <div style={{fontSize:11,fontWeight:800,color:"#8F4711",
                   marginBottom:3}}>NOTE</div>
                 <div style={{fontSize:14,color:"#1F1A17"}}>{sel.note}</div>
               </div>
@@ -2650,7 +2650,7 @@ function CookDashboard() {
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {NEXT[sel.status]&&(
                 <button onClick={()=>advance(sel)}
-                  style={{width:"100%",background:"#C96A1B",border:"none",
+                  style={{width:"100%",background:"#B85C16",border:"none",
                     borderRadius:14,padding:"16px",fontSize:16,fontWeight:800,
                     color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
                   Mark as {NEXT[sel.status]} →
@@ -2680,7 +2680,7 @@ function CookDashboard() {
             <div style={{fontSize:18,fontWeight:800,color:"#1F1A17"}}>
               All clear
             </div>
-            <div style={{fontSize:14,color:"#6F655E",marginTop:4}}>
+            <div style={{fontSize:14,color:"#665C55",marginTop:4}}>
               No active orders right now
             </div>
           </div>
@@ -2718,10 +2718,10 @@ function CookDashboard() {
               {/* Bottom row */}
               <div style={{display:"flex",justifyContent:"space-between",
                 alignItems:"center"}}>
-                <div style={{fontSize:13,color:"#6F655E"}}>{o.customer} · {o.postcode}</div>
+                <div style={{fontSize:13,color:"#665C55"}}>{o.customer} · {o.postcode}</div>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <span style={{fontSize:13,fontWeight:700,
-                    color:o.paid?"#2E7D32":"#A95412"}}>
+                    color:o.paid?"#2E7D32":"#8F4711"}}>
                     {o.paid?"Paid":"Unpaid"}
                   </span>
                   <span style={{fontSize:13,fontWeight:800,color:"#1F1A17"}}>
@@ -2731,7 +2731,7 @@ function CookDashboard() {
               </div>
               {o.note&&(
                 <div style={{background:"#FFF1E2",borderRadius:6,
-                  padding:"4px 8px",fontSize:12,color:"#A95412",fontWeight:600}}>
+                  padding:"4px 8px",fontSize:12,color:"#8F4711",fontWeight:600}}>
                   📝 {o.note}
                 </div>
               )}
@@ -2742,7 +2742,7 @@ function CookDashboard() {
         {/* Completed today */}
         {done.length>0&&(
           <div style={{marginTop:8}}>
-            <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+            <div style={{fontSize:11,fontWeight:800,color:"#978C84",
               textTransform:"uppercase",letterSpacing:0.5,
               padding:"8px 4px",marginBottom:6}}>
               Completed today
@@ -2755,7 +2755,7 @@ function CookDashboard() {
                   <span style={{fontSize:14,fontWeight:700,color:"#1F1A17"}}>
                     {o.id}
                   </span>
-                  <span style={{fontSize:13,color:"#6F655E",marginLeft:8}}>
+                  <span style={{fontSize:13,color:"#665C55",marginLeft:8}}>
                     {o.customer}
                   </span>
                 </div>
@@ -2845,7 +2845,7 @@ function RiderApp() {
       <div style={{background:"#1F1A17",padding:"12px 14px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <Bike size={18} color="#E7A93B"/>
+            <Bike size={18} color="#D99A2B"/>
             <span style={{fontSize:15,fontWeight:800,color:"#fff"}}>Rider</span>
           </div>
           <button onClick={fetchOrders}
@@ -2859,9 +2859,9 @@ function RiderApp() {
         <div style={{display:"flex",gap:8,marginTop:8}}>
           {[
             {label:"AVAILABLE", value:available.length, bg:"#2E7D32"},
-            {label:"ACTIVE",    value:mine.length,      bg:"#A95412"},
+            {label:"ACTIVE",    value:mine.length,      bg:"#8F4711"},
             {label:"TODAY",     value:completed.length, bg:"#1A52A0"},
-            {label:"EARNED",    value:`£${earnings.toFixed(0)}`, bg:"#5A3418"},
+            {label:"EARNED",    value:`£${earnings.toFixed(0)}`, bg:"#4A2A14"},
           ].map(s=>(
             <div key={s.label} style={{flex:1,background:s.bg,
               borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
@@ -2885,7 +2885,7 @@ function RiderApp() {
                 <div style={{fontSize:22,fontWeight:900,color:"#1F1A17"}}>
                   {sel.id}
                 </div>
-                <div style={{fontSize:14,color:"#6F655E"}}>{sel.customer}</div>
+                <div style={{fontSize:14,color:"#665C55"}}>{sel.customer}</div>
               </div>
               <button onClick={()=>setSel(null)}
                 style={{background:"#F4F1EE",border:"none",borderRadius:8,
@@ -2898,13 +2898,13 @@ function RiderApp() {
             {/* Address */}
             <div style={{background:"#F4F1EE",borderRadius:12,
               padding:"12px 14px",marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+              <div style={{fontSize:11,fontWeight:800,color:"#978C84",
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>
                 Delivery address
               </div>
               <div style={{fontSize:16,fontWeight:700,color:"#1F1A17",
                 marginBottom:2}}>{sel.address}</div>
-              <div style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+              <div style={{fontSize:14,fontWeight:800,color:"#B85C16"}}>
                 {sel.postcode}
               </div>
             </div>
@@ -2912,7 +2912,7 @@ function RiderApp() {
             {/* Items summary */}
             <div style={{background:"#F4F1EE",borderRadius:12,
               padding:"10px 14px",marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+              <div style={{fontSize:11,fontWeight:800,color:"#978C84",
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:6}}>
                 Items
               </div>
@@ -2961,7 +2961,7 @@ function RiderApp() {
             {/* Primary action */}
             {sel.status==="Ready"&&(
               <button onClick={()=>claimOrder(sel)}
-                style={{width:"100%",background:"#C96A1B",border:"none",
+                style={{width:"100%",background:"#B85C16",border:"none",
                   borderRadius:14,padding:"16px",fontSize:16,fontWeight:800,
                   color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
                 Accept delivery →
@@ -2985,13 +2985,13 @@ function RiderApp() {
         {/* Active delivery */}
         {mine.map(o=>(
           <div key={o.id}>
-            <div style={{fontSize:11,fontWeight:800,color:"#A95412",
+            <div style={{fontSize:11,fontWeight:800,color:"#8F4711",
               textTransform:"uppercase",letterSpacing:0.5,padding:"4px 4px 6px"}}>
               🔴 Active delivery
             </div>
             <button onClick={()=>setSel(o)}
               style={{width:"100%",background:"#fff",
-                border:"2px solid #C96A1B",borderRadius:14,
+                border:"2px solid #B85C16",borderRadius:14,
                 padding:"16px",marginBottom:12,cursor:"pointer",
                 textAlign:"left",fontFamily:"inherit"}}>
               <div style={{display:"flex",justifyContent:"space-between",
@@ -3001,16 +3001,16 @@ function RiderApp() {
                 </div>
                 <div style={{background:"#FFF1E2",border:"1px solid #FDDBB4",
                   borderRadius:6,padding:"4px 10px",fontSize:12,
-                  fontWeight:800,color:"#A95412"}}>
+                  fontWeight:800,color:"#8F4711"}}>
                   Out for delivery
                 </div>
               </div>
               <div style={{fontSize:15,fontWeight:700,color:"#1F1A17",
                 marginBottom:4}}>{o.customer}</div>
-              <div style={{fontSize:14,color:"#6F655E",marginBottom:10}}>
+              <div style={{fontSize:14,color:"#665C55",marginBottom:10}}>
                 {o.address} · {o.postcode}
               </div>
-              <div style={{background:"#C96A1B",borderRadius:10,padding:"12px",
+              <div style={{background:"#B85C16",borderRadius:10,padding:"12px",
                 textAlign:"center",fontSize:14,fontWeight:800,color:"#fff"}}>
                 Tap to mark delivered →
               </div>
@@ -3036,13 +3036,13 @@ function RiderApp() {
                   <div style={{fontSize:18,fontWeight:900,color:"#1F1A17"}}>
                     {o.id}
                   </div>
-                  <div style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+                  <div style={{fontSize:14,fontWeight:800,color:"#B85C16"}}>
                     £4.50 earning
                   </div>
                 </div>
                 <div style={{fontSize:14,fontWeight:700,color:"#1F1A17",
                   marginBottom:3}}>{o.customer}</div>
-                <div style={{fontSize:13,color:"#6F655E",marginBottom:10}}>
+                <div style={{fontSize:13,color:"#665C55",marginBottom:10}}>
                   {o.postcode}
                 </div>
                 <div style={{background:"#EAF6EC",border:"1px solid #A8D5AB",
@@ -3061,7 +3061,7 @@ function RiderApp() {
             <div style={{fontSize:18,fontWeight:800,color:"#1F1A17"}}>
               No deliveries yet
             </div>
-            <div style={{fontSize:14,color:"#6F655E",marginTop:4}}>
+            <div style={{fontSize:14,color:"#665C55",marginTop:4}}>
               Orders will appear here when ready
             </div>
           </div>
@@ -3070,7 +3070,7 @@ function RiderApp() {
         {/* Completed today */}
         {completed.length>0&&(
           <div style={{marginTop:8}}>
-            <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+            <div style={{fontSize:11,fontWeight:800,color:"#978C84",
               textTransform:"uppercase",letterSpacing:0.5,
               padding:"8px 4px",marginBottom:6}}>
               Completed today ({completed.length})
@@ -3083,7 +3083,7 @@ function RiderApp() {
                   <span style={{fontSize:14,fontWeight:700,color:"#1F1A17"}}>
                     {o.id}
                   </span>
-                  <span style={{fontSize:13,color:"#6F655E",marginLeft:8}}>
+                  <span style={{fontSize:13,color:"#665C55",marginLeft:8}}>
                     {o.customer}
                   </span>
                 </div>
@@ -3324,7 +3324,7 @@ function TrackingPage() {
 const ADMIN_PASS  = import.meta.env.VITE_PASS_ADMIN;
 const KITCHEN_PASS = import.meta.env.VITE_PASS_KITCHEN;
 
-function AdminPanel() {
+function AdminPanel({ fromStaff=false }) {
   const [authed,    setAuthed]    = useState(false);
   const [role,      setRole]      = useState(null);
   const [password,  setPassword]  = useState("");
@@ -3386,13 +3386,22 @@ function AdminPanel() {
     setLoading(false);
   };
 
-  // Login screen
-  if(!authed) return (
+  // When called from StaffApp, skip login - already authenticated
+  useEffect(()=>{
+    if(fromStaff && !authed){
+      setAuthed(true);
+      setRole("super");
+      loadAll();
+    }
+  },[fromStaff]);
+
+  // Login screen (only shown when accessed directly, not from StaffApp)
+  if(!authed && !fromStaff) return (
     <div style={{minHeight:"100%",background:"#1F1A17",display:"flex",
       alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:360}}>
         <div style={{textAlign:"center",marginBottom:28}}>
-          <Lock size={48} color="#E7A93B" style={{marginBottom:12}}/>
+          <Lock size={48} color="#D99A2B" style={{marginBottom:12}}/>
           <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:4}}>
             Admin Access
           </div>
@@ -3412,7 +3421,7 @@ function AdminPanel() {
               borderRadius:10}}>⚠️ {error}</div>
           )}
           <button onClick={login} disabled={!password}
-            style={{width:"100%",background:password?"#C96A1B":"rgba(255,255,255,0.1)",
+            style={{width:"100%",background:password?"#B85C16":"rgba(255,255,255,0.1)",
               border:"none",borderRadius:12,padding:"14px",fontSize:15,
               fontWeight:800,color:password?"#fff":"rgba(255,255,255,0.3)",
               cursor:password?"pointer":"not-allowed",fontFamily:"inherit"}}>
@@ -3541,7 +3550,7 @@ function AdminPanel() {
                 <div style={{fontSize:22,fontWeight:900,color:"#1F1A17"}}>
                   {selOrder.id}
                 </div>
-                <div style={{fontSize:14,color:"#6F655E"}}>
+                <div style={{fontSize:14,color:"#665C55"}}>
                   {selOrder.customer_name}
                 </div>
               </div>
@@ -3558,9 +3567,9 @@ function AdminPanel() {
               {(selOrder.items||[]).map((it,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",
                   padding:"5px 0",borderBottom:i<selOrder.items.length-1
-                    ?"1px solid #E9DDD0":"none"}}>
+                    ?"1px solid #E6D8C8":"none"}}>
                   <span style={{fontSize:14,fontWeight:700}}>{it.name}</span>
-                  <span style={{fontSize:14,fontWeight:800,color:"#C96A1B"}}>
+                  <span style={{fontSize:14,fontWeight:800,color:"#B85C16"}}>
                     ×{it.qty}
                   </span>
                 </div>
@@ -3576,7 +3585,7 @@ function AdminPanel() {
               ].map(([l,v])=>(
                 <div key={l} style={{background:"#F4F1EE",borderRadius:10,
                   padding:"10px 12px"}}>
-                  <div style={{fontSize:10,color:"#A0968E",fontWeight:700,
+                  <div style={{fontSize:10,color:"#978C84",fontWeight:700,
                     textTransform:"uppercase",letterSpacing:0.3,marginBottom:2}}>
                     {l}
                   </div>
@@ -3586,14 +3595,14 @@ function AdminPanel() {
                 </div>
               ))}
             </div>
-            <div style={{fontSize:13,color:"#6F655E",marginBottom:12,
+            <div style={{fontSize:13,color:"#665C55",marginBottom:12,
               padding:"8px 12px",background:"#F4F1EE",borderRadius:10}}>
               📍 {selOrder.delivery_address}
             </div>
             {/* Assign rider */}
             {selOrder.status==="Ready"&&riders.length>0&&(
               <div style={{marginBottom:12}}>
-                <div style={{fontSize:12,fontWeight:800,color:"#A0968E",
+                <div style={{fontSize:12,fontWeight:800,color:"#978C84",
                   textTransform:"uppercase",marginBottom:8}}>
                   Assign rider
                 </div>
@@ -3632,7 +3641,8 @@ function AdminPanel() {
         </div>
       )}
 
-      {/* Admin header */}
+      {/* Admin header — hidden when inside StaffApp */}
+      {!fromStaff&&(
       <div style={{background:"#1F1A17",padding:"12px 14px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",
           alignItems:"center",marginBottom:10}}>
@@ -3651,13 +3661,16 @@ function AdminPanel() {
             <LogOut size={12}/>Sign out
           </button>
         </div>
+      </div>
+      )}
 
-        {/* Today stats */}
+      {/* Stats + section tabs — always visible */}
+      <div style={{background:"#1F1A17",padding:"0 14px 10px",flexShrink:0}}>
         <div style={{display:"flex",gap:6,marginBottom:10}}>
           {[
             {label:"TODAY",  value:today.length},
             {label:"NEW",    value:today.filter(o=>o.status==="New").length,      bg:"#1A52A0"},
-            {label:"PREP",   value:today.filter(o=>o.status==="Preparing").length,bg:"#A95412"},
+            {label:"PREP",   value:today.filter(o=>o.status==="Preparing").length,bg:"#8F4711"},
             {label:"DONE",   value:today.filter(o=>o.status==="Delivered").length,bg:"#2E7D32"},
           ].map((s,i)=>(
             <div key={s.label} style={{flex:1,
@@ -3685,9 +3698,11 @@ function AdminPanel() {
           ))}
         </div>
       </div>
+        </div>
+      </div>
 
       {loading&&(
-        <div style={{padding:16,textAlign:"center",color:"#6F655E",fontSize:14}}>
+        <div style={{padding:16,textAlign:"center",color:"#665C55",fontSize:14}}>
           Loading…
         </div>
       )}
@@ -3698,23 +3713,23 @@ function AdminPanel() {
         {section==="orders"&&(
           <div>
             {/* Revenue card */}
-            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+            <div style={{background:"#fff",border:"1px solid #E6D8C8",
               borderRadius:14,padding:"14px 16px",marginBottom:12,
               display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
-                <div style={{fontSize:12,color:"#6F655E",fontWeight:700,
+                <div style={{fontSize:12,color:"#665C55",fontWeight:700,
                   textTransform:"uppercase",letterSpacing:0.5}}>
                   Today's revenue
                 </div>
-                <div style={{fontSize:28,fontWeight:900,color:"#C96A1B",letterSpacing:-0.5}}>
+                <div style={{fontSize:28,fontWeight:900,color:"#B85C16",letterSpacing:-0.5}}>
                   {fmt(today.filter(o=>o.paid).reduce((s,o)=>s+o.total,0))}
                 </div>
               </div>
               <div style={{textAlign:"right"}}>
-                <div style={{fontSize:14,color:"#6F655E"}}>
+                <div style={{fontSize:14,color:"#665C55"}}>
                   {today.filter(o=>o.paid).length} paid
                 </div>
-                <div style={{fontSize:13,color:"#A95412",fontWeight:600}}>
+                <div style={{fontSize:13,color:"#8F4711",fontWeight:600}}>
                   {today.filter(o=>!o.paid).length} pending
                 </div>
               </div>
@@ -3734,10 +3749,10 @@ function AdminPanel() {
                     fontWeight:700,cursor:"pointer",border:"none",
                     background:section==="orders_"+t.id||
                       (t.id==="active"&&section==="orders")
-                      ?"#1F1A17":"#E9DDD0",
+                      ?"#1F1A17":"#E6D8C8",
                     color:section==="orders_"+t.id||
                       (t.id==="active"&&section==="orders")
-                      ?"#fff":"#6F655E",
+                      ?"#fff":"#665C55",
                     fontFamily:"inherit"}}>
                   {t.label} ({orders.filter(t.filter).length})
                 </button>
@@ -3764,14 +3779,14 @@ function AdminPanel() {
                 : o=>!["Delivered","Cancelled"].includes(o.status);
               const filtered = orders.filter(activeFilter);
               if(filtered.length===0) return (
-                <div style={{textAlign:"center",padding:"32px 20px",color:"#6F655E"}}>
+                <div style={{textAlign:"center",padding:"32px 20px",color:"#665C55"}}>
                   No orders here
                 </div>
               );
               return filtered.map(o=>(
                 <button key={o.id} onClick={()=>setSelOrder(o)}
                 style={{width:"100%",background:"#fff",
-                  border:"1px solid #E9DDD0",borderRadius:12,
+                  border:"1px solid #E6D8C8",borderRadius:12,
                   padding:"12px 14px",marginBottom:8,cursor:"pointer",
                   textAlign:"left",fontFamily:"inherit",
                   display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -3782,17 +3797,17 @@ function AdminPanel() {
                     </span>
                     <Pill s={o.status}/>
                   </div>
-                  <div style={{fontSize:13,color:"#6F655E",overflow:"hidden",
+                  <div style={{fontSize:13,color:"#665C55",overflow:"hidden",
                     textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                     {o.customer_name} · {o.postcode}
                   </div>
                 </div>
                 <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}>
-                  <div style={{fontSize:15,fontWeight:800,color:"#C96A1B"}}>
+                  <div style={{fontSize:15,fontWeight:800,color:"#B85C16"}}>
                     {fmt(o.total)}
                   </div>
                   <div style={{fontSize:11,fontWeight:600,
-                    color:o.paid?"#2E7D32":"#A95412"}}>
+                    color:o.paid?"#2E7D32":"#8F4711"}}>
                     {o.paid?"Paid":"Pending"}
                   </div>
                 </div>
@@ -3806,7 +3821,7 @@ function AdminPanel() {
         {section==="menu"&&(
           <div>
             {/* Add/Edit form */}
-            <div style={{background:"#fff",border:`1px solid ${editingItem?"#C96A1B":"#E9DDD0"}`,
+            <div style={{background:"#fff",border:`1px solid ${editingItem?"#B85C16":"#E6D8C8"}`,
               borderRadius:14,padding:14,marginBottom:16}}>
               <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:12}}>
                 {editingItem?"✏️ Edit item":"➕ Add new item"}
@@ -3814,22 +3829,22 @@ function AdminPanel() {
 
               {/* Image upload */}
               <div style={{marginBottom:12}}>
-                <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                <div style={{fontSize:11,fontWeight:700,color:"#665C55",
                   textTransform:"uppercase",letterSpacing:0.4,marginBottom:6}}>
                   Food photo
                 </div>
                 <label style={{display:"block",cursor:"pointer"}}>
                   <div style={{width:"100%",aspectRatio:"2.5/1",
                     background:"#F4F1EE",
-                    border:`1.5px dashed ${menuForm.imagePreview?"#C96A1B":"#E9DDD0"}`,
+                    border:`1.5px dashed ${menuForm.imagePreview?"#B85C16":"#E6D8C8"}`,
                     borderRadius:12,display:"flex",flexDirection:"column",
                     alignItems:"center",justifyContent:"center",
                     overflow:"hidden",position:"relative"}}>
                     {menuForm.imagePreview
                       ? <img src={menuForm.imagePreview} alt="Food"
                           style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                      : <><Plus size={20} color="#A0968E"/>
-                          <div style={{fontSize:12,color:"#A0968E",marginTop:4}}>
+                      : <><Plus size={20} color="#978C84"/>
+                          <div style={{fontSize:12,color:"#978C84",marginTop:4}}>
                             Tap to add photo
                           </div></>
                     }
@@ -3858,25 +3873,25 @@ function AdminPanel() {
 
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                  <div style={{fontSize:11,fontWeight:700,color:"#665C55",
                     textTransform:"uppercase",letterSpacing:0.4,marginBottom:4}}>
                     Emoji
                   </div>
                   <input value={menuForm.emoji}
                     onChange={e=>setMenuForm(f=>({...f,emoji:e.target.value}))}
                     style={{width:"100%",padding:"10px",background:"#F4F1EE",
-                      border:"1px solid #E9DDD0",borderRadius:8,fontSize:20,
+                      border:"1px solid #E6D8C8",borderRadius:8,fontSize:20,
                       boxSizing:"border-box",fontFamily:"inherit"}}/>
                 </div>
                 <div>
-                  <div style={{fontSize:11,fontWeight:700,color:"#6F655E",
+                  <div style={{fontSize:11,fontWeight:700,color:"#665C55",
                     textTransform:"uppercase",letterSpacing:0.4,marginBottom:4}}>
                     Category
                   </div>
                   <select value={menuForm.category}
                     onChange={e=>setMenuForm(f=>({...f,category:e.target.value}))}
                     style={{width:"100%",padding:"10px",background:"#F4F1EE",
-                      border:"1px solid #E9DDD0",borderRadius:8,fontSize:13,
+                      border:"1px solid #E6D8C8",borderRadius:8,fontSize:13,
                       boxSizing:"border-box",fontFamily:"inherit",color:"#1F1A17"}}>
                     {CATEGORIES.map(c=><option key={c}>{c}</option>)}
                   </select>
@@ -3903,18 +3918,18 @@ function AdminPanel() {
                 {[
                   ["available","Available","#2E7D32"],
                   ["is_vegan","Vegan","#5C3D9A"],
-                  ["chef_pick","Chef's Pick","#C96A1B"],
+                  ["chef_pick","Chef's Pick","#B85C16"],
                 ].map(([key,label,color])=>(
                   <button key={key}
                     onClick={()=>setMenuForm(f=>({...f,[key]:!f[key]}))}
                     style={{display:"flex",alignItems:"center",gap:6,
                       padding:"7px 12px",borderRadius:20,
-                      border:`1.5px solid ${menuForm[key]?color:"#E9DDD0"}`,
+                      border:`1.5px solid ${menuForm[key]?color:"#E6D8C8"}`,
                       background:menuForm[key]?`${color}15`:"transparent",
                       cursor:"pointer",fontSize:13,fontWeight:700,
-                      color:menuForm[key]?color:"#A0968E",fontFamily:"inherit"}}>
+                      color:menuForm[key]?color:"#978C84",fontFamily:"inherit"}}>
                     <div style={{width:12,height:12,borderRadius:"50%",
-                      background:menuForm[key]?color:"#E9DDD0"}}/>
+                      background:menuForm[key]?color:"#E6D8C8"}}/>
                     {label}
                   </button>
                 ))}
@@ -3943,14 +3958,14 @@ function AdminPanel() {
               if(!catItems.length) return null;
               return (
                 <div key={cat} style={{marginBottom:16}}>
-                  <div style={{fontSize:11,fontWeight:800,color:"#A0968E",
+                  <div style={{fontSize:11,fontWeight:800,color:"#978C84",
                     textTransform:"uppercase",letterSpacing:0.5,
                     marginBottom:8,padding:"0 2px"}}>
                     {cat} ({catItems.length})
                   </div>
                   {catItems.map(item=>(
                     <div key={item.id} style={{background:"#fff",
-                      border:`1px solid ${item.available?"#E9DDD0":"#F0C4C0"}`,
+                      border:`1px solid ${item.available?"#E6D8C8":"#F0C4C0"}`,
                       borderLeft:`4px solid ${item.available?"#2E7D32":"#B23A30"}`,
                       borderRadius:10,padding:"10px 12px",marginBottom:6,
                       display:"flex",alignItems:"center",gap:10,
@@ -3970,14 +3985,14 @@ function AdminPanel() {
                           {item.name}
                           {item.chef_pick&&
                             <span style={{fontSize:10,background:"#FFF1E2",
-                              color:"#C96A1B",borderRadius:4,padding:"1px 5px",
+                              color:"#B85C16",borderRadius:4,padding:"1px 5px",
                               marginLeft:5,fontWeight:800}}>
                               ⭐
                             </span>}
                         </div>
-                        <div style={{fontSize:13,fontWeight:700,color:"#A95412"}}>
+                        <div style={{fontSize:13,fontWeight:700,color:"#8F4711"}}>
                           £{item.price.toFixed(2)}
-                          <span style={{fontSize:11,color:"#A0968E",marginLeft:6,
+                          <span style={{fontSize:11,color:"#978C84",marginLeft:6,
                             fontWeight:600}}>
                             {item.available?"Available":"Sold out"}
                           </span>
@@ -3994,7 +4009,7 @@ function AdminPanel() {
                         <button onClick={()=>editItem(item)}
                           style={{padding:"5px 8px",borderRadius:6,fontSize:11,
                             fontWeight:700,cursor:"pointer",border:"none",
-                            background:"#FFF1E2",color:"#C96A1B"}}>
+                            background:"#FFF1E2",color:"#B85C16"}}>
                           <Pencil size={12}/>
                         </button>
                         <button onClick={()=>deleteMenuItem(item.id)}
@@ -4023,7 +4038,7 @@ function AdminPanel() {
             </Btn>
 
             {addingRider&&(
-              <div style={{background:"#fff",border:"1px solid #C96A1B",
+              <div style={{background:"#fff",border:"1px solid #B85C16",
                 borderRadius:14,padding:14,marginBottom:12}}>
                 <Input label="Full name" value={riderForm.name}
                   onChange={v=>setRiderForm(f=>({...f,name:v}))}
@@ -4046,7 +4061,7 @@ function AdminPanel() {
 
             {riders.length===0&&!addingRider&&(
               <div style={{textAlign:"center",padding:"32px 20px"}}>
-                <Bike size={48} color="#A0968E" style={{marginBottom:8}}/>
+                <Bike size={48} color="#978C84" style={{marginBottom:8}}/>
                 <div style={{fontSize:16,fontWeight:700,color:"#1F1A17"}}>
                   No riders yet
                 </div>
@@ -4055,19 +4070,19 @@ function AdminPanel() {
 
             {riders.map(rider=>(
               <div key={rider.id} style={{background:"#fff",
-                border:"1px solid #E9DDD0",borderRadius:12,
+                border:"1px solid #E6D8C8",borderRadius:12,
                 padding:"12px 14px",marginBottom:8,
                 display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:40,height:40,borderRadius:10,
                   background:"#FFF1E2",display:"flex",alignItems:"center",
                   justifyContent:"center",flexShrink:0}}>
-                  <Bike size={20} color="#C96A1B"/>
+                  <Bike size={20} color="#B85C16"/>
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:15,fontWeight:700,color:"#1F1A17"}}>
                     {rider.name}
                   </div>
-                  <div style={{fontSize:13,color:"#6F655E"}}>+{rider.phone}</div>
+                  <div style={{fontSize:13,color:"#665C55"}}>+{rider.phone}</div>
                 </div>
                 <div style={{display:"flex",gap:6}}>
                   <button onClick={()=>openWA(rider.phone,
@@ -4096,7 +4111,7 @@ function AdminPanel() {
         {/* ── SETTINGS ── */}
         {section==="settings"&&(
           <div>
-            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+            <div style={{background:"#fff",border:"1px solid #E6D8C8",
               borderRadius:14,padding:14,marginBottom:12}}>
               <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:12}}>
                 Kitchen information
@@ -4125,7 +4140,7 @@ function AdminPanel() {
                 if(!error) showToast("✅ Settings saved");
                 else showToast("⚠️ Could not save");
               }}
-                style={{width:"100%",background:"#C96A1B",border:"none",
+                style={{width:"100%",background:"#B85C16",border:"none",
                   borderRadius:12,padding:"13px",fontSize:14,fontWeight:800,
                   color:"#fff",cursor:"pointer",fontFamily:"inherit",
                   display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
@@ -4134,9 +4149,9 @@ function AdminPanel() {
             </div>
 
             {/* Platform info */}
-            <div style={{background:"#fff",border:"1px solid #E9DDD0",
+            <div style={{background:"#fff",border:"1px solid #E6D8C8",
               borderRadius:14,padding:14}}>
-              <div style={{fontSize:12,fontWeight:800,color:"#A0968E",
+              <div style={{fontSize:12,fontWeight:800,color:"#978C84",
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
                 Platform
               </div>
@@ -4147,8 +4162,8 @@ function AdminPanel() {
                 ["Role",role==="super"?"Super Admin":"Kitchen Admin"],
               ].map(([l,v])=>(
                 <div key={l} style={{display:"flex",justifyContent:"space-between",
-                  padding:"8px 0",borderBottom:"1px solid #F0E8DC",fontSize:13}}>
-                  <span style={{color:"#6F655E"}}>{l}</span>
+                  padding:"8px 0",borderBottom:"1px solid #EEE4D7",fontSize:13}}>
+                  <span style={{color:"#665C55"}}>{l}</span>
                   <span style={{fontWeight:700,color:"#1F1A17"}}>{v}</span>
                 </div>
               ))}
@@ -4166,7 +4181,7 @@ function PrivacyPolicy({ onBack }) {
     <div style={{minHeight:"100vh",background:B.bg,
       fontFamily:"'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif"}}>
       {/* Header */}
-      <div style={{background:"#5A3418",padding:"14px 20px",
+      <div style={{background:"#4A2A14",padding:"14px 20px",
         display:"flex",alignItems:"center",gap:12,
         position:"sticky",top:0,zIndex:100}}>
         <button onClick={onBack}
@@ -4181,10 +4196,10 @@ function PrivacyPolicy({ onBack }) {
       <div style={{maxWidth:680,margin:"0 auto",padding:"28px 20px 60px"}}>
         {/* Company header */}
         <div style={{marginBottom:28,paddingBottom:20,
-          borderBottom:"1px solid #E9DDD0"}}>
+          borderBottom:"1px solid #E6D8C8"}}>
           <div style={{fontSize:22,fontWeight:800,color:"#1F1A17",
             marginBottom:6}}>Privacy Policy</div>
-          <div style={{fontSize:16,color:"#6F655E",lineHeight:1.7}}>
+          <div style={{fontSize:16,color:"#665C55",lineHeight:1.7}}>
             <strong>AfroCrave Kitchen Ltd</strong><br/>
             Company No. 17119134<br/>
             Registered in England & Wales<br/>
@@ -4237,7 +4252,7 @@ function PrivacyPolicy({ onBack }) {
           <div key={section.title} style={{marginBottom:24}}>
             <div style={{fontSize:16,fontWeight:700,color:"#1F1A17",
               marginBottom:8}}>{section.title}</div>
-            <div style={{fontSize:15,color:"#6F655E",lineHeight:1.8}}>
+            <div style={{fontSize:15,color:"#665C55",lineHeight:1.8}}>
               {section.body}
             </div>
           </div>
@@ -4245,7 +4260,7 @@ function PrivacyPolicy({ onBack }) {
 
         {/* Footer */}
         <div style={{marginTop:32,padding:"16px 20px",
-          background:"#5A3418",borderRadius:16,
+          background:"#4A2A14",borderRadius:16,
           textAlign:"center"}}>
           <div style={{fontSize:16,color:"rgba(255,255,255,0.7)",
             lineHeight:1.8}}>

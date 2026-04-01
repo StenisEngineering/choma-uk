@@ -44,12 +44,36 @@ const B = {
   textDim:      "#978C84",
   // WhatsApp
   wa:           "#25D366",
-  // Kitchen number
+  // Kitchen contact
   kitchenPhone: import.meta.env.VITE_KITCHEN_WA||"447823644323",
   kitchenWA:    import.meta.env.VITE_KITCHEN_WA||"447823644323",
+  // Business info
+  kitchenName:  "AfroCrave Kitchen",
+  companyNo:    "17119134",
+  address:      "Sunderland, UK",
+  // Opening hours
+  openingHours: "Mon–Sat: 11am – 9pm",
+  openDays:     [1,2,3,4,5,6], // 0=Sun,1=Mon,...,6=Sat
+  openTime:     11, // 24hr
+  closeTime:    21, // 24hr
+  // Delivery zones
+  deliveryZones: [
+    {zone:"Sunderland (SR1–SR6)", fee:"£5.00"},
+    {zone:"Seaham / Peterlee (SR7–SR8)", fee:"£7.50"},
+    {zone:"Washington (NE37–NE38)", fee:"£7.50"},
+    {zone:"South Shields (NE33)", fee:"£8.50"},
+    {zone:"Newcastle (NE1–NE6)", fee:"£9.50"},
+  ],
 };
 
 const fmt = n => "£" + Number(n).toFixed(2);
+
+const isKitchenOpen = () => {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const hour = now.getHours();
+  return B.openDays.includes(day) && hour >= B.openTime && hour < B.closeTime;
+};
 const openWA = (phone, msg) =>
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
 
@@ -1376,10 +1400,30 @@ function CustomerPage({ onOrderPlaced }) {
     if(!info.postcode||info.postcode.length<3) return;
     const timer = setTimeout(()=>{
       const pc=info.postcode.toUpperCase().replace(/\s/g,"");
+      // Zone 1 — Sunderland core £5.00
       if(/^SR[1-6]/.test(pc))
-        setDelivery({fee:5.00,zone:"Sunderland",available:true,label:"£5.00 flat fee"});
+        setDelivery({fee:5.00,zone:"Sunderland",available:true,
+          label:"£5.00 · Sunderland delivery"});
+      // Zone 2 — SR7/SR8 Seaham/Peterlee £7.50
+      else if(/^SR[78]/.test(pc))
+        setDelivery({fee:7.50,zone:"Seaham / Peterlee",available:true,
+          label:"£7.50 · Seaham / Peterlee"});
+      // Zone 3 — NE37/NE38 Washington £7.50
+      else if(/^NE3[78]/.test(pc))
+        setDelivery({fee:7.50,zone:"Washington",available:true,
+          label:"£7.50 · Washington"});
+      // Zone 4 — NE33 South Shields £8.50
+      else if(/^NE33/.test(pc))
+        setDelivery({fee:8.50,zone:"South Shields",available:true,
+          label:"£8.50 · South Shields"});
+      // Zone 5 — Newcastle NE1-NE6 £9.50
+      else if(/^NE[1-6]/.test(pc))
+        setDelivery({fee:9.50,zone:"Newcastle",available:true,
+          label:"£9.50 · Newcastle"});
+      // Out of zone
       else if(pc.length>=5)
-        setDelivery({fee:7.50,zone:"Northeast",available:true,label:"£7.50"});
+        setDelivery({fee:0,zone:"Outside area",available:false,
+          label:"Sorry, we don't deliver to this postcode yet"});
     }, 400);
     return ()=>clearTimeout(timer);
   },[info.postcode]);
@@ -1448,52 +1492,63 @@ function CustomerPage({ onOrderPlaced }) {
   // ══════════════════════════════════════════
   // HOME — McDonald's structure
   // ══════════════════════════════════════════
-  if(screen==="home") return (
+    if(screen==="home") return (
     <Wrap>
-      {/* Full-bleed hero */}
+      {/* Hero */}
       <div style={{background:`linear-gradient(160deg,#100802 0%,#261204 40%,#3A1808 70%,#4A2A14 100%)`,
-        padding:"20px 16px 36px",color:"#fff",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,
-          borderRadius:"50%",background:"rgba(231,169,59,0.08)"}}/>
-        <div style={{position:"absolute",bottom:-20,left:-20,width:100,height:100,
-          borderRadius:"50%",background:"rgba(201,106,27,0.1)"}}/>
-        {/* Top bar */}
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
-          marginBottom:20,position:"relative",zIndex:1}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
-              style={{width:38,height:38,borderRadius:10,objectFit:"cover",flexShrink:0}}/>
-            <div>
-              <div style={{fontSize:15,fontWeight:800,color:"#fff",lineHeight:1.2}}>
-                AfroCrave Kitchen
-              </div>
-              <div style={{fontSize:10,color:"#D99A2B",fontWeight:700,letterSpacing:0.5}}>
-                AUTHENTIC NIGERIAN HOME COOKING
-              </div>
+        padding:"20px 16px 28px",color:"#fff",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:180,height:180,
+          borderRadius:"50%",background:"rgba(217,154,43,0.07)"}}/>
+        <div style={{position:"absolute",bottom:-20,left:-20,width:120,height:120,
+          borderRadius:"50%",background:"rgba(184,92,22,0.1)"}}/>
+        {/* Logo + name */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,
+          position:"relative",zIndex:1}}>
+          <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
+            style={{width:42,height:42,borderRadius:11,objectFit:"cover",flexShrink:0}}/>
+          <div>
+            <div style={{fontSize:16,fontWeight:800,color:"#fff",lineHeight:1.2}}>
+              AfroCrave Kitchen
+            </div>
+            <div style={{fontSize:10,color:"#D99A2B",fontWeight:700,letterSpacing:0.5}}>
+              AUTHENTIC NIGERIAN HOME COOKING
             </div>
           </div>
-        </div>
-        {/* Hero headline */}
-        <div style={{position:"relative",zIndex:1,marginBottom:16}}>
-          <div style={{fontSize:28,fontWeight:900,color:"#fff",lineHeight:1.15,
-            letterSpacing:-0.5,marginBottom:8}}>
-            Fresh Nigerian food,<br/>
-            <span style={{color:"#D99A2B"}}>delivered hot</span>
+          {/* Open/Closed badge */}
+          <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5,
+            background:isKitchenOpen()?"rgba(46,125,50,0.3)":"rgba(178,58,48,0.3)",
+            border:`1px solid ${isKitchenOpen()?"rgba(46,125,50,0.6)":"rgba(178,58,48,0.6)"}`,
+            borderRadius:20,padding:"4px 10px",flexShrink:0}}>
+            <div style={{width:7,height:7,borderRadius:"50%",
+              background:isKitchenOpen()?"#4CAF50":"#ef5350"}}/>
+            <span style={{fontSize:11,fontWeight:700,color:"#fff"}}>
+              {isKitchenOpen()?"Open now":"Closed"}
+            </span>
           </div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",lineHeight:1.6,
-            marginBottom:14}}>
-            Home cooked to order · Sunderland & Northeast
+        </div>
+        {/* Hero text */}
+        <div style={{position:"relative",zIndex:1,marginBottom:16}}>
+          <div style={{fontSize:26,fontWeight:900,color:"#fff",lineHeight:1.2,
+            letterSpacing:-0.5,marginBottom:6}}>
+            Fresh Nigerian food,<br/>
+            <span style={{color:"#D99A2B"}}>delivered to your door</span>
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",lineHeight:1.7,
+            marginBottom:12}}>
+            Home cooked to order — freshly prepared using authentic Nigerian recipes.
+            No preservatives. Real food, real flavour.
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
             {[
               {icon:<Clock size={11}/>, text:"45–75 min"},
-              {icon:<MapPin size={11}/>, text:"SR & NE delivery"},
-              {icon:<Star size={11}/>,  text:"Naija Standard"},
+              {icon:<MapPin size={11}/>, text:"Sunderland & NE"},
+              {icon:<Star size={11}/>,  text:"Home Cooked"},
+              {icon:<ShieldCheck size={11}/>, text:"Secure checkout"},
             ].map((b,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:4,
-                background:"rgba(255,255,255,0.12)",
-                border:"0.5px solid rgba(255,255,255,0.2)",
-                borderRadius:20,padding:"5px 10px",
+                background:"rgba(255,255,255,0.1)",
+                border:"0.5px solid rgba(255,255,255,0.18)",
+                borderRadius:20,padding:"4px 10px",
                 fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.9)"}}>
                 {b.icon}{b.text}
               </div>
@@ -1502,22 +1557,54 @@ function CustomerPage({ onOrderPlaced }) {
         </div>
       </div>
 
-      {/* White bottom sheet — McDonald's style */}
-      <div style={{background:"#fff",borderRadius:"24px 24px 0 0",
-        marginTop:-20,position:"relative",zIndex:1,padding:"20px 16px 0"}}>
+      {/* White bottom sheet */}
+      <div style={{background:"#fff",borderRadius:"22px 22px 0 0",
+        marginTop:-18,position:"relative",zIndex:1,padding:"20px 16px 0"}}>
+
+        {/* Opening hours + delivery banner */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+          <div style={{background:B.bg,border:`1px solid ${B.border}`,
+            borderRadius:14,padding:"12px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,
+              color:B.primary,marginBottom:5}}>
+              <Clock size={13}/><span style={{fontSize:11,fontWeight:700,
+                textTransform:"uppercase",letterSpacing:0.4}}>Hours</span>
+            </div>
+            <div style={{fontSize:14,fontWeight:800,color:B.text}}>
+              Mon – Sat
+            </div>
+            <div style={{fontSize:12,color:B.textMid,marginTop:1}}>
+              11:00am – 9:00pm
+            </div>
+          </div>
+          <div style={{background:B.bg,border:`1px solid ${B.border}`,
+            borderRadius:14,padding:"12px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,
+              color:B.primary,marginBottom:5}}>
+              <MapPin size={13}/><span style={{fontSize:11,fontWeight:700,
+                textTransform:"uppercase",letterSpacing:0.4}}>Delivery</span>
+            </div>
+            <div style={{fontSize:14,fontWeight:800,color:B.text}}>
+              From £5.00
+            </div>
+            <div style={{fontSize:12,color:B.textMid,marginTop:1}}>
+              Sunderland & Northeast
+            </div>
+          </div>
+        </div>
 
         {/* Primary CTA */}
         <button onClick={()=>navigateTo("menu")}
           style={{width:"100%",background:B.primary,border:"none",
             borderRadius:16,padding:"16px",fontSize:16,fontWeight:800,
             color:"#fff",cursor:"pointer",fontFamily:"inherit",
-            boxShadow:`0 6px 20px rgba(90,52,24,0.12)`,marginBottom:20,
+            boxShadow:"0 6px 20px rgba(74,42,20,0.18)",marginBottom:20,
             display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
           <UtensilsCrossed size={18} color="#fff"/>
-          Start your order
+          Order now
         </button>
 
-        {/* Category tiles — McDonald's grid */}
+        {/* Category tiles */}
         <div style={{marginBottom:20}}>
           <div style={{fontSize:13,fontWeight:800,color:B.text,
             textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>
@@ -1525,13 +1612,13 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             {categories.filter(c=>c!=="All").map(cat=>(
-              <button key={cat} onClick={()=>{setCatFilter(cat);navigateTo("menu");}}
+              <button key={cat}
+                onClick={()=>{setCatFilter(cat);navigateTo("menu");}}
                 style={{background:B.bg,border:`1.5px solid ${B.border}`,
                   borderRadius:16,padding:"16px 12px",
                   display:"flex",flexDirection:"column",alignItems:"center",gap:8,
-                  cursor:"pointer",fontFamily:"inherit",
-                  transition:"all 0.15s"}}>
-                <div style={{fontSize:32}}>{categoryMap[cat]?.emoji||"🍽"}</div>
+                  cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                <div style={{fontSize:30}}>{categoryMap[cat]?.emoji||"🍽"}</div>
                 <div style={{fontSize:13,fontWeight:800,color:B.text,
                   textAlign:"center"}}>{cat}</div>
                 <div style={{fontSize:11,color:B.textMid}}>
@@ -1542,7 +1629,7 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
         </div>
 
-        {/* Chef's picks preview */}
+        {/* Chef's picks */}
         {chefPicks.length>0&&(
           <div style={{marginBottom:20}}>
             <div style={{display:"flex",justifyContent:"space-between",
@@ -1560,9 +1647,8 @@ function CustomerPage({ onOrderPlaced }) {
               <div key={m.id} style={{background:B.surface,
                 border:`1px solid ${B.border}`,borderRadius:14,
                 padding:12,display:"flex",gap:12,
-                alignItems:"center",marginBottom:8,
-                overflow:"hidden",width:"100%",boxSizing:"border-box"}}>
-                <FoodImg m={m} size={60} radius={10}/>
+                alignItems:"center",marginBottom:8}}>
+                <FoodImg m={m} size={64} radius={11}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:14,fontWeight:700,color:B.text,
                     marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",
@@ -1571,14 +1657,15 @@ function CustomerPage({ onOrderPlaced }) {
                     overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                     {m.description}
                   </div>
-                  <div style={{fontSize:15,fontWeight:800,color:B.primaryDark}}>
+                  <div style={{fontSize:16,fontWeight:800,color:B.primaryDark}}>
                     {fmt(m.price)}
                   </div>
                 </div>
                 <button onClick={()=>addItem(m)}
-                  style={{width:34,height:34,borderRadius:9,background:B.primary,
+                  style={{width:36,height:36,borderRadius:10,background:B.primary,
                     border:"none",cursor:"pointer",flexShrink:0,
-                    display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    boxShadow:"0 4px 12px rgba(74,42,20,0.15)"}}>
                   <Plus size={18} color="#fff"/>
                 </button>
               </div>
@@ -1586,39 +1673,152 @@ function CustomerPage({ onOrderPlaced }) {
           </div>
         )}
 
-        {/* Why AfroCrave */}
+        {/* How it works */}
         <div style={{marginBottom:20}}>
           <div style={{fontSize:13,fontWeight:800,color:B.text,
             textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>
-            Why AfroCrave?
+            How it works
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div style={{display:"flex",gap:0}}>
             {[
-              {emoji:"🍲",title:"Home cooked",desc:"Fresh by hand every order"},
-              {emoji:"⏱",title:"45–75 min",desc:"Hot to your door"},
-              {emoji:"🇳🇬",title:"100% Naija",desc:"Authentic recipes"},
-              {emoji:"💳",title:"Card or bank",desc:"Easy payment"},
-            ].map((w,i)=>(
-              <div key={i} style={{background:B.surface,border:`1px solid ${B.border}`,
-                borderRadius:14,padding:"14px 12px"}}>
-                <div style={{fontSize:24,marginBottom:6}}>{w.emoji}</div>
-                <div style={{fontSize:13,fontWeight:800,color:B.text,marginBottom:3}}>
-                  {w.title}
+              {icon:<UtensilsCrossed size={18} color={B.primary}/>,
+               title:"Choose your meal",desc:"Browse our fresh Nigerian menu"},
+              {icon:<MapPin size={18} color={B.primary}/>,
+               title:"Enter delivery address",desc:"We calculate your delivery fee"},
+              {icon:<CheckCircle size={18} color={B.green}/>,
+               title:"Pay & track",desc:"Card or bank transfer, track live"},
+            ].map((s,i)=>(
+              <div key={i} style={{flex:1,textAlign:"center",padding:"0 8px",
+                position:"relative"}}>
+                {i<2&&<div style={{position:"absolute",top:18,right:-2,
+                  width:"50%",height:1,background:B.border}}/>}
+                <div style={{width:38,height:38,borderRadius:10,
+                  background:B.primaryLight,border:`1px solid ${B.border}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  margin:"0 auto 8px"}}>
+                  {s.icon}
                 </div>
-                <div style={{fontSize:12,color:B.textMid,lineHeight:1.5}}>
-                  {w.desc}
+                <div style={{fontSize:11,fontWeight:800,color:B.text,
+                  marginBottom:3,lineHeight:1.3}}>{s.title}</div>
+                <div style={{fontSize:10,color:B.textMid,lineHeight:1.4}}>
+                  {s.desc}
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Delivery areas */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:13,fontWeight:800,color:B.text,
+            textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>
+            Delivery areas
+          </div>
+          <div style={{background:B.bg,border:`1px solid ${B.border}`,
+            borderRadius:14,overflow:"hidden"}}>
+            {B.deliveryZones.map((z,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",
+                padding:"11px 14px",
+                borderBottom:i<B.deliveryZones.length-1?`1px solid ${B.divider}`:"none"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <MapPin size={12} color={B.primary}/>
+                  <span style={{fontSize:13,color:B.text,fontWeight:600}}>
+                    {z.zone}
+                  </span>
+                </div>
+                <span style={{fontSize:13,fontWeight:800,color:B.primary}}>
+                  {z.fee}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:12,color:B.textMid,marginTop:6,textAlign:"center"}}>
+            Minimum order £15 · More areas coming soon
+          </div>
+        </div>
+
+        {/* Trust signals */}
+        <div style={{background:B.bg,border:`1px solid ${B.border}`,
+          borderRadius:14,padding:"14px",marginBottom:20}}>
+          <div style={{fontSize:12,fontWeight:800,color:B.text,
+            textTransform:"uppercase",letterSpacing:0.5,marginBottom:12}}>
+            Why order from us
+          </div>
+          {[
+            {icon:"🍲", title:"Freshly prepared",
+             desc:"Every dish cooked to order — no batch cooking, no reheating"},
+            {icon:"🇳🇬", title:"Authentic Nigerian recipes",
+             desc:"Home-style cooking using traditional ingredients and techniques"},
+            {icon:"🔒", title:"Secure payment",
+             desc:"Stripe-powered card payments — your data is always protected"},
+            {icon:"💬", title:"WhatsApp support",
+             desc:"Real person available — message us any time during opening hours"},
+          ].map((t,i)=>(
+            <div key={i} style={{display:"flex",gap:12,
+              paddingBottom:i<3?12:0,marginBottom:i<3?12:0,
+              borderBottom:i<3?`1px solid ${B.divider}`:"none"}}>
+              <div style={{fontSize:22,flexShrink:0,marginTop:1}}>{t.icon}</div>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:B.text,
+                  marginBottom:2}}>{t.title}</div>
+                <div style={{fontSize:12,color:B.textMid,lineHeight:1.5}}>
+                  {t.desc}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Allergen notice */}
+        <div style={{background:"#FEF8E8",border:`1px solid #F0D898`,
+          borderRadius:12,padding:"12px 14px",marginBottom:20,
+          display:"flex",gap:10,alignItems:"flex-start"}}>
+          <AlertTriangle size={16} color="#B85C16" style={{flexShrink:0,marginTop:1}}/>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:B.primaryDark,
+              marginBottom:3}}>Allergen information</div>
+            <div style={{fontSize:12,color:B.textMid,lineHeight:1.6}}>
+              Some dishes contain nuts, gluten, dairy, or seafood. Please tap any item
+              to view allergen details. If you have a severe allergy, please{" "}
+              <span style={{color:B.primary,fontWeight:700,cursor:"pointer"}}
+                onClick={()=>openWA(B.kitchenWA,
+                  "Hi, I have a food allergy and need to check ingredients before ordering.")}>
+                WhatsApp us
+              </span>{" "}before ordering.
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{borderTop:`1px solid ${B.border}`,
+          paddingTop:16,paddingBottom:80,textAlign:"center"}}>
+          <div style={{fontSize:12,color:B.textMid,lineHeight:1.8,marginBottom:8}}>
+            <strong style={{color:B.text}}>AfroCrave Kitchen Ltd</strong><br/>
+            Company No. 17119134 · Registered in England & Wales<br/>
+            Sunderland, UK
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:16,
+            fontSize:12,color:B.primary,fontWeight:600}}>
+            <span style={{cursor:"pointer"}}
+              onClick={()=>navigateTo("privacy")}>Privacy Policy</span>
+            <span>·</span>
+            <span style={{cursor:"pointer"}}
+              onClick={()=>openWA(B.kitchenWA,"Hi AfroCrave Kitchen, I need help.")}>
+              Contact us
+            </span>
+            <span>·</span>
+            <span style={{cursor:"pointer"}}
+              onClick={()=>navigateTo("delivery")}>Delivery info</span>
+          </div>
+          <div style={{fontSize:11,color:B.textDim,marginTop:8}}>
+            POWERED BY <span style={{color:B.primary,fontWeight:700}}>CHOMA</span>
           </div>
         </div>
       </div>
     </Wrap>
   );
 
-  // ══════════════════════════════════════════
-  // MENU — Deliveroo style
-  // ══════════════════════════════════════════
+
   if(screen==="menu") return (
     <Wrap>
       {/* Dark header with search */}
@@ -2366,11 +2566,30 @@ function CustomerPage({ onOrderPlaced }) {
             <ChevronRight size={20} color={B.textDim}/>
           </button>
 
+          <div style={{background:B.bg,border:`1px solid ${B.border}`,
+            borderRadius:12,padding:"12px 14px",marginBottom:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <ShieldCheck size={15} color={B.green}/>
+              <span style={{fontSize:13,fontWeight:700,color:B.text}}>
+                Secure checkout
+              </span>
+            </div>
+            <div style={{fontSize:12,color:B.textMid,lineHeight:1.6}}>
+              Card payments are processed by Stripe — we never store your card details.
+              All transactions are encrypted and secure.
+            </div>
+          </div>
           <div style={{display:"flex",alignItems:"center",gap:8,
-            justifyContent:"center"}}>
-            <ShieldCheck size={14} color={B.textDim}/>
+            justifyContent:"center",marginBottom:8}}>
+            <ShieldCheck size={13} color={B.textDim}/>
             <span style={{fontSize:12,color:B.textDim}}>
-              Secure · Your data is protected
+              AfroCrave Kitchen Ltd · Co. No. 17119134
+            </span>
+          </div>
+          <div style={{textAlign:"center",marginBottom:16}}>
+            <span style={{fontSize:12,color:B.primary,fontWeight:600,cursor:"pointer"}}
+              onClick={()=>openWA(B.kitchenWA,"Hi, I need help with my payment.")}>
+              Need help? Message us on WhatsApp
             </span>
           </div>
         </div>
@@ -2381,6 +2600,104 @@ function CustomerPage({ onOrderPlaced }) {
     // ══════════════════════════════════════════
   // TRACK (from bottom nav)
   // ══════════════════════════════════════════
+
+  // ── Delivery Info ──
+  if(screen==="delivery") return (
+    <Wrap>
+      <div style={{background:B.surface,padding:"14px 16px",
+        borderBottom:`1px solid ${B.border}`,
+        display:"flex",alignItems:"center",gap:10,
+        position:"sticky",top:0,zIndex:100}}>
+        <button onClick={()=>navigateTo("home")}
+          style={{background:"none",border:"none",cursor:"pointer",
+            display:"flex",alignItems:"center",color:B.primary,padding:0}}>
+          <ChevronLeft size={24}/>
+        </button>
+        <div style={{fontSize:17,fontWeight:800,color:B.text}}>Delivery information</div>
+      </div>
+      <div style={{padding:"20px 16px 80px"}}>
+        {/* Zones */}
+        <div style={{fontSize:13,fontWeight:800,color:B.text,
+          textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+          Delivery areas & fees
+        </div>
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:14,overflow:"hidden",marginBottom:20}}>
+          {B.deliveryZones.map((z,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",
+              padding:"13px 16px",
+              borderBottom:i<B.deliveryZones.length-1?`1px solid ${B.divider}`:"none"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <MapPin size={13} color={B.primary}/>
+                <span style={{fontSize:14,color:B.text,fontWeight:600}}>{z.zone}</span>
+              </div>
+              <span style={{fontSize:14,fontWeight:800,color:B.primary}}>{z.fee}</span>
+            </div>
+          ))}
+        </div>
+        {/* Policy */}
+        <div style={{fontSize:13,fontWeight:800,color:B.text,
+          textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+          Delivery policy
+        </div>
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:14,padding:"16px",marginBottom:20}}>
+          {[
+            ["Minimum order","£15.00"],
+            ["Estimated delivery time","45–75 minutes"],
+            ["Delivery hours","Mon–Sat, 11am–9pm"],
+            ["Order cutoff","Last orders at 8:30pm"],
+          ].map(([l,v])=>(
+            <div key={l} style={{display:"flex",justifyContent:"space-between",
+              padding:"8px 0",borderBottom:`1px solid ${B.divider}`}}>
+              <span style={{fontSize:13,color:B.textMid}}>{l}</span>
+              <span style={{fontSize:13,fontWeight:700,color:B.text}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        {/* Cancellation */}
+        <div style={{fontSize:13,fontWeight:800,color:B.text,
+          textTransform:"uppercase",letterSpacing:0.5,marginBottom:10}}>
+          Cancellation & refunds
+        </div>
+        <div style={{background:B.surface,border:`1px solid ${B.border}`,
+          borderRadius:14,padding:"16px",marginBottom:20,
+          fontSize:13,color:B.textMid,lineHeight:1.8}}>
+          Orders can be cancelled within 5 minutes of placing them by messaging us on WhatsApp.
+          Once your order is being prepared, we are unable to cancel. Refunds for card
+          payments are processed within 3–5 business days. For bank transfers,
+          please contact us directly.
+        </div>
+        <button onClick={()=>openWA(B.kitchenWA,"Hi, I need help with my order.")}
+          style={{width:"100%",background:"#25D366",border:"none",
+            borderRadius:14,padding:"14px",fontSize:15,fontWeight:800,
+            color:"#fff",cursor:"pointer",fontFamily:"inherit",
+            display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <MessageCircle size={16} color="#fff"/>
+          Message us on WhatsApp
+        </button>
+      </div>
+    </Wrap>
+  );
+
+  // ── Privacy ──
+  if(screen==="privacy") return (
+    <Wrap>
+      <div style={{background:B.surface,padding:"14px 16px",
+        borderBottom:`1px solid ${B.border}`,
+        display:"flex",alignItems:"center",gap:10,
+        position:"sticky",top:0,zIndex:100}}>
+        <button onClick={()=>navigateTo("home")}
+          style={{background:"none",border:"none",cursor:"pointer",
+            display:"flex",alignItems:"center",color:B.primary,padding:0}}>
+          <ChevronLeft size={24}/>
+        </button>
+        <div style={{fontSize:17,fontWeight:800,color:B.text}}>Privacy Policy</div>
+      </div>
+      <PrivacyPolicy onBack={()=>navigateTo("home")}/>
+    </Wrap>
+  );
+
   if(screen==="track") return (
     <Wrap>
       <div style={{background:B.surface,padding:"14px 16px",
@@ -3377,11 +3694,13 @@ function AdminPanel({ fromStaff=false }) {
       items:typeof o.items==="string"?JSON.parse(o.items):(o.items||[])})));
     if(rR.data)  setRiders(rR.data);
     if(sR.data)  setSettings({
-      kitchenName: sR.data.kitchen_name||"AfroCrave Kitchen",
-      phone:       sR.data.phone||"+44 7823 644323",
-      address:     sR.data.address||"Sunderland, UK",
-      minOrder:    sR.data.min_order?.toString()||"15",
-      deliveryTime:sR.data.delivery_time||"45–75 min",
+      kitchenName:  sR.data.kitchen_name||"AfroCrave Kitchen",
+      phone:        sR.data.phone||"+44 7823 644323",
+      address:      sR.data.address||"Sunderland, UK",
+      minOrder:     sR.data.min_order?.toString()||"15",
+      deliveryTime: sR.data.delivery_time||"45–75 min",
+      openingHours: sR.data.opening_hours||"Mon–Sat: 11am – 9pm",
+      lastOrders:   sR.data.last_orders||"8:30pm",
     });
     setLoading(false);
   };
@@ -4114,7 +4433,7 @@ function AdminPanel({ fromStaff=false }) {
             <div style={{background:"#fff",border:"1px solid #E6D8C8",
               borderRadius:14,padding:14,marginBottom:12}}>
               <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:12}}>
-                Kitchen information
+                Business information
               </div>
               <Input label="Kitchen name" value={settings.kitchenName}
                 onChange={v=>setSettings(s=>({...s,kitchenName:v}))}/>
@@ -4125,16 +4444,26 @@ function AdminPanel({ fromStaff=false }) {
               <Input label="Minimum order (£)" value={settings.minOrder}
                 onChange={v=>setSettings(s=>({...s,minOrder:v}))}
                 type="number"/>
-              <Input label="Delivery time" value={settings.deliveryTime}
+              <Input label="Estimated delivery time" value={settings.deliveryTime}
                 onChange={v=>setSettings(s=>({...s,deliveryTime:v}))}/>
+              <Input label="Opening hours" value={settings.openingHours||"Mon–Sat: 11am – 9pm"}
+                onChange={v=>setSettings(s=>({...s,openingHours:v}))}
+                hint="e.g. Mon–Sat: 11am – 9pm"/>
+              <Input label="Last orders cutoff" value={settings.lastOrders||"8:30pm"}
+                onChange={v=>setSettings(s=>({...s,lastOrders:v}))}
+                hint="e.g. 8:30pm"/>
               <button onClick={async()=>{
                 setLoading(true);
                 const {error}=await supabase.from("kitchen_settings").upsert({
-                  id:1, kitchen_name:settings.kitchenName,
-                  phone:settings.phone, address:settings.address,
-                  min_order:parseFloat(settings.minOrder)||0,
-                  delivery_time:settings.deliveryTime,
-                  updated_at:new Date().toISOString(),
+                  id:1,
+                  kitchen_name:    settings.kitchenName,
+                  phone:           settings.phone,
+                  address:         settings.address,
+                  min_order:       parseFloat(settings.minOrder)||0,
+                  delivery_time:   settings.deliveryTime,
+                  opening_hours:   settings.openingHours||"Mon–Sat: 11am – 9pm",
+                  last_orders:     settings.lastOrders||"8:30pm",
+                  updated_at:      new Date().toISOString(),
                 });
                 setLoading(false);
                 if(!error) showToast("✅ Settings saved");
@@ -4146,6 +4475,38 @@ function AdminPanel({ fromStaff=false }) {
                   display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                 <Check size={14}/>Save settings
               </button>
+            </div>
+
+            {/* Delivery zones info */}
+            <div style={{background:"#fff",border:"1px solid #E6D8C8",
+              borderRadius:14,padding:14,marginBottom:12}}>
+              <div style={{fontSize:14,fontWeight:800,color:"#1F1A17",marginBottom:4}}>
+                Delivery areas
+              </div>
+              <div style={{fontSize:12,color:"#665C55",marginBottom:12,lineHeight:1.6}}>
+                Current delivery zones and fees. Contact Choma support to update zones.
+              </div>
+              {[
+                ["SR1–SR6","Sunderland","£5.00"],
+                ["SR7–SR8","Seaham / Peterlee","£7.50"],
+                ["NE37–NE38","Washington","£7.50"],
+                ["NE33","South Shields","£8.50"],
+                ["NE1–NE6","Newcastle","£9.50"],
+              ].map(([pc,area,fee])=>(
+                <div key={pc} style={{display:"flex",justifyContent:"space-between",
+                  alignItems:"center",padding:"8px 0",
+                  borderBottom:"1px solid #EEE4D7"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:"#1F1A17"}}>{area}</div>
+                    <div style={{fontSize:11,color:"#978C84"}}>{pc}</div>
+                  </div>
+                  <div style={{fontSize:14,fontWeight:800,color:"#B85C16"}}>{fee}</div>
+                </div>
+              ))}
+              <div style={{marginTop:10,padding:"8px 10px",background:"#FEF8E8",
+                borderRadius:8,fontSize:12,color:"#8F4711",fontWeight:600}}>
+                💡 To update delivery zones, message Choma support
+              </div>
             </div>
 
             {/* Platform info */}

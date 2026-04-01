@@ -2483,7 +2483,18 @@ function CookDashboard() {
     const next = NEXT[o.status];
     if(!next) return;
     await supabase.from("orders").update({status:next}).eq("id",o.id);
-    if(o.phone) openWA(o.phone, `Hi ${o.customer.split(" ")[0]}! Your AfroCrave order ${o.id} is now: ${next}. ${next==="Out for delivery"?"Your rider is on the way!":""}`);
+    // Only WhatsApp customer for meaningful updates
+    if(o.phone) {
+      if(next==="Out for delivery") {
+        openWA(o.phone,
+          `Hi ${o.customer.split(" ")[0]}! 🛵 Your AfroCrave order ${o.id} is on its way! Your rider is heading to you now. Track your order at afrocravekitchen.choma.app`
+        );
+      } else if(next==="Delivered") {
+        openWA(o.phone,
+          `Hi ${o.customer.split(" ")[0]}! 🍛 Your AfroCrave order ${o.id} has been delivered. Enjoy your meal! Thank you for ordering from us.`
+        );
+      }
+    }
     fetchOrders();
     setSel(null);
   };
@@ -2798,8 +2809,12 @@ function RiderApp() {
     await supabase.from("orders")
       .update({status:"Delivered"})
       .eq("id",o.id);
-    if(o.customer_phone) openWA(o.customer_phone,
-      `Hi ${o.customer_name?.split(" ")[0]}, your AfroCrave order ${o.id} has been delivered! Enjoy your meal 🍛`);
+    // Send delivery confirmation WhatsApp
+    const phone = o.customer_phone || o.phone;
+    const name = (o.customer_name || o.customer || "").split(" ")[0];
+    if(phone) openWA(phone,
+      `Hi ${name}! 🍛 Your AfroCrave order ${o.id} has been delivered. Enjoy your meal! Thank you for choosing AfroCrave Kitchen.`
+    );
     fetchOrders();
     setSel(null);
   };

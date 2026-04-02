@@ -1388,17 +1388,19 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
     return{...c,[m.id]:{...c[m.id],qty}};
   });
 
-  const categories = ["All",...new Set(menuItems.map(m=>m.category))];
+  const categories = ["All",...CATEGORY_ORDER.filter(c=>
+    menuItems.some(m=>m.category===c))];
   const shown = menuItems.filter(m=>{
     const cm = catFilter==="All"||m.category===catFilter;
     const sm = !search||m.name.toLowerCase().includes(search.toLowerCase());
     return cm&&sm;
   });
   const chefPicks = menuItems.filter(m=>m.chef_pick).slice(0,4);
+  const CATEGORY_ORDER = ["Snacks","Rice Dishes","Nigerian Soups","Cakes"];
   const categoryMap = {
+    "Snacks":        {emoji:"🥟", color:"#FFF1E2"},
     "Rice Dishes":   {emoji:"🍛", color:"#FFF1E2"},
     "Nigerian Soups":{emoji:"🫕", color:"#FFF1E2"},
-    "Snacks":        {emoji:"🥟", color:"#FFF1E2"},
     "Cakes":         {emoji:"🎂", color:"#FFF1E2"},
   };
 
@@ -1608,7 +1610,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
             Browse menu
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {categories.filter(c=>c!=="All").map(cat=>(
+            {CATEGORY_ORDER.filter(c=>menuItems.some(m=>m.category===c)).map(cat=>(
               <button key={cat}
                 onClick={()=>{setCatFilter(cat);navigateTo("menu");}}
                 style={{background:B.bg,border:`1.5px solid ${B.border}`,
@@ -1909,7 +1911,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
           </div>
         )}
 
-        {[...new Set(shown.map(m=>m.category))].map(cat=>(
+        {CATEGORY_ORDER.filter(c=>shown.some(m=>m.category===c)).map(cat=>(
           <div key={cat}>
             {/* Category divider */}
             <div style={{display:"flex",alignItems:"center",gap:8,

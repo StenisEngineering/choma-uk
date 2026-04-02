@@ -1379,7 +1379,6 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
   const subtotal   = cartItems.reduce((s,i)=>s+i.price*i.qty,0);
   const deliveryFee= delivery?.fee||0;
   const total      = subtotal+deliveryFee;
-  const fmt        = v=>`£${v.toFixed(2)}`;
 
   // Category display order — defined early so all screens can use it
   const CATEGORY_ORDER = ["Snacks","Rice Dishes","Nigerian Soups","Cakes"];

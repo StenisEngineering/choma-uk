@@ -54,8 +54,8 @@ const B = {
   // Opening hours
   openingHours: "Mon-Sat: 11am - 9pm",
   openDays:     [1,2,3,4,5,6], // 0=Sun,1=Mon,...,6=Sat
-  openTime:     11, // 24hr
-  closeTime:    21, // 24hr
+  openTime:     9,  // 24hr — 9am open
+  closeTime:    21, // 24hr — 9pm close
   // Delivery zones
   deliveryZones: [
     {zone:"Sunderland (SR1-SR6)", fee:"£5.00"},
@@ -964,7 +964,7 @@ export default function AfroCraveApp() {
 
   // Customer order flow
   if(page==="order") return (
-    <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}/>
+    <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)} startScreen="menu"/>
   );
 
   // Customer tracking flow
@@ -1320,10 +1320,10 @@ function StepIndicator({current}) {
   );
 }
 
-function CustomerPage({ onOrderPlaced }) {
+function CustomerPage({ onOrderPlaced, startScreen="home" }) {
   const [cart,        setCart]        = useState({});
   const [menuItems,   setMenuItems]   = useState([]);
-  const [screen,      setScreen]      = useState("home");
+  const [screen,      setScreen]      = useState(startScreen);
   const [history,     setHistory]     = useState(["home"]);
   const [catFilter,   setCatFilter]   = useState("All");
   const [search,      setSearch]      = useState("");
@@ -1399,31 +1399,22 @@ function CustomerPage({ onOrderPlaced }) {
   useEffect(()=>{
     if(!info.postcode||info.postcode.length<3) return;
     const timer = setTimeout(()=>{
-      const pc=info.postcode.toUpperCase().replace(/\s/g,"");
-      // Zone 1  -  Sunderland core £5.00
-      if(/^SR[1-6]/.test(pc))
-        setDelivery({fee:5.00,zone:"Sunderland",available:true,
-          label:"£5.00 · Sunderland delivery"});
-      // Zone 2  -  SR7/SR8 Seaham/Peterlee £7.50
-      else if(/^SR[78]/.test(pc))
-        setDelivery({fee:7.50,zone:"Seaham / Peterlee",available:true,
-          label:"£7.50 · Seaham / Peterlee"});
-      // Zone 3  -  NE37/NE38 Washington £7.50
-      else if(/^NE3[78]/.test(pc))
-        setDelivery({fee:7.50,zone:"Washington",available:true,
-          label:"£7.50 · Washington"});
-      // Zone 4  -  NE33 South Shields £8.50
-      else if(/^NE33/.test(pc))
-        setDelivery({fee:8.50,zone:"South Shields",available:true,
-          label:"£8.50 · South Shields"});
-      // Zone 5  -  Newcastle NE1-NE6 £9.50
-      else if(/^NE[1-6]/.test(pc))
-        setDelivery({fee:9.50,zone:"Newcastle",available:true,
-          label:"£9.50 · Newcastle"});
-      // Out of zone
-      else if(pc.length>=5)
+      const result = calculateDelivery(info.postcode);
+      if(!result){
+        setDelivery(null);
+        return;
+      }
+      if(!result.available){
         setDelivery({fee:0,zone:"Outside area",available:false,
           label:"Sorry, we don't deliver to this postcode yet"});
+        return;
+      }
+      setDelivery({
+        fee: result.fee,
+        zone: result.label,
+        available: true,
+        label: `£${result.fee.toFixed(2)} · ${result.label}`,
+      });
     }, 400);
     return ()=>clearTimeout(timer);
   },[info.postcode]);
@@ -1738,35 +1729,34 @@ function CustomerPage({ onOrderPlaced }) {
         </div>
 
         {/* Trust signals */}
-        <div style={{background:B.bg,border:`1px solid ${B.border}`,
-          borderRadius:14,padding:"14px",marginBottom:20}}>
-          <div style={{fontSize:12,fontWeight:800,color:B.text,
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:13,fontWeight:800,color:B.text,
             textTransform:"uppercase",letterSpacing:0.5,marginBottom:12}}>
             Why order from us
           </div>
-          {[
-            {icon:"🍲", title:"Freshly prepared",
-             desc:"Every dish cooked to order  -  no batch cooking, no reheating"},
-            {icon:"🇳🇬", title:"Authentic Nigerian recipes",
-             desc:"Home-style cooking using traditional ingredients and techniques"},
-            {icon:"🔒", title:"Secure payment",
-             desc:"Stripe-powered card payments  -  your data is always protected"},
-            {icon:"💬", title:"WhatsApp support",
-             desc:"Real person available  -  message us any time during opening hours"},
-          ].map((t,i)=>(
-            <div key={i} style={{display:"flex",gap:12,
-              paddingBottom:i<3?12:0,marginBottom:i<3?12:0,
-              borderBottom:i<3?`1px solid ${B.divider}`:"none"}}>
-              <div style={{fontSize:22,flexShrink:0,marginTop:1}}>{t.icon}</div>
-              <div>
-                <div style={{fontSize:13,fontWeight:700,color:B.text,
-                  marginBottom:2}}>{t.title}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[
+              {icon:"🍲", title:"Freshly prepared",
+               desc:"Cooked to order, no reheating"},
+              {icon:"🇳🇬", title:"Authentic Nigerian",
+               desc:"Traditional recipes & ingredients"},
+              {icon:"🔒", title:"Secure payment",
+               desc:"Stripe-powered, data protected"},
+              {icon:"💬", title:"WhatsApp support",
+               desc:"Real person during opening hours"},
+            ].map((t,i)=>(
+              <div key={i} style={{background:B.surface,
+                border:`1px solid ${B.border}`,
+                borderRadius:14,padding:"14px 12px"}}>
+                <div style={{fontSize:26,marginBottom:8}}>{t.icon}</div>
+                <div style={{fontSize:13,fontWeight:800,color:B.text,
+                  marginBottom:4,lineHeight:1.3}}>{t.title}</div>
                 <div style={{fontSize:12,color:B.textMid,lineHeight:1.5}}>
                   {t.desc}
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Allergen notice */}
@@ -1821,9 +1811,19 @@ function CustomerPage({ onOrderPlaced }) {
 
   if(screen==="menu") return (
     <Wrap>
+      {/* Closed banner */}
+      {!isKitchenOpen()&&(
+        <div style={{background:"#B23A30",padding:"10px 16px",
+          display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:"#fff",flexShrink:0}}/>
+          <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>
+            We are currently closed · Mon-Sat 9am-9pm · Last orders 8:30pm
+          </span>
+        </div>
+      )}
       {/* Dark header with search */}
       <div style={{background:`linear-gradient(135deg,#100802,#261204,#3A1808,#4A2A14)`,
-        padding:"14px 16px 16px",position:"sticky",top:0,zIndex:100,
+        padding:"14px 16px 16px",position:"sticky",top:isKitchenOpen()?0:36,zIndex:100,
         width:"100%",boxSizing:"border-box"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
@@ -4522,6 +4522,7 @@ function AdminPanel({ fromStaff=false }) {
 
       </div>
     </div>
+
   );
 }
 

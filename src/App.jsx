@@ -2477,8 +2477,9 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
             borderRadius:16,padding:16,marginBottom:16}}>
             {[
               ["Account name","AfroCrave Kitchen Ltd"],
-              ["Sort code","XX-XX-XX"],
-              ["Account number","XXXXXXXX"],
+              ["Sort code","04-06-05"],
+              ["Account number","30990466"],
+              ["Bank","Tide"],
               ["Amount",fmt(total)],
               ["Reference","Your order ID"],
             ].map(([l,v])=>(

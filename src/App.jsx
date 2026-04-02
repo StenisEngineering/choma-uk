@@ -58,13 +58,13 @@ const B = {
   closeTime:    21, // 24hr — 9pm close
   // Delivery zones
   deliveryZones: [
-    {zone:"Sunderland (SR1-SR6)",         fee:"£5.00"},
-    {zone:"Seaham (SR7)",                  fee:"£5.75"},
-    {zone:"Peterlee (SR8)",                fee:"£8.75"},
-    {zone:"Washington (NE37-NE38)",        fee:"£6.75"},
-    {zone:"South Shields (NE33)",          fee:"£7.50"},
-    {zone:"Newcastle (NE1-NE6)",           fee:"from £8.00"},
-    {zone:"County Durham (DH postcodes)",  fee:"from £5.75"},
+    {zone:"Sunderland (SR1-SR6)",        fee:"£5.00"},
+    {zone:"Seaham (SR7)",                fee:"£5.75"},
+    {zone:"Peterlee (SR8)",              fee:"£8.75"},
+    {zone:"Washington (NE37-NE38)",      fee:"£7.25"},
+    {zone:"South Shields (NE33)",        fee:"£9.50"},
+    {zone:"Newcastle (NE1-NE6)",         fee:"£11.75+"},
+    {zone:"County Durham (DH)",          fee:"from £6.50"},
   ],
 };
 
@@ -4492,13 +4492,13 @@ function AdminPanel({ fromStaff=false }) {
                 Delivery areas
               </div>
               {[
-                ["SR1-SR6",   "Sunderland",              "£5.00"],
-                ["SR7",       "Seaham",                  "£5.75"],
-                ["SR8",       "Peterlee",                "£8.75"],
-                ["NE37-NE38", "Washington",              "£6.75"],
-                ["NE33",      "South Shields",           "£7.50"],
-                ["NE1-NE6",   "Newcastle",               "from £8.00"],
-                ["DH1-DH6",   "County Durham",           "from £5.75"],
+                ["SR1-SR6",   "Sunderland",       "£5.00"],
+                ["SR7",       "Seaham",           "£5.75"],
+                ["SR8",       "Peterlee",         "£8.75"],
+                ["NE37-NE38", "Washington",       "£7.25"],
+                ["NE33",      "South Shields",    "£9.50"],
+                ["NE1-NE6",   "Newcastle",        "£11.75+"],
+                ["DH postcodes", "County Durham", "from £6.50"],
               ].map(([pc,area,fee])=>(
                 <div key={pc} style={{display:"flex",
                   justifyContent:"space-between",alignItems:"center",
@@ -4543,6 +4543,7 @@ function AdminPanel({ fromStaff=false }) {
     </div>
   );
 }
+
 
 function PrivacyPolicy({ onBack }) {
   return (

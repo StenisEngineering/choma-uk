@@ -1381,6 +1381,15 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
   const total      = subtotal+deliveryFee;
   const fmt        = v=>`£${v.toFixed(2)}`;
 
+  // Category display order — defined early so all screens can use it
+  const CATEGORY_ORDER = ["Snacks","Rice Dishes","Nigerian Soups","Cakes"];
+  const categoryMap = {
+    "Snacks":        {emoji:"🥟", color:"#FFF1E2"},
+    "Rice Dishes":   {emoji:"🍛", color:"#FFF1E2"},
+    "Nigerian Soups":{emoji:"🫕", color:"#FFF1E2"},
+    "Cakes":         {emoji:"🎂", color:"#FFF1E2"},
+  };
+
   const addItem    = m=>setCart(c=>({...c,[m.id]:{...m,qty:(c[m.id]?.qty||0)+1}}));
   const removeItem = m=>setCart(c=>{
     const qty=(c[m.id]?.qty||0)-1;
@@ -1396,13 +1405,6 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
     return cm&&sm;
   });
   const chefPicks = menuItems.filter(m=>m.chef_pick).slice(0,4);
-  const CATEGORY_ORDER = ["Snacks","Rice Dishes","Nigerian Soups","Cakes"];
-  const categoryMap = {
-    "Snacks":        {emoji:"🥟", color:"#FFF1E2"},
-    "Rice Dishes":   {emoji:"🍛", color:"#FFF1E2"},
-    "Nigerian Soups":{emoji:"🫕", color:"#FFF1E2"},
-    "Cakes":         {emoji:"🎂", color:"#FFF1E2"},
-  };
 
   useEffect(()=>{
     if(!info.postcode||info.postcode.length<3) return;

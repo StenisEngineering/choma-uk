@@ -1,9 +1,16 @@
 {
   "rewrites": [
-    { "source": "/staff", "destination": "/" },
-    { "source": "/staff/(.*)", "destination": "/" },
-    { "source": "/rider", "destination": "/" },
-    { "source": "/rider/(.*)", "destination": "/" },
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/staff",
+      "destination": "/staff.html"
+    },
+    {
+      "source": "/staff/(.*)",
+      "destination": "/staff.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

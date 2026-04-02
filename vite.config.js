@@ -1,19 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Always produce fresh builds — no stale cache
     rollupOptions: {
+      input: {
+        main:  resolve(__dirname, 'index.html'),
+        staff: resolve(__dirname, 'staff.html'),
+      },
       output: {
-        // Add timestamp to filenames so browser always loads fresh
         entryFileNames: `assets/[name].[hash].js`,
         chunkFileNames: `assets/[name].[hash].js`,
         assetFileNames: `assets/[name].[hash].[ext]`,
       }
     }
   },
-  // Clear cache on every dev server start
   cacheDir: '.vite',
 })

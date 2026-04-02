@@ -1492,6 +1492,21 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
           borderRadius:"50%",background:"rgba(217,154,43,0.07)"}}/>
         <div style={{position:"absolute",bottom:-20,left:-20,width:120,height:120,
           borderRadius:"50%",background:"rgba(184,92,22,0.1)"}}/>
+        {/* Open/Closed badge */}
+        <div style={{display:"flex",justifyContent:"center",marginBottom:10,
+          position:"relative",zIndex:1}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:6,
+            background:isKitchenOpen()?"rgba(46,125,50,0.35)":"rgba(178,58,48,0.35)",
+            border:`1px solid ${isKitchenOpen()?"rgba(46,125,50,0.7)":"rgba(178,58,48,0.7)"}`,
+            borderRadius:20,padding:"6px 14px"}}>
+            <div style={{width:8,height:8,borderRadius:"50%",
+              background:isKitchenOpen()?"#4CAF50":"#ef5350",flexShrink:0}}/>
+            <span style={{fontSize:12,fontWeight:700,color:"#fff"}}>
+              {isKitchenOpen()?"Open now · Mon-Sat 9am-9pm":"Closed · Opens Mon-Sat 9am"}
+            </span>
+          </div>
+        </div>
+
         {/* Logo + name */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,
           position:"relative",zIndex:1}}>
@@ -1505,20 +1520,10 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
               AUTHENTIC NIGERIAN HOME COOKING
             </div>
           </div>
-          {/* Open/Closed badge */}
-          <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5,
-            background:isKitchenOpen()?"rgba(46,125,50,0.3)":"rgba(178,58,48,0.3)",
-            border:`1px solid ${isKitchenOpen()?"rgba(46,125,50,0.6)":"rgba(178,58,48,0.6)"}`,
-            borderRadius:20,padding:"4px 10px",flexShrink:0}}>
-            <div style={{width:7,height:7,borderRadius:"50%",
-              background:isKitchenOpen()?"#4CAF50":"#ef5350"}}/>
-            <span style={{fontSize:11,fontWeight:700,color:"#fff"}}>
-              {isKitchenOpen()?"Open now":"Closed"}
-            </span>
-          </div>
+
         </div>
         {/* Hero text */}
-        <div style={{position:"relative",zIndex:1,marginBottom:16}}>
+        <div style={{position:"relative",zIndex:1,marginBottom:16,textAlign:"center"}}>
           <div style={{fontSize:26,fontWeight:900,color:"#fff",lineHeight:1.2,
             letterSpacing:-0.5,marginBottom:6}}>
             Fresh Nigerian food,<br/>
@@ -1529,7 +1534,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
             Home cooked to order  -  freshly prepared using authentic Nigerian recipes.
             No preservatives. Real food, real flavour.
           </div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
             {[
               {icon:<Clock size={11}/>, text:"45-75 min"},
               {icon:<MapPin size={11}/>, text:"Sunderland & NE"},
@@ -1565,7 +1570,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
               Mon - Sat
             </div>
             <div style={{fontSize:12,color:B.textMid,marginTop:1}}>
-              11:00am - 9:00pm
+              9:00am - 9:00pm
             </div>
           </div>
           <div style={{background:B.bg,border:`1px solid ${B.border}`,
@@ -3024,7 +3029,7 @@ function CookDashboard() {
                 </div>
               </div>
               {/* Items */}
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
                 {(o.items||[]).map((it,i)=>(
                   <div key={i} style={{background:"#F4F1EE",borderRadius:6,
                     padding:"3px 8px",fontSize:13,fontWeight:700,color:"#1F1A17"}}>
@@ -3233,7 +3238,7 @@ function RiderApp() {
                 textTransform:"uppercase",letterSpacing:0.5,marginBottom:6}}>
                 Items
               </div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
                 {(sel.items||[]).map((it,i)=>(
                   <div key={i} style={{background:"#fff",borderRadius:6,
                     padding:"3px 8px",fontSize:13,fontWeight:700,color:"#1F1A17"}}>
@@ -4522,7 +4527,6 @@ function AdminPanel({ fromStaff=false }) {
 
       </div>
     </div>
-
   );
 }
 

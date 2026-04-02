@@ -58,11 +58,13 @@ const B = {
   closeTime:    21, // 24hr — 9pm close
   // Delivery zones
   deliveryZones: [
-    {zone:"Sunderland (SR1-SR6)", fee:"£5.00"},
-    {zone:"Seaham / Peterlee (SR7-SR8)", fee:"£7.50"},
-    {zone:"Washington (NE37-NE38)", fee:"£7.50"},
-    {zone:"South Shields (NE33)", fee:"£8.50"},
-    {zone:"Newcastle (NE1-NE6)", fee:"£9.50"},
+    {zone:"Sunderland (SR1-SR6)",         fee:"£5.00"},
+    {zone:"Seaham (SR7)",                  fee:"£5.75"},
+    {zone:"Peterlee (SR8)",                fee:"£8.75"},
+    {zone:"Washington (NE37-NE38)",        fee:"£6.75"},
+    {zone:"South Shields (NE33)",          fee:"£7.50"},
+    {zone:"Newcastle (NE1-NE6)",           fee:"from £8.00"},
+    {zone:"County Durham (DH postcodes)",  fee:"from £5.75"},
   ],
 };
 
@@ -1365,7 +1367,11 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
     supabase.from("menu_items")
       .select("id,name,description,price,category,emoji,portion,calories,allergens,is_halal,is_vegan,available,image_url,chef_pick")
       .eq("available",true).order("category")
-      .then(({data})=>{ if(data) setMenuItems(data); });
+      .then(({data, error})=>{
+        if(error) console.error("Menu fetch error:", error);
+        if(data) setMenuItems(data);
+        else if(!error) console.warn("Menu returned no data");
+      });
   },[]);
 
   const cartItems  = Object.values(cart);
@@ -1492,22 +1498,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
           borderRadius:"50%",background:"rgba(217,154,43,0.07)"}}/>
         <div style={{position:"absolute",bottom:-20,left:-20,width:120,height:120,
           borderRadius:"50%",background:"rgba(184,92,22,0.1)"}}/>
-        {/* Open/Closed badge */}
-        <div style={{display:"flex",justifyContent:"center",marginBottom:10,
-          position:"relative",zIndex:1}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:6,
-            background:isKitchenOpen()?"rgba(46,125,50,0.35)":"rgba(178,58,48,0.35)",
-            border:`1px solid ${isKitchenOpen()?"rgba(46,125,50,0.7)":"rgba(178,58,48,0.7)"}`,
-            borderRadius:20,padding:"6px 14px"}}>
-            <div style={{width:8,height:8,borderRadius:"50%",
-              background:isKitchenOpen()?"#4CAF50":"#ef5350",flexShrink:0}}/>
-            <span style={{fontSize:12,fontWeight:700,color:"#fff"}}>
-              {isKitchenOpen()?"Open now · Mon-Sat 9am-9pm":"Closed · Opens Mon-Sat 9am"}
-            </span>
-          </div>
-        </div>
-
-        {/* Logo + name */}
+        {/* Logo + name + status */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,
           position:"relative",zIndex:1}}>
           <img src="/Logo_AfrocraveKitchen.webp" alt="AfroCrave"
@@ -1519,6 +1510,16 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
             <div style={{fontSize:10,color:"#D99A2B",fontWeight:700,letterSpacing:0.5}}>
               AUTHENTIC NIGERIAN HOME COOKING
             </div>
+          </div>
+          <div style={{marginLeft:"auto",display:"inline-flex",alignItems:"center",gap:5,
+            background:isKitchenOpen()?"rgba(46,125,50,0.35)":"rgba(178,58,48,0.35)",
+            border:`1px solid ${isKitchenOpen()?"rgba(46,125,50,0.6)":"rgba(178,58,48,0.6)"}`,
+            borderRadius:20,padding:"5px 12px",flexShrink:0}}>
+            <div style={{width:7,height:7,borderRadius:"50%",
+              background:isKitchenOpen()?"#4CAF50":"#ef5350"}}/>
+            <span style={{fontSize:11,fontWeight:700,color:"#fff"}}>
+              {isKitchenOpen()?"Open now":"Closed"}
+            </span>
           </div>
 
         </div>
@@ -1786,7 +1787,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
 
         {/* Footer */}
         <div style={{borderTop:`1px solid ${B.border}`,
-          paddingTop:16,paddingBottom:80,textAlign:"center"}}>
+          paddingTop:16,paddingBottom:24,textAlign:"center"}}>
           <div style={{fontSize:12,color:B.textMid,lineHeight:1.8,marginBottom:8}}>
             <strong style={{color:B.text}}>AfroCrave Kitchen Ltd</strong><br/>
             Company No. 17119134 · Registered in England & Wales<br/>
@@ -1890,10 +1891,21 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
       <div style={{padding:"10px 16px 0"}}>
         {shown.length===0&&(
           <div style={{textAlign:"center",padding:"48px 20px"}}>
-            <div style={{fontSize:48,marginBottom:12}}>🍳</div>
-            <div style={{fontSize:16,fontWeight:700,color:B.text}}>
-              {search?"No dishes found":"Loading menu…"}
+            <div style={{fontSize:48,marginBottom:12}}>
+              {menuItems.length===0?"⏳":"🍳"}
             </div>
+            <div style={{fontSize:16,fontWeight:700,color:B.text}}>
+              {search
+                ? "No dishes found"
+                : menuItems.length===0
+                  ? "Loading menu..."
+                  : "No items in this category"}
+            </div>
+            {menuItems.length===0&&(
+              <div style={{fontSize:13,color:B.textMid,marginTop:8}}>
+                Please check your connection
+              </div>
+            )}
           </div>
         )}
 
@@ -4480,11 +4492,13 @@ function AdminPanel({ fromStaff=false }) {
                 Delivery areas
               </div>
               {[
-                ["SR1-SR6","Sunderland","5.00"],
-                ["SR7-SR8","Seaham / Peterlee","7.50"],
-                ["NE37-NE38","Washington","7.50"],
-                ["NE33","South Shields","8.50"],
-                ["NE1-NE6","Newcastle","9.50"],
+                ["SR1-SR6",   "Sunderland",              "£5.00"],
+                ["SR7",       "Seaham",                  "£5.75"],
+                ["SR8",       "Peterlee",                "£8.75"],
+                ["NE37-NE38", "Washington",              "£6.75"],
+                ["NE33",      "South Shields",           "£7.50"],
+                ["NE1-NE6",   "Newcastle",               "from £8.00"],
+                ["DH1-DH6",   "County Durham",           "from £5.75"],
               ].map(([pc,area,fee])=>(
                 <div key={pc} style={{display:"flex",
                   justifyContent:"space-between",alignItems:"center",
@@ -4529,7 +4543,6 @@ function AdminPanel({ fromStaff=false }) {
     </div>
   );
 }
-
 
 function PrivacyPolicy({ onBack }) {
   return (

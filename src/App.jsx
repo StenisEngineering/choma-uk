@@ -920,7 +920,14 @@ function StaffApp() {
 // ════════════════════════════════════════════════════════════════
 export default function AfroCraveApp() {
   const [showSplash,   setShowSplash]   = useState(true);
-  const [page,         setPage]         = useState("landing"); // landing | order | tracking
+  const [page,         setPage]         = useState(()=>{
+    // If cart has items in localStorage, restore order page
+    try {
+      const saved = localStorage.getItem('afrocrave_cart');
+      if(saved && Object.keys(JSON.parse(saved)).length > 0) return "order";
+    } catch {}
+    return "landing";
+  });
   const [view,         setView]         = useState("cook");
   const [cookBadge,    setCookBadge]    = useState(0);
   const [riderBadge,   setRiderBadge]   = useState(0);
@@ -966,7 +973,14 @@ export default function AfroCraveApp() {
 
   // Customer order flow
   if(page==="order") return (
-    <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)} startScreen="menu"/>
+    <CustomerPage onOrderPlaced={()=>setCookBadge(b=>b+1)}
+      startScreen={()=>{
+        try {
+          const saved = localStorage.getItem('afrocrave_cart');
+          if(saved && Object.keys(JSON.parse(saved)).length > 0) return "cart";
+        } catch {}
+        return "menu";
+      }}/>
   );
 
   // Customer tracking flow
@@ -1323,6 +1337,7 @@ function StepIndicator({current}) {
 }
 
 function CustomerPage({ onOrderPlaced, startScreen="home" }) {
+  const resolvedStart = typeof startScreen==="function" ? startScreen() : startScreen;
   const [cart,        setCart]        = useState(()=>{
     try {
       const saved = localStorage.getItem('afrocrave_cart');
@@ -1330,15 +1345,7 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
     } catch { return {}; }
   });
   const [menuItems,   setMenuItems]   = useState([]);
-  const [screen,      setScreen]      = useState(()=>{
-    // On refresh, return to menu not landing — but only if cart has items
-    try {
-      const savedCart = localStorage.getItem('afrocrave_cart');
-      const hasItems = savedCart && Object.keys(JSON.parse(savedCart)).length > 0;
-      if(hasItems && startScreen==="home") return "menu";
-    } catch {}
-    return startScreen;
-  });
+  const [screen, setScreen] = useState(resolvedStart);
   const [history,     setHistory]     = useState(["home"]);
   const [catFilter,   setCatFilter]   = useState("All");
   const [search,      setSearch]      = useState("");

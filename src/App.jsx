@@ -1323,9 +1323,22 @@ function StepIndicator({current}) {
 }
 
 function CustomerPage({ onOrderPlaced, startScreen="home" }) {
-  const [cart,        setCart]        = useState({});
+  const [cart,        setCart]        = useState(()=>{
+    try {
+      const saved = localStorage.getItem('afrocrave_cart');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
   const [menuItems,   setMenuItems]   = useState([]);
-  const [screen,      setScreen]      = useState(startScreen);
+  const [screen,      setScreen]      = useState(()=>{
+    // On refresh, return to menu not landing — but only if cart has items
+    try {
+      const savedCart = localStorage.getItem('afrocrave_cart');
+      const hasItems = savedCart && Object.keys(JSON.parse(savedCart)).length > 0;
+      if(hasItems && startScreen==="home") return "menu";
+    } catch {}
+    return startScreen;
+  });
   const [history,     setHistory]     = useState(["home"]);
   const [catFilter,   setCatFilter]   = useState("All");
   const [search,      setSearch]      = useState("");
@@ -1388,6 +1401,12 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
     "Nigerian Soups":{emoji:"🫕", color:"#FFF1E2"},
     "Cakes":         {emoji:"🎂", color:"#FFF1E2"},
   };
+
+  // Persist cart to localStorage on every change
+  useEffect(()=>{
+    try { localStorage.setItem('afrocrave_cart', JSON.stringify(cart)); }
+    catch {}
+  },[cart]);
 
   const addItem    = m=>setCart(c=>({...c,[m.id]:{...m,qty:(c[m.id]?.qty||0)+1}}));
   const removeItem = m=>setCart(c=>{
@@ -2416,6 +2435,8 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
       }]);
       if(error){setPayStep("form");setPayError("Could not save order  -  please try again.");return;}
       if(onOrderPlaced) onOrderPlaced();
+      // Clear cart from localStorage after order placed
+      try { localStorage.removeItem('afrocrave_cart'); } catch {}
       const res = await fetch("/api/create-checkout",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -2443,6 +2464,8 @@ function CustomerPage({ onOrderPlaced, startScreen="home" }) {
         status:"New", payment_method:"bank", paid:false,
       }]);
       if(onOrderPlaced) onOrderPlaced();
+      // Clear cart from localStorage after order placed
+      try { localStorage.removeItem('afrocrave_cart'); } catch {}
       setPayStep("bank_pending");
     };
 
